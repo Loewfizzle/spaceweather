@@ -150,7 +150,7 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
       <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
         <div className="text-center">
           <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
-          <div className="text-[#64748b] text-sm">Loading live OVATION data…</div>
+          <div className="text-[#64748b] text-sm">Syncing OVATION aurora data…</div>
         </div>
       </div>
     );

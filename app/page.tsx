@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Cloud,
 } from "lucide-react";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
 import {
   Chart as ChartJS,
@@ -34,7 +34,10 @@ const AuroraMap = dynamic(() => import("../components/AuroraMap"), {
   ssr: false,
   loading: () => (
     <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
-      <div className="text-[#64748b]">Loading interactive map...</div>
+      <div className="text-center">
+        <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
+        <div className="text-[#64748b] text-sm">Preparing live aurora map…</div>
+      </div>
     </div>
   ),
 });
@@ -48,6 +51,63 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
+);
+
+// Lightweight Suspense fallbacks matching the app's premium dark skeleton style
+const MapSectionSkeleton = () => (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
+      <div>
+        <div className="section-title">AURORA MAP — OVATION MODEL</div>
+        <div className="h-4 w-64 bg-[#1e2937] rounded animate-pulse" />
+      </div>
+      <div className="flex flex-wrap gap-2 items-center">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-8 w-20 bg-[#1e2937] rounded-full animate-pulse" />
+        ))}
+        <div className="h-8 w-28 bg-[#1e2937] rounded-full animate-pulse ml-2" />
+      </div>
+    </div>
+    <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
+      <div className="text-center">
+        <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
+        <div className="text-[#64748b] text-sm">Loading interactive map…</div>
+      </div>
+    </div>
+  </div>
+);
+
+const KpOutlookSkeleton = () => (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+    <div className="section-title">KP OUTLOOK + MICHIGAN FORECAST</div>
+    <div className="card p-6">
+      <div className="h-56 bg-[#1e2937] rounded-xl animate-pulse flex items-center justify-center">
+        <div className="text-[#64748b] text-sm">Loading Kp history…</div>
+      </div>
+      <div className="mt-5 grid sm:grid-cols-2 gap-4">
+        <div className="h-4 w-3/4 bg-[#1e2937] rounded animate-pulse" />
+        <div className="h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
+      </div>
+    </div>
+  </div>
+);
+
+const SolarActivitySkeleton = () => (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+    <div className="section-title flex items-baseline justify-between">
+      <span>SOLAR ACTIVITY</span>
+      <div className="h-3 w-56 bg-[#1e2937] rounded animate-pulse" />
+    </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="metric">
+          <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
+          <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
+          <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
+        </div>
+      ))}
+    </div>
+  </div>
 );
 
 // Alert threshold presets (module scope for stability + used by effect, handler, and render)
@@ -74,6 +134,19 @@ export default function AuroraWatch() {
 
   // New solar activity data (flares, CMEs, sunspots, coronal holes)
   const solarActivity = useSolarActivity();
+
+  // Global last updated timestamp across main data sources for perceived performance / trust
+  const lastUpdatedTimes = [
+    kpTime ? new Date(kpTime) : null,
+    solarActivity.flareTime ? new Date(solarActivity.flareTime) : null,
+    solarActivity.alertsTime ? new Date(solarActivity.alertsTime) : null,
+    solarActivity.regionsTime ? new Date(solarActivity.regionsTime) : null,
+  ].filter((d): d is Date => d !== null);
+
+  const latestGlobalUpdate =
+    lastUpdatedTimes.length > 0
+      ? new Date(Math.max(...lastUpdatedTimes.map((d) => d.getTime())))
+      : null;
 
   // Map recenter control (passed to the dynamic map)
   const [mapTarget, setMapTarget] = useState<{
@@ -341,6 +414,16 @@ export default function AuroraWatch() {
               <span className="ml-1 px-1.5 py-0.5 rounded bg-[#22c55e]/10 text-[#22c55e] text-[10px] font-medium tracking-wider">LIVE</span>
             </div>
 
+            {/* Global last updated indicator - subtle, always-visible for better perceived performance and trust */}
+            {latestGlobalUpdate && (
+              <div className="text-[10px] text-[#64748b] flex items-center gap-1" title="Most recent data across all sources">
+                <Clock className="w-3 h-3" />
+                <span className="tabular-nums">
+                  {formatDistanceToNow(latestGlobalUpdate, { addSuffix: true })}
+                </span>
+              </div>
+            )}
+
             {/* Refresh button */}
             <button
               onClick={() => {
@@ -397,7 +480,7 @@ export default function AuroraWatch() {
         <div className="section-title flex items-baseline justify-between">
           <span>CURRENT CONDITIONS</span>
           <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
-            {kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : 'loading…'} • auto
+            {kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : 'syncing…'} • auto
           </span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -464,218 +547,224 @@ export default function AuroraWatch() {
       </div>
 
       {/* SOLAR ACTIVITY - new section: key solar drivers for aurora (after metrics, before map) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-        <div className="section-title flex items-baseline justify-between">
-          <span>SOLAR ACTIVITY</span>
-          <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
-            Key drivers of geomagnetic activity • Michigan-relevant
-          </span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {solarActivity.isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="metric">
-                <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
-                <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
-                <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
-              </div>
-            ))
-          ) : solarActivity.error ? (
-            <div className="metric col-span-2 md:col-span-4 text-red-400 text-sm">
-              Unable to load solar data. Using cached values if available.
-            </div>
-          ) : (
-            <>
-              {/* 1. Latest Solar Flares (highest priority) */}
-              <div className="metric">
-                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
-                  <Zap className="w-4 h-4" /> LATEST FLARE
-                </div>
-                <div className="text-4xl font-semibold tracking-tighter tabular-nums">
-                  {solarActivity.latestFlare?.max_class || solarActivity.latestFlare?.current_class || "—"}
-                </div>
-                <div className="text-sm text-[#64748b] -mt-1">
-                  {solarActivity.latestFlare?.max_time
-                    ? formatDistanceToNow(new Date(solarActivity.latestFlare.max_time), { addSuffix: true })
-                    : solarActivity.flareTime
-                    ? formatDistanceToNow(new Date(solarActivity.flareTime), { addSuffix: true })
-                    : "—"}
-                  {solarActivity.latestFlare?.region ? ` • Region ${solarActivity.latestFlare.region}` : ""}
-                </div>
-                <div className="text-[10px] text-[#475569] mt-1">
-                  Most recent X-ray flare. Earth-facing flares are most relevant for Michigan aurora.
-                </div>
-              </div>
-
-              {/* 2. Recent / Earth-directed CMEs */}
-              <div className="metric">
-                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
-                  <Cloud className="w-4 h-4" /> RECENT CMEs
-                </div>
-                <div className="text-2xl font-semibold tracking-tighter tabular-nums leading-tight">
-                  {solarActivity.recentCmes.length > 0
-                    ? solarActivity.recentCmes
-                        .map((c) => (c.speed ? `${c.speed} km/s` : "CME"))
-                        .join(" / ")
-                    : "—"}
-                </div>
-                <div className="text-sm text-[#64748b] -mt-1">
-                  {solarActivity.recentCmes.length > 0
-                    ? solarActivity.recentCmes[0].earthImpact || "Analyzed"
-                    : "No recent Earth-directed CMEs reported"}
-                </div>
-                <div className="text-[10px] text-[#475569] mt-1">
-                  {solarActivity.recentCmes.length > 0 && solarActivity.recentCmes[0].direction
-                    ? `${solarActivity.recentCmes[0].direction} • `
-                    : ""}
-                  Earth-directed CMEs can trigger geomagnetic storms and aurora in 1–3 days.
-                </div>
-              </div>
-
-              {/* 3. Sunspot Number + trend context */}
-              <div className="metric">
-                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
-                  <Sun className="w-4 h-4" /> SUNSPOT NUMBER
-                </div>
-                <div className="text-4xl font-semibold tracking-tighter tabular-nums">
-                  {solarActivity.sunspotNumber !== null ? solarActivity.sunspotNumber : "—"}
-                </div>
-                <div className="text-sm text-[#64748b] -mt-1">
-                  Total active regions • Higher = more flare/CME potential
-                </div>
-                <div className="text-[10px] text-[#475569] mt-1">
-                  Current solar cycle activity level. More sunspots generally mean higher aurora odds over time.
-                </div>
-              </div>
-
-              {/* 4. Coronal Holes (lighter treatment) */}
-              <div className="metric">
-                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
-                  <TrendingUp className="w-4 h-4" /> CORONAL HOLES
-                </div>
-                <div className="text-xl font-semibold tracking-tighter leading-snug">
-                  Monitor for streams
-                </div>
-                <div className="text-sm text-[#64748b] -mt-1">
-                  High-speed wind source
-                </div>
-                <div className="text-[10px] text-[#475569] mt-1">
-                  {solarActivity.coronalHoleNote}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-        <div className="text-[10px] text-[#64748b] mt-2">
-          Data from NOAA SWPC • Flares update frequently; CMEs when analyzed; sunspots daily.
-          {solarActivity.flareTime && (
-            <span className="ml-2">
-              Last flare update: {formatDistanceToNow(new Date(solarActivity.flareTime), { addSuffix: true })}
+      <Suspense fallback={<SolarActivitySkeleton />}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+          <div className="section-title flex items-baseline justify-between">
+            <span>SOLAR ACTIVITY</span>
+            <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
+              Key drivers of geomagnetic activity • Michigan-relevant
             </span>
-          )}
-        </div>
-      </div>
-
-      {/* Interactive Map Section - now live with real OVATION data */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
-          <div>
-            <div className="section-title">AURORA MAP — OVATION MODEL</div>
-            <div className="text-sm text-[#64748b]">North America • Probability of visible aurora (0–100%)</div>
           </div>
-          <div className="flex flex-wrap gap-2 items-center">
-            <button
-              className="button"
-              onClick={() => setMapTarget({ center: [45.5, -86], zoom: 5.5 })}
-            >
-              Great Lakes
-            </button>
-            <button
-              className="button"
-              onClick={() => setMapTarget({ center: [44, -85], zoom: 6 })}
-            >
-              Michigan
-            </button>
-            <button
-              className="button"
-              onClick={() => setMapTarget({ center: [39, -98], zoom: 3.5 })}
-            >
-              Continental US
-            </button>
-            <button
-              className="button"
-              onClick={() => setMapTarget({ center: [48, -100], zoom: 3 })}
-            >
-              North America
-            </button>
-
-            {/* Min prob filter - powerful control for the dense OVATION data */}
-            <div className="flex items-center gap-2 ml-2 text-xs text-[#64748b] bg-[#0f1425] px-2 py-1 rounded-full border border-[#1e2937]">
-              <span className="font-medium">Filter ≥</span>
-              <input
-                type="range"
-                min={0}
-                max={50}
-                step={1}
-                value={minProb}
-                onChange={(e) => setMinProb(parseInt(e.target.value))}
-                className="w-20 accent-[#22c55e] cursor-pointer"
-                aria-label="Minimum aurora probability to show on map"
-              />
-              <span className="tabular-nums font-mono w-8 text-right text-[#22c55e]">{minProb}%</span>
-              {minProb > 3 && (
-                <button
-                  onClick={() => setMinProb(3)}
-                  className="text-[10px] px-1.5 py-0.5 rounded bg-[#1e2937] hover:bg-[#334155] transition-colors"
-                  title="Reset filter"
-                >
-                  reset
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="text-[10px] text-[#64748b] mt-1">Drag the slider to hide low-probability areas — very useful on mobile to focus on the aurora oval.</div>
-        </div>
-
-        <AuroraMap target={mapTarget} minProb={minProb} />
-      </div>
-
-      {/* Forecast Timeline - live Chart.js Kp history */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-        <div className="section-title">KP OUTLOOK + MICHIGAN FORECAST</div>
-        <div className="card p-6">
-          <div className="h-56">
-            {kpQuery.isLoading ? (
-              <div className="h-full w-full rounded-xl bg-[#1e2937] animate-pulse flex items-center justify-center">
-                <div className="text-[#64748b] text-sm">Loading Kp history…</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {solarActivity.isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="metric">
+                  <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
+                  <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
+                  <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
+                </div>
+              ))
+            ) : solarActivity.error ? (
+              <div className="metric col-span-2 md:col-span-4 text-red-400 text-sm">
+                Unable to load solar data. Using cached values if available.
               </div>
-            ) : kpHistory.length > 0 ? (
-              <Line data={chartData} options={chartOptions} />
             ) : (
-              <div className="flex h-full items-center justify-center text-[#64748b]">No recent Kp data</div>
+              <>
+                {/* 1. Latest Solar Flares (highest priority) */}
+                <div className="metric">
+                  <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                    <Zap className="w-4 h-4" /> LATEST FLARE
+                  </div>
+                  <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+                    {solarActivity.latestFlare?.max_class || solarActivity.latestFlare?.current_class || "—"}
+                  </div>
+                  <div className="text-sm text-[#64748b] -mt-1">
+                    {solarActivity.latestFlare?.max_time
+                      ? formatDistanceToNow(new Date(solarActivity.latestFlare.max_time), { addSuffix: true })
+                      : solarActivity.flareTime
+                      ? formatDistanceToNow(new Date(solarActivity.flareTime), { addSuffix: true })
+                      : "—"}
+                    {solarActivity.latestFlare?.region ? ` • Region ${solarActivity.latestFlare.region}` : ""}
+                  </div>
+                  <div className="text-[10px] text-[#475569] mt-1">
+                    Most recent X-ray flare. Earth-facing flares are most relevant for Michigan aurora.
+                  </div>
+                </div>
+
+                {/* 2. Recent / Earth-directed CMEs */}
+                <div className="metric">
+                  <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                    <Cloud className="w-4 h-4" /> RECENT CMEs
+                  </div>
+                  <div className="text-2xl font-semibold tracking-tighter tabular-nums leading-tight">
+                    {solarActivity.recentCmes.length > 0
+                      ? solarActivity.recentCmes
+                          .map((c) => (c.speed ? `${c.speed} km/s` : "CME"))
+                          .join(" / ")
+                      : "—"}
+                  </div>
+                  <div className="text-sm text-[#64748b] -mt-1">
+                    {solarActivity.recentCmes.length > 0
+                      ? solarActivity.recentCmes[0].earthImpact || "Analyzed"
+                      : "No recent Earth-directed CMEs reported"}
+                  </div>
+                  <div className="text-[10px] text-[#475569] mt-1">
+                    {solarActivity.recentCmes.length > 0 && solarActivity.recentCmes[0].direction
+                      ? `${solarActivity.recentCmes[0].direction} • `
+                      : ""}
+                    Earth-directed CMEs can trigger geomagnetic storms and aurora in 1–3 days.
+                  </div>
+                </div>
+
+                {/* 3. Sunspot Number + trend context */}
+                <div className="metric">
+                  <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                    <Sun className="w-4 h-4" /> SUNSPOT NUMBER
+                  </div>
+                  <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+                    {solarActivity.sunspotNumber !== null ? solarActivity.sunspotNumber : "—"}
+                  </div>
+                  <div className="text-sm text-[#64748b] -mt-1">
+                    Total active regions • Higher = more flare/CME potential
+                  </div>
+                  <div className="text-[10px] text-[#475569] mt-1">
+                    Current solar cycle activity level. More sunspots generally mean higher aurora odds over time.
+                  </div>
+                </div>
+
+                {/* 4. Coronal Holes (lighter treatment) */}
+                <div className="metric">
+                  <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                    <TrendingUp className="w-4 h-4" /> CORONAL HOLES
+                  </div>
+                  <div className="text-xl font-semibold tracking-tighter leading-snug">
+                    Monitor for streams
+                  </div>
+                  <div className="text-sm text-[#64748b] -mt-1">
+                    High-speed wind source
+                  </div>
+                  <div className="text-[10px] text-[#475569] mt-1">
+                    {solarActivity.coronalHoleNote}
+                  </div>
+                </div>
+              </>
             )}
           </div>
-
-          <div className="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
-            <div className="text-[#cbd5e1]">
-              <span className="font-medium text-white">Tonight (Michigan):</span> {michiganGuidance}
-            </div>
-            <div className="text-[#cbd5e1]">
-              <span className="font-medium text-white">Recent trend:</span>{" "}
-              {kpHistory.length > 1 ? (
-                kpHistory[kpHistory.length - 1].Kp > kpHistory[kpHistory.length - 2].Kp
-                  ? "Rising — elevated activity possible if trend continues."
-                  : "Stable or declining — conditions quieting."
-              ) : (
-                "Based on current solar wind and Bz."
-              )}
-            </div>
-          </div>
-          <div className="mt-3 text-[10px] text-[#64748b]">
-            Chart shows last ~36 hours of 3-hour Kp values. Full multi-day forecasts available from NOAA.
+          <div className="text-[10px] text-[#64748b] mt-2">
+            Data from NOAA SWPC • Flares update frequently; CMEs when analyzed; sunspots daily.
+            {solarActivity.flareTime && (
+              <span className="ml-2">
+                Last flare update: {formatDistanceToNow(new Date(solarActivity.flareTime), { addSuffix: true })}
+              </span>
+            )}
           </div>
         </div>
-      </div>
+      </Suspense>
+
+      {/* Interactive Map Section - now live with real OVATION data */}
+      <Suspense fallback={<MapSectionSkeleton />}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
+            <div>
+              <div className="section-title">AURORA MAP — OVATION MODEL</div>
+              <div className="text-sm text-[#64748b]">North America • Probability of visible aurora (0–100%)</div>
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <button
+                className="button"
+                onClick={() => setMapTarget({ center: [45.5, -86], zoom: 5.5 })}
+              >
+                Great Lakes
+              </button>
+              <button
+                className="button"
+                onClick={() => setMapTarget({ center: [44, -85], zoom: 6 })}
+              >
+                Michigan
+              </button>
+              <button
+                className="button"
+                onClick={() => setMapTarget({ center: [39, -98], zoom: 3.5 })}
+              >
+                Continental US
+              </button>
+              <button
+                className="button"
+                onClick={() => setMapTarget({ center: [48, -100], zoom: 3 })}
+              >
+                North America
+              </button>
+
+              {/* Min prob filter - powerful control for the dense OVATION data */}
+              <div className="flex items-center gap-2 ml-2 text-xs text-[#64748b] bg-[#0f1425] px-2 py-1 rounded-full border border-[#1e2937]">
+                <span className="font-medium">Filter ≥</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={50}
+                  step={1}
+                  value={minProb}
+                  onChange={(e) => setMinProb(parseInt(e.target.value))}
+                  className="w-20 accent-[#22c55e] cursor-pointer"
+                  aria-label="Minimum aurora probability to show on map"
+                />
+                <span className="tabular-nums font-mono w-8 text-right text-[#22c55e]">{minProb}%</span>
+                {minProb > 3 && (
+                  <button
+                    onClick={() => setMinProb(3)}
+                    className="text-[10px] px-1.5 py-0.5 rounded bg-[#1e2937] hover:bg-[#334155] transition-colors"
+                    title="Reset filter"
+                  >
+                    reset
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="text-[10px] text-[#64748b] mt-1">Drag the slider to hide low-probability areas — very useful on mobile to focus on the aurora oval.</div>
+          </div>
+
+          <AuroraMap target={mapTarget} minProb={minProb} />
+        </div>
+      </Suspense>
+
+      {/* Forecast Timeline - live Chart.js Kp history */}
+      <Suspense fallback={<KpOutlookSkeleton />}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+          <div className="section-title">KP OUTLOOK + MICHIGAN FORECAST</div>
+          <div className="card p-6">
+            <div className="h-56">
+              {kpQuery.isLoading ? (
+                <div className="h-full w-full rounded-xl bg-[#1e2937] animate-pulse flex items-center justify-center">
+                  <div className="text-[#64748b] text-sm">Syncing recent Kp data…</div>
+                </div>
+              ) : kpHistory.length > 0 ? (
+                <Line data={chartData} options={chartOptions} />
+              ) : (
+                <div className="flex h-full items-center justify-center text-[#64748b]">No recent Kp data</div>
+              )}
+            </div>
+
+            <div className="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
+              <div className="text-[#cbd5e1]">
+                <span className="font-medium text-white">Tonight (Michigan):</span> {michiganGuidance}
+              </div>
+              <div className="text-[#cbd5e1]">
+                <span className="font-medium text-white">Recent trend:</span>{" "}
+                {kpHistory.length > 1 ? (
+                  kpHistory[kpHistory.length - 1].Kp > kpHistory[kpHistory.length - 2].Kp
+                    ? "Rising — elevated activity possible if trend continues."
+                    : "Stable or declining — conditions quieting."
+                ) : (
+                  "Based on current solar wind and Bz."
+                )}
+              </div>
+            </div>
+            <div className="mt-3 text-[10px] text-[#64748b]">
+              Chart shows last ~36 hours of 3-hour Kp values. Full multi-day forecasts available from NOAA.
+            </div>
+          </div>
+        </div>
+      </Suspense>
 
       {/* Notifications v2 — persistent toggle, live MI risk badge, user threshold presets */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
