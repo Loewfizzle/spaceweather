@@ -7,6 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { useOvationData } from "../lib/use-noaa-data";
 
 // Fix Leaflet default icon issue in Next.js
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -21,6 +22,7 @@ interface MapTarget {
 
 interface AuroraMapProps {
   target: MapTarget | null;
+  minProb?: number;
 }
 
 function MapController({ target }: { target: MapTarget | null }) {
@@ -38,11 +40,11 @@ function MapController({ target }: { target: MapTarget | null }) {
   return null;
 }
 
-export default function AuroraMap({ target }: AuroraMapProps) {
+export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
   const { data: ovationData, isLoading, error } = useOvationData();
 
-  // Filter for North America performance + relevance
-  // lon: -170 to -50, lat: 20 to 75, prob > 3
+  // Filter for North America performance + relevance + user min prob
+  // lon: -170 to -50, lat: 20 to 75, prob >= minProb
   const points = useMemo(() => {
     if (!ovationData?.coordinates) return [];
     return ovationData.coordinates
@@ -52,14 +54,14 @@ export default function AuroraMap({ target }: AuroraMapProps) {
           lon <= -50 &&
           lat >= 20 &&
           lat <= 75 &&
-          prob >= 3
+          prob >= minProb
         );
       })
       .map(([lon, lat, prob]) => ({
         position: [lat, lon] as [number, number], // Leaflet is [lat, lon]
         prob: Math.round(prob),
       }));
-  }, [ovationData]);
+  }, [ovationData, minProb]);
 
   const getColor = (prob: number) => {
     if (prob < 10) return "#22c55e"; // green - low
@@ -78,7 +80,8 @@ export default function AuroraMap({ target }: AuroraMapProps) {
     return (
       <div className="map-placeholder h-[420px] sm:h-[480px] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-pulse text-[#64748b]">Loading OVATION data...</div>
+          <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
+          <div className="text-[#64748b] text-sm">Loading live OVATION data…</div>
         </div>
       </div>
     );
@@ -86,8 +89,11 @@ export default function AuroraMap({ target }: AuroraMapProps) {
 
   if (error) {
     return (
-      <div className="map-placeholder h-[420px] sm:h-[480px] flex items-center justify-center text-red-400">
-        Failed to load aurora data. Please try refreshing.
+      <div className="map-placeholder h-[420px] sm:h-[480px] flex items-center justify-center">
+        <div className="text-center text-red-400 text-sm">
+          Failed to load aurora data.<br />
+          <button onClick={() => window.location.reload()} className="underline mt-1">Try refreshing</button>
+        </div>
       </div>
     );
   }
@@ -136,11 +142,13 @@ export default function AuroraMap({ target }: AuroraMapProps) {
       <div className="absolute bottom-3 right-3 z-10 rounded-lg border border-[#1e2937] bg-[#0f1425]/95 px-3 py-2 text-[10px] text-[#cbd5e1] shadow">
         <div className="mb-1 font-medium tracking-wide">Aurora Probability</div>
         <div className="flex items-center gap-2">
-          <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#22c55e" }} /> Low (3-10%)
+          <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#22c55e" }} /> Low
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#eab308" }} /> Med
-          <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#a78bfa" }} /> High (50%+)
+          <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#a78bfa" }} /> High
         </div>
-        <div className="mt-1 text-[9px] text-[#64748b]">Filtered NA points • {points.length} shown</div>
+        <div className="mt-1 text-[9px] text-[#64748b]">
+          min {minProb}% • {points.length} points shown (NA)
+        </div>
       </div>
     </div>
   );

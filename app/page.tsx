@@ -10,7 +10,7 @@ import {
   Zap,
   RefreshCw,
 } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import {
   Chart as ChartJS,
@@ -23,6 +23,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import { formatDistanceToNow } from "date-fns";
 import { useCurrentConditions, useKpData } from "../lib/use-noaa-data";
 
 // SSR-safe Leaflet map
@@ -66,26 +67,41 @@ export default function AuroraWatch() {
     zoom: number;
   } | null>(null);
 
+  // User controllable min probability for map points (makes OVATION viz much more useful)
+  const [minProb, setMinProb] = useState(3);
+
+  // For relative "last updated" that refreshes
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000); // update every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   // Kp history for chart
   const kpQuery = useKpData();
-  const kpHistory = kpQuery.data || [];
+  const kpHistory = useMemo(() => kpQuery.data || [], [kpQuery.data]);
 
-  // Notifications state
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
-  const [lastNotified, setLastNotified] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("aw_last_notified");
-      return stored ? parseInt(stored, 10) : 0;
+  // Notifications state - permission is checked on demand / after user action
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      return Notification.permission;
     }
-    return 0;
+    return "default";
   });
 
-  // Check initial permission
+  // Use ref for throttle to avoid setState in effect (lint + perf)
+  const lastNotifiedRef = useRef<number>(0);
+
+  // Load throttle from storage once on mount (client only)
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      setNotificationPermission(Notification.permission);
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("aw_last_notified");
+      if (stored) lastNotifiedRef.current = parseInt(stored, 10);
     }
   }, []);
+
+  // Update permission after user explicitly requests it (in handleEnableAlerts)
 
   const chartData = useMemo(() => {
     // Last ~12 entries (~36 hours of 3h Kp data)
@@ -147,7 +163,8 @@ export default function AuroraWatch() {
     if (notificationPermission !== "granted" || kp === null || isLoading) return;
 
     const now = Date.now();
-    if (now - lastNotified < 1000 * 60 * 30) return;
+    const last = lastNotifiedRef.current;
+    if (now - last < 1000 * 60 * 30) return;
 
     const likelyForMI =
       kp >= 4 ||
@@ -161,14 +178,14 @@ export default function AuroraWatch() {
           body,
           tag: "aurorawatch-mi",
         });
-        setLastNotified(now);
+        lastNotifiedRef.current = now;
         localStorage.setItem("aw_last_notified", now.toString());
       } catch (e) {
         // Notifications may be blocked or not supported in some contexts
         console.warn("Could not show notification", e);
       }
     }
-  }, [kp, maxAuroraProbNA, bz, notificationPermission, isLoading, lastNotified]);
+  }, [kp, maxAuroraProbNA, bz, notificationPermission, isLoading]);
 
   const formatTime = (iso?: string | null) => {
     if (!iso) return "—";
@@ -247,7 +264,10 @@ export default function AuroraWatch() {
 
             <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#64748b]">
               <Clock className="w-3.5 h-3.5" />
-              {formatTime(kpTime)}
+              <span>
+                {kpTime ? formatDistanceToNow(new Date(kpTime), { addSuffix: true }) : "—"}
+              </span>
+              <span className="ml-1 px-1.5 py-0.5 rounded bg-[#22c55e]/10 text-[#22c55e] text-[10px] font-medium tracking-wider">LIVE</span>
             </div>
 
             {/* Refresh button */}
@@ -291,61 +311,81 @@ export default function AuroraWatch() {
               </p>
             </div>
           </div>
-          {isLoading && <div className="mt-2 text-xs text-[#64748b]">Loading live data…</div>}
+          {isLoading && (
+            <div className="mt-3 h-4 w-3/4 bg-[#1e2937] rounded animate-pulse" />
+          )}
           {error && <div className="mt-2 text-xs text-red-400">Error loading data. Using cached values if available.</div>}
         </div>
       </div>
 
-      {/* Metrics Row - now live */}
+      {/* Metrics Row - now live with skeleton loading */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-        <div className="section-title">CURRENT CONDITIONS</div>
+        <div className="section-title flex items-baseline justify-between">
+          <span>CURRENT CONDITIONS</span>
+          <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
+            {kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : 'loading…'} • auto
+          </span>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="metric">
-            <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
-              <Wind className="w-4 h-4" /> SOLAR WIND
-            </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
-              {solarWindSpeed !== null ? Math.round(solarWindSpeed) : "—"}
-            </div>
-            <div className="text-sm text-[#64748b] -mt-1">
-              km/s{" "}
-              <span className="text-xs ml-1">
-                • {solarWindDensity !== null ? solarWindDensity.toFixed(1) : "—"} p/cm³
-              </span>
-            </div>
-          </div>
+          {isLoading ? (
+            // Simple skeletons for premium loading feel
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="metric">
+                <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
+                <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
+                <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
+              </div>
+            ))
+          ) : (
+            <>
+              <div className="metric">
+                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                  <Wind className="w-4 h-4" /> SOLAR WIND
+                </div>
+                <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+                  {solarWindSpeed !== null ? Math.round(solarWindSpeed) : "—"}
+                </div>
+                <div className="text-sm text-[#64748b] -mt-1">
+                  km/s{" "}
+                  <span className="text-xs ml-1">
+                    • {solarWindDensity !== null ? solarWindDensity.toFixed(1) : "—"} p/cm³
+                  </span>
+                </div>
+              </div>
 
-          <div className="metric">
-            <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
-              <Zap className="w-4 h-4" /> IMF Bz
-            </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
-              {bz !== null ? bz.toFixed(1) : "—"}
-            </div>
-            <div className="text-sm text-[#64748b] -mt-1">
-              nT <span className="text-xs ml-1">• Southward = favorable</span>
-            </div>
-          </div>
+              <div className="metric">
+                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                  <Zap className="w-4 h-4" /> IMF Bz
+                </div>
+                <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+                  {bz !== null ? bz.toFixed(1) : "—"}
+                </div>
+                <div className="text-sm text-[#64748b] -mt-1">
+                  nT <span className="text-xs ml-1">• Southward = favorable</span>
+                </div>
+              </div>
 
-          <div className="metric">
-            <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
-              <Activity className="w-4 h-4" /> PLANETARY Kp
-            </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
-              {kp !== null ? kp.toFixed(1) : "—"}
-            </div>
-            <div className="text-sm text-[#64748b] -mt-1">Latest 3-hour • {kp !== null && kp < 4 ? "Quiet" : "Active"}</div>
-          </div>
+              <div className="metric">
+                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                  <Activity className="w-4 h-4" /> PLANETARY Kp
+                </div>
+                <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+                  {kp !== null ? kp.toFixed(1) : "—"}
+                </div>
+                <div className="text-sm text-[#64748b] -mt-1">Latest 3-hour • {kp !== null && kp < 4 ? "Quiet" : "Active"}</div>
+              </div>
 
-          <div className="metric">
-            <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
-              <Satellite className="w-4 h-4" /> OVATION (NA)
-            </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
-              {maxAuroraProbNA !== null ? Math.round(maxAuroraProbNA) : "—"}%
-            </div>
-            <div className="text-sm text-[#64748b] -mt-1">Max probability (North America)</div>
-          </div>
+              <div className="metric">
+                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                  <Satellite className="w-4 h-4" /> OVATION (NA)
+                </div>
+                <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+                  {maxAuroraProbNA !== null ? Math.round(maxAuroraProbNA) : "—"}%
+                </div>
+                <div className="text-sm text-[#64748b] -mt-1">Max probability (North America)</div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -356,7 +396,7 @@ export default function AuroraWatch() {
             <div className="section-title">AURORA MAP — OVATION MODEL</div>
             <div className="text-sm text-[#64748b]">North America • Probability of visible aurora (0–100%)</div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             <button
               className="button"
               onClick={() => setMapTarget({ center: [45.5, -86], zoom: 5.5 })}
@@ -381,10 +421,36 @@ export default function AuroraWatch() {
             >
               North America
             </button>
+
+            {/* Min prob filter - powerful control for the dense OVATION data */}
+            <div className="flex items-center gap-2 ml-2 text-xs text-[#64748b] bg-[#0f1425] px-2 py-1 rounded-full border border-[#1e2937]">
+              <span className="font-medium">Filter ≥</span>
+              <input
+                type="range"
+                min={0}
+                max={50}
+                step={1}
+                value={minProb}
+                onChange={(e) => setMinProb(parseInt(e.target.value))}
+                className="w-20 accent-[#22c55e] cursor-pointer"
+                aria-label="Minimum aurora probability to show on map"
+              />
+              <span className="tabular-nums font-mono w-8 text-right text-[#22c55e]">{minProb}%</span>
+              {minProb > 3 && (
+                <button
+                  onClick={() => setMinProb(3)}
+                  className="text-[10px] px-1.5 py-0.5 rounded bg-[#1e2937] hover:bg-[#334155] transition-colors"
+                  title="Reset filter"
+                >
+                  reset
+                </button>
+              )}
+            </div>
           </div>
+          <div className="text-[10px] text-[#64748b] mt-1">Drag the slider to hide low-probability areas — very useful on mobile to focus on the aurora oval.</div>
         </div>
 
-        <AuroraMap target={mapTarget} />
+        <AuroraMap target={mapTarget} minProb={minProb} />
 
         <div className="mt-2 text-[10px] text-[#475569] flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-[#22c55e]" /> Low &nbsp;
@@ -399,7 +465,9 @@ export default function AuroraWatch() {
         <div className="card p-6">
           <div className="h-56">
             {kpQuery.isLoading ? (
-              <div className="flex h-full items-center justify-center text-[#64748b]">Loading Kp history...</div>
+              <div className="h-full w-full rounded-xl bg-[#1e2937] animate-pulse flex items-center justify-center">
+                <div className="text-[#64748b] text-sm">Loading Kp history…</div>
+              </div>
             ) : kpHistory.length > 0 ? (
               <Line data={chartData} options={chartOptions} />
             ) : (

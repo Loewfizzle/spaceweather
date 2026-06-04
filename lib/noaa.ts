@@ -61,15 +61,16 @@ export async function fetchKpIndex(): Promise<KpEntry[]> {
 
 // Solar wind plasma (speed, density) - 6-hour window
 export async function fetchPlasma(): Promise<PlasmaEntry[]> {
-  const raw = await fetchJson<any[]>(
+  const raw = await fetchJson<string[][]>(
     "https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json"
   );
   if (!raw || raw.length < 2) return [];
-  const headers = raw[0] as string[];
-  return raw.slice(1).map((row: any[]) => {
-    const obj: any = {};
+  const headers = raw[0];
+  return raw.slice(1).map((row) => {
+    const obj: Record<string, number | string> = {};
     headers.forEach((h, i) => {
-      obj[h] = typeof row[i] === "string" ? parseFloat(row[i]) : row[i];
+      const val = row[i];
+      obj[h] = typeof val === "string" ? parseFloat(val) : val;
     });
     return obj as PlasmaEntry;
   });
@@ -77,15 +78,16 @@ export async function fetchPlasma(): Promise<PlasmaEntry[]> {
 
 // IMF / magnetic field (Bz is key for aurora)
 export async function fetchMag(): Promise<MagEntry[]> {
-  const raw = await fetchJson<any[]>(
+  const raw = await fetchJson<string[][]>(
     "https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json"
   );
   if (!raw || raw.length < 2) return [];
-  const headers = raw[0] as string[];
-  return raw.slice(1).map((row: any[]) => {
-    const obj: any = {};
+  const headers = raw[0];
+  return raw.slice(1).map((row) => {
+    const obj: Record<string, number | string> = {};
     headers.forEach((h, i) => {
-      obj[h] = typeof row[i] === "string" ? parseFloat(row[i]) : row[i];
+      const val = row[i];
+      obj[h] = typeof val === "string" ? parseFloat(val) : val;
     });
     return obj as MagEntry;
   });
