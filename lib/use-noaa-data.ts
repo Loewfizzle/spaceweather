@@ -12,6 +12,15 @@ import {
   KpEntry,
   PlasmaEntry,
   MagEntry,
+  fetchXrayFlaresLatest,
+  XrayFlare,
+  fetchAlerts,
+  Alert,
+  parseRecentCmes,
+  CmeSummary,
+  fetchSolarRegions,
+  SolarRegion,
+  currentSunspotNumber,
 } from "./noaa";
 
 export function useOvationData() {
@@ -131,5 +140,62 @@ export function useCurrentConditions() {
       solarWind.plasma.refetch();
       solarWind.mag.refetch();
     },
+  };
+}
+
+// --- Solar Activity hook for the new SOLAR ACTIVITY section ---
+export function useSolarActivity() {
+  const flaresQuery = useQuery<XrayFlare[]>({
+    queryKey: ["xray-flares"],
+    queryFn: fetchXrayFlaresLatest,
+    staleTime: 1000 * 60 * 5, // 5 minutes - flares update frequently
+  });
+
+  const alertsQuery = useQuery<Alert[]>({
+    queryKey: ["alerts"],
+    queryFn: fetchAlerts,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const regionsQuery = useQuery<SolarRegion[]>({
+    queryKey: ["solar-regions"],
+    queryFn: fetchSolarRegions,
+    staleTime: 1000 * 60 * 30, // 30 min is fine for sunspots
+  });
+
+  const latestFlare = flaresQuery.data && flaresQuery.data.length > 0
+    ? flaresQuery.data[0]
+    : null;
+
+  const recentCmes: CmeSummary[] = parseRecentCmes(alertsQuery.data);
+
+  const sunspotNumber = currentSunspotNumber(regionsQuery.data);
+
+  // Light treatment for coronal holes - no dedicated high-frequency JSON, use contextual note
+  const coronalHoleNote =
+    "Coronal holes can launch high-speed solar wind streams that enhance aurora potential 2–4 days later. Monitor solar wind speed and Bz for impacts.";
+
+  const isLoading =
+    flaresQuery.isLoading || alertsQuery.isLoading || regionsQuery.isLoading;
+  const error = flaresQuery.error || alertsQuery.error || regionsQuery.error;
+
+  const refetchAll = () => {
+    flaresQuery.refetch();
+    alertsQuery.refetch();
+    regionsQuery.refetch();
+  };
+
+  return {
+    latestFlare,
+    recentCmes,
+    sunspotNumber,
+    coronalHoleNote,
+    isLoading,
+    error,
+    refetchAll,
+    // raw for freshness if needed
+    flareTime: latestFlare?.max_time || latestFlare?.time_tag || null,
+    alertsTime: alertsQuery.data && alertsQuery.data.length > 0 ? alertsQuery.data[0].issue_datetime : null,
+    regionsTime: regionsQuery.data && regionsQuery.data.length > 0 ? regionsQuery.data[0]?.Obsdate : null,
   };
 }

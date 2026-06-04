@@ -165,3 +165,94 @@ export function getAuroraMarkerRadius(prob: number): number {
   if (prob < 40) return 3.5;
   return 4.5; // larger for the strongest areas
 }
+
+// --- Solar Activity Types & Fetchers (for new SOLAR ACTIVITY section) ---
+
+export type XrayFlare = {
+  time_tag: string;
+  satellite: number;
+  current_class?: string;
+  max_class?: string;
+  begin_time?: string;
+  max_time?: string;
+  end_time?: string;
+  region?: number;
+};
+
+export async function fetchXrayFlaresLatest(): Promise<XrayFlare[]> {
+  return fetchJson<XrayFlare[]>(
+    "https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json"
+  );
+}
+
+export type Alert = {
+  product_id: string;
+  issue_datetime: string;
+  message: string;
+};
+
+export async function fetchAlerts(): Promise<Alert[]> {
+  return fetchJson<Alert[]>(
+    "https://services.swpc.noaa.gov/products/alerts.json"
+  );
+}
+
+export type CmeSummary = {
+  time: string;
+  speed?: number;
+  direction?: string;
+  earthImpact?: string;
+  note: string;
+};
+
+/** Parse recent Earth-directed or relevant CMEs from alerts messages (lightweight extraction). */
+export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
+  if (!alerts || alerts.length === 0) return [];
+  const cmeAlerts = alerts.filter((a) =>
+    /CME|Coronal Mass Ejection/i.test(a.message)
+  );
+  return cmeAlerts.slice(0, 2).map((a) => {
+    const msg = a.message;
+    const speedMatch = msg.match(/(\d{3,4})\s*km\/s/i);
+    const dirMatch = msg.match(/Earth-directed|full halo|partial halo|halo CME/i);
+    const impactNote = /Earth-directed|will reach Earth|geomagnetic storm/i.test(msg)
+      ? "Likely Earth impact"
+      : "Monitor for effects";
+    // Extract a short summary
+    const lines = msg.split("\n").filter(Boolean);
+    const shortNote = lines.slice(0, 3).join(" ").replace(/\s+/g, " ").substring(0, 140) + "...";
+    return {
+      time: a.issue_datetime,
+      speed: speedMatch ? parseInt(speedMatch[1], 10) : undefined,
+      direction: dirMatch ? dirMatch[0] : undefined,
+      earthImpact: impactNote,
+      note: shortNote,
+    };
+  });
+}
+
+export type SolarRegion = {
+  Obsdate?: string;
+  Numspot?: number;
+  Region?: string;
+  // other fields available but we only need for total
+};
+
+export async function fetchSolarRegions(): Promise<SolarRegion[]> {
+  return fetchJson<SolarRegion[]>(
+    "https://services.swpc.noaa.gov/json/solar_regions.json"
+  );
+}
+
+/** Compute total sunspot number from latest reported regions. */
+export function currentSunspotNumber(regions: SolarRegion[] | undefined): number | null {
+  if (!regions || regions.length === 0) return null;
+  const valid = regions.filter((r) => r.Obsdate && typeof r.Numspot === "number");
+  if (valid.length === 0) return null;
+  // find most recent date
+  const dates = [...new Set(valid.map((r) => r.Obsdate!))].sort().reverse();
+  const latestDate = dates[0];
+  const todays = valid.filter((r) => r.Obsdate === latestDate);
+  const total = todays.reduce((sum, r) => sum + (r.Numspot || 0), 0);
+  return total > 0 ? total : null;
+}

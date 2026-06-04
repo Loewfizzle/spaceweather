@@ -9,6 +9,9 @@ import {
   Satellite,
   Zap,
   RefreshCw,
+  Sun,
+  TrendingUp,
+  Cloud,
 } from "lucide-react";
 import { useState, useMemo, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
@@ -24,7 +27,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { formatDistanceToNow } from "date-fns";
-import { useCurrentConditions, useKpData } from "../lib/use-noaa-data";
+import { useCurrentConditions, useKpData, useSolarActivity } from "../lib/use-noaa-data";
 
 // SSR-safe Leaflet map
 const AuroraMap = dynamic(() => import("../components/AuroraMap"), {
@@ -68,6 +71,9 @@ export default function AuroraWatch() {
     error,
     refetchAll,
   } = useCurrentConditions();
+
+  // New solar activity data (flares, CMEs, sunspots, coronal holes)
+  const solarActivity = useSolarActivity();
 
   // Map recenter control (passed to the dynamic map)
   const [mapTarget, setMapTarget] = useState<{
@@ -337,12 +343,15 @@ export default function AuroraWatch() {
 
             {/* Refresh button */}
             <button
-              onClick={() => refetchAll()}
-              disabled={isLoading}
+              onClick={() => {
+                refetchAll();
+                solarActivity.refetchAll();
+              }}
+              disabled={isLoading || solarActivity.isLoading}
               className="button flex items-center gap-1.5 text-xs px-3 py-1 min-h-0"
               title="Refresh live data"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading || solarActivity.isLoading ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
@@ -450,6 +459,119 @@ export default function AuroraWatch() {
                 <div className="text-sm text-[#64748b] -mt-1">Max probability (North America)</div>
               </div>
             </>
+          )}
+        </div>
+      </div>
+
+      {/* SOLAR ACTIVITY - new section: key solar drivers for aurora (after metrics, before map) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+        <div className="section-title flex items-baseline justify-between">
+          <span>SOLAR ACTIVITY</span>
+          <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
+            Key drivers of geomagnetic activity • Michigan-relevant
+          </span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {solarActivity.isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="metric">
+                <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
+                <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
+                <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
+              </div>
+            ))
+          ) : solarActivity.error ? (
+            <div className="metric col-span-2 md:col-span-4 text-red-400 text-sm">
+              Unable to load solar data. Using cached values if available.
+            </div>
+          ) : (
+            <>
+              {/* 1. Latest Solar Flares (highest priority) */}
+              <div className="metric">
+                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                  <Zap className="w-4 h-4" /> LATEST FLARE
+                </div>
+                <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+                  {solarActivity.latestFlare?.max_class || solarActivity.latestFlare?.current_class || "—"}
+                </div>
+                <div className="text-sm text-[#64748b] -mt-1">
+                  {solarActivity.latestFlare?.max_time
+                    ? formatDistanceToNow(new Date(solarActivity.latestFlare.max_time), { addSuffix: true })
+                    : solarActivity.flareTime
+                    ? formatDistanceToNow(new Date(solarActivity.flareTime), { addSuffix: true })
+                    : "—"}
+                  {solarActivity.latestFlare?.region ? ` • Region ${solarActivity.latestFlare.region}` : ""}
+                </div>
+                <div className="text-[10px] text-[#475569] mt-1">
+                  Most recent X-ray flare. Earth-facing flares are most relevant for Michigan aurora.
+                </div>
+              </div>
+
+              {/* 2. Recent / Earth-directed CMEs */}
+              <div className="metric">
+                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                  <Cloud className="w-4 h-4" /> RECENT CMEs
+                </div>
+                <div className="text-2xl font-semibold tracking-tighter tabular-nums leading-tight">
+                  {solarActivity.recentCmes.length > 0
+                    ? solarActivity.recentCmes
+                        .map((c) => (c.speed ? `${c.speed} km/s` : "CME"))
+                        .join(" / ")
+                    : "—"}
+                </div>
+                <div className="text-sm text-[#64748b] -mt-1">
+                  {solarActivity.recentCmes.length > 0
+                    ? solarActivity.recentCmes[0].earthImpact || "Analyzed"
+                    : "No recent Earth-directed CMEs reported"}
+                </div>
+                <div className="text-[10px] text-[#475569] mt-1">
+                  {solarActivity.recentCmes.length > 0 && solarActivity.recentCmes[0].direction
+                    ? `${solarActivity.recentCmes[0].direction} • `
+                    : ""}
+                  Earth-directed CMEs can trigger geomagnetic storms and aurora in 1–3 days.
+                </div>
+              </div>
+
+              {/* 3. Sunspot Number + trend context */}
+              <div className="metric">
+                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                  <Sun className="w-4 h-4" /> SUNSPOT NUMBER
+                </div>
+                <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+                  {solarActivity.sunspotNumber !== null ? solarActivity.sunspotNumber : "—"}
+                </div>
+                <div className="text-sm text-[#64748b] -mt-1">
+                  Total active regions • Higher = more flare/CME potential
+                </div>
+                <div className="text-[10px] text-[#475569] mt-1">
+                  Current solar cycle activity level. More sunspots generally mean higher aurora odds over time.
+                </div>
+              </div>
+
+              {/* 4. Coronal Holes (lighter treatment) */}
+              <div className="metric">
+                <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+                  <TrendingUp className="w-4 h-4" /> CORONAL HOLES
+                </div>
+                <div className="text-xl font-semibold tracking-tighter leading-snug">
+                  Monitor for streams
+                </div>
+                <div className="text-sm text-[#64748b] -mt-1">
+                  High-speed wind source
+                </div>
+                <div className="text-[10px] text-[#475569] mt-1">
+                  {solarActivity.coronalHoleNote}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="text-[10px] text-[#64748b] mt-2">
+          Data from NOAA SWPC • Flares update frequently; CMEs when analyzed; sunspots daily.
+          {solarActivity.flareTime && (
+            <span className="ml-2">
+              Last flare update: {formatDistanceToNow(new Date(solarActivity.flareTime), { addSuffix: true })}
+            </span>
           )}
         </div>
       </div>
