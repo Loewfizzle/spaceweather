@@ -32,8 +32,8 @@ export default function AuroraWatchLoading() {
         </div>
       </header>
 
-      {/* Hero + Michigan Guidance skeleton */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-8">
+      {/* Hero + Tonight’s Outlook + Sky skeleton (mirrors real prominent decision cluster at top) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-6">
         <div className="max-w-3xl">
           <div className="h-3 w-40 bg-[#1e2937] rounded animate-pulse mb-3" />
           <div className="space-y-2 mb-5">
@@ -43,16 +43,30 @@ export default function AuroraWatchLoading() {
           <div className="h-6 w-80 bg-[#1e2937] rounded animate-pulse" />
         </div>
 
-        {/* Michigan guidance card skeleton */}
-        <div className="mt-8 card p-6 max-w-2xl border-l-4 border-l-[#22c55e]">
-          <div className="flex items-start gap-4">
-            <div className="w-5 h-5 bg-[#1e2937] rounded mt-0.5 shrink-0 animate-pulse" />
-            <div className="flex-1 space-y-2">
+        {/* Tonight’s Michigan Outlook card skeleton */}
+        <div className="mt-8 card p-6 max-w-3xl border-l-4 border-l-[#22c55e]">
+          <div className="space-y-3">
+            <div className="h-3 w-48 bg-[#1e2937] rounded animate-pulse" />
+            <div className="flex items-baseline gap-3">
+              <div className="h-8 w-32 bg-[#1e2937] rounded animate-pulse" />
               <div className="h-4 w-24 bg-[#1e2937] rounded animate-pulse" />
-              <div className="h-4 w-full bg-[#1e2937] rounded animate-pulse" />
-              <div className="h-4 w-5/6 bg-[#1e2937] rounded animate-pulse" />
-              <div className="h-3 w-48 bg-[#1e2937] rounded animate-pulse mt-2" />
             </div>
+            <div className="h-4 w-full bg-[#1e2937] rounded animate-pulse" />
+            <div className="h-3 w-5/6 bg-[#1e2937] rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Sky Conditions grid skeleton (3 locations) */}
+        <div className="mt-6 max-w-3xl">
+          <div className="h-3 w-44 bg-[#1e2937] rounded animate-pulse mb-3" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="metric p-4">
+                <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse mb-2" />
+                <div className="h-6 w-12 bg-[#1e2937] rounded animate-pulse mb-1" />
+                <div className="h-3 w-24 bg-[#1e2937] rounded animate-pulse" />
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -74,24 +88,7 @@ export default function AuroraWatchLoading() {
         </div>
       </div>
 
-      {/* SOLAR ACTIVITY skeleton */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-        <div className="section-title flex items-baseline justify-between">
-          <span>SOLAR ACTIVITY</span>
-          <div className="h-3 w-56 bg-[#1e2937] rounded animate-pulse" />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="metric">
-              <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
-              <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
-              <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Interactive Map Section skeleton */}
+      {/* Interactive Map Section skeleton (moved higher to match real IA — primary visual early) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
           <div>
@@ -126,6 +123,23 @@ export default function AuroraWatchLoading() {
             <div className="h-4 w-3/4 bg-[#1e2937] rounded animate-pulse" />
             <div className="h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
           </div>
+        </div>
+      </div>
+
+      {/* SOLAR ACTIVITY skeleton (after Kp to match reorganized page) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+        <div className="section-title flex items-baseline justify-between">
+          <span>SOLAR ACTIVITY</span>
+          <div className="h-3 w-56 bg-[#1e2937] rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="metric">
+              <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
+              <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
+              <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
+            </div>
+          ))}
         </div>
       </div>
 
