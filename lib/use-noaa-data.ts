@@ -21,6 +21,8 @@ import {
   fetchSolarRegions,
   SolarRegion,
   currentSunspotNumber,
+  getTonightOutlook,
+  TonightOutlook,
 } from "./noaa";
 
 export function useOvationData() {
@@ -199,3 +201,5 @@ export function useSolarActivity() {
     regionsTime: regionsQuery.data && regionsQuery.data.length > 0 ? regionsQuery.data[0]?.Obsdate : null,
   };
 }
+
+export { getTonightOutlook, type TonightOutlook };

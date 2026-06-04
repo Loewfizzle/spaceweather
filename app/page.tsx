@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  MapPin,
   Clock,
   Bell,
   Wind,
@@ -28,7 +27,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { formatDistanceToNow } from "date-fns";
-import { useCurrentConditions, useKpData, useSolarActivity } from "../lib/use-noaa-data";
+import { useCurrentConditions, useKpData, useSolarActivity, getTonightOutlook } from "../lib/use-noaa-data";
 
 // SSR-safe Leaflet map
 const AuroraMap = dynamic(() => import("../components/AuroraMap"), {
@@ -135,6 +134,14 @@ export default function AuroraWatch() {
 
   // New solar activity data (flares, CMEs, sunspots, coronal holes)
   const solarActivity = useSolarActivity();
+
+  const tonightOutlook = getTonightOutlook(
+    kp,
+    bz,
+    maxAuroraProbNA,
+    solarActivity.recentCmes,
+    solarActivity.latestFlare
+  );
 
   // Global last updated timestamp across main data sources for perceived performance / trust
   const lastUpdatedTimes = [
@@ -445,7 +452,7 @@ export default function AuroraWatch() {
         </div>
       </header>
 
-      {/* Hero + Michigan Guidance */}
+      {/* Hero + Tonight’s Michigan Outlook */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-8">
         <div className="max-w-3xl">
           <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-3">LIVE • NOAA SWPC DATA</div>
@@ -458,24 +465,57 @@ export default function AuroraWatch() {
           </p>
         </div>
 
-        {/* Michigan-specific guidance card - now dynamic */}
-        <div className="mt-8 card p-6 max-w-2xl border-l-4 border-l-[#22c55e]">
-          <div className="flex items-start gap-4">
-            <MapPin className="w-5 h-5 text-[#22c55e] mt-0.5 shrink-0" />
-            <div className="text-sm leading-relaxed">
-              <div className="font-semibold mb-1.5 text-[#22c55e]">Michigan viewers</div>
-              <p className="text-[#cbd5e1]">{michiganGuidance}</p>
-              <p className="mt-2 text-[#64748b] text-xs">
-                {bz !== null
-                  ? `Current Bz: ${bz.toFixed(1)} nT (southward is favorable).`
-                  : "Watch for sudden increases in solar wind or southward Bz."}
-              </p>
+        {/* Tonight’s Michigan Outlook — new prominent hero card */}
+        <div 
+          className="mt-8 card p-6 max-w-3xl border-l-4" 
+          style={{ borderLeftColor: tonightOutlook.accentColor }}
+        >
+          <div>
+            <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-2">
+              TONIGHT’S MICHIGAN OUTLOOK
             </div>
+
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
+              <div 
+                className="text-4xl font-semibold tracking-tighter"
+                style={{ color: tonightOutlook.accentColor }}
+              >
+                {tonightOutlook.status}
+              </div>
+              {tonightOutlook.drivers && tonightOutlook.status !== 'Loading' && (
+                <div className="text-sm text-[#64748b] tabular-nums font-medium">
+                  {tonightOutlook.drivers}
+                </div>
+              )}
+            </div>
+
+            <p className="text-[#cbd5e1] text-[15px] leading-relaxed mb-3">
+              {tonightOutlook.message}
+            </p>
+
+            {tonightOutlook.reasons.length > 0 && (
+              <div className="space-y-1 mb-1">
+                {tonightOutlook.reasons.map((reason, idx) => (
+                  <div key={idx} className="text-sm text-[#94a3b8] flex items-start gap-2">
+                    <span 
+                      className="mt-1.5 block h-1 w-1 rounded-full flex-shrink-0" 
+                      style={{ backgroundColor: tonightOutlook.accentColor }} 
+                    />
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {isLoading && (
-            <div className="mt-3 h-4 w-3/4 bg-[#1e2937] rounded animate-pulse" />
+
+          {(isLoading || solarActivity.isLoading) && (
+            <div className="mt-3 h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
           )}
-          {error && <div className="mt-2 text-xs text-red-400">Error loading data. Using cached values if available.</div>}
+          {(error || solarActivity.error) && (
+            <div className="mt-2 text-xs text-red-400">
+              Error loading outlook. Using cached values if available.
+            </div>
+          )}
         </div>
       </div>
 

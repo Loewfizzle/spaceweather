@@ -256,3 +256,93 @@ export function currentSunspotNumber(regions: SolarRegion[] | undefined): number
   const total = todays.reduce((sum, r) => sum + (r.Numspot || 0), 0);
   return total > 0 ? total : null;
 }
+
+export interface TonightOutlook {
+  status: 'Excellent' | 'Good' | 'Moderate' | 'Low' | 'Quiet' | 'Loading';
+  message: string;
+  reasons: string[];
+  accentColor: string;
+  drivers?: string;
+}
+
+/**
+ * Compute a realistic, Michigan-focused outlook for tonight based on current conditions.
+ * Prioritizes Kp + Bz + OVATION prob, with solar activity as supporting context.
+ */
+export function getTonightOutlook(
+  kp: number | null,
+  bz: number | null,
+  maxAuroraProbNA: number | null,
+  recentCmes: CmeSummary[] = [],
+  latestFlare: XrayFlare | null = null
+): TonightOutlook {
+  if (kp === null) {
+    return {
+      status: 'Loading',
+      message: 'Loading current conditions…',
+      reasons: [],
+      accentColor: '#64748b',
+    };
+  }
+
+  const isFavorableBz = bz !== null && bz <= -5;
+  const strongFavorableBz = bz !== null && bz <= -10;
+  const highProb = maxAuroraProbNA !== null && maxAuroraProbNA >= 20;
+  const moderateProb = maxAuroraProbNA !== null && maxAuroraProbNA >= 10;
+
+  const hasEarthCme = recentCmes.length > 0 && recentCmes.some(
+    (c) => c.earthImpact?.includes('impact') || /Earth-directed/i.test(c.note || c.direction || '')
+  );
+
+  const significantFlare = latestFlare && (
+    latestFlare.max_class?.startsWith('M') || latestFlare.max_class?.startsWith('X')
+  );
+
+  let status: TonightOutlook['status'];
+  let message: string;
+  let reasons: string[] = [];
+  let accentColor: string;
+
+  if (kp >= 7 || (kp >= 6 && (strongFavorableBz || highProb))) {
+    status = 'Excellent';
+    message = 'Strong chance across much of the UP + possible in northern Lower Michigan.';
+    accentColor = '#22c55e';
+    if (strongFavorableBz) reasons.push('Strong southward Bz currently boosting chances');
+    if (highProb) reasons.push('Elevated OVATION probabilities across North America');
+  } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || highProb) {
+    status = 'Good';
+    message = 'Good chance in the Upper Peninsula.';
+    accentColor = '#22c55e';
+    if (isFavorableBz) reasons.push('Southward Bz currently favorable');
+    if (highProb) reasons.push('High aurora probabilities across NA');
+  } else if (kp >= 4 || (kp >= 3 && isFavorableBz) || moderateProb || hasEarthCme) {
+    status = 'Moderate';
+    message = 'Possible in the Upper Peninsula under dark skies.';
+    accentColor = '#eab308';
+    if (isFavorableBz) reasons.push('Favorable Bz may enhance activity');
+    if (hasEarthCme) reasons.push('Recent Earth-directed CME may increase chances');
+  } else if (kp >= 3 || isFavorableBz || significantFlare) {
+    status = 'Low';
+    message = 'Low probability across Michigan.';
+    accentColor = '#f97316';
+    if (isFavorableBz) reasons.push('Southward Bz provides some opportunity');
+  } else {
+    status = 'Quiet';
+    message = 'Very low chance tonight.';
+    accentColor = '#64748b';
+  }
+
+  // Add a driver reason if we have room
+  if (reasons.length < 2 && kp >= 4) {
+    reasons.push(`Current Kp ${kp.toFixed(1)} supports activity`);
+  }
+  if (reasons.length < 2 && significantFlare) {
+    reasons.push('Recent significant flare may contribute');
+  }
+
+  reasons = reasons.slice(0, 2);
+
+  const drivers = `Kp ${kp.toFixed(1)} • Bz ${bz !== null ? bz.toFixed(1) : '—'} nT`;
+
+  return { status, message, reasons, accentColor, drivers };
+}
