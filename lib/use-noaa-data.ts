@@ -89,19 +89,26 @@ export function useCurrentConditions() {
     ? maxOvationNorthAmerica(ovationQuery.data)
     : null;
 
-  // Simple Michigan guidance logic based on latest Kp
-  const getMichiganGuidance = (kp: number | null) => {
+  // Enhanced Michigan guidance that incorporates Kp + OVATION max prob + Bz for more accurate plain-English advice.
+  // (Previously Kp-only; now aligns better with riskLevel logic while staying concise.)
+  const getMichiganGuidance = (kp: number | null, maxProb: number | null, bz: number | null) => {
     if (kp === null) return "Data loading...";
+    let text: string;
     if (kp >= 7) {
-      return "High probability of aurora visible across much of Michigan, including Lower Peninsula under dark skies.";
+      text = "High probability of aurora visible across much of Michigan, including Lower Peninsula under dark skies.";
+    } else if (kp >= 5) {
+      text = "Good chance in the Upper Peninsula; possible in northern Lower Peninsula with clear dark skies.";
+    } else if (kp >= 4) {
+      text = "Possible in the Upper Peninsula. Lower Peninsula unlikely unless skies are very dark and clear.";
+    } else {
+      text = "Low probability across Michigan. Best chances remain in the far northern Upper Peninsula.";
     }
-    if (kp >= 5) {
-      return "Good chance in the Upper Peninsula; possible in northern Lower Peninsula with clear dark skies.";
+    if (bz !== null && bz <= -5) {
+      text += " Strong southward Bz currently boosting chances.";
+    } else if (maxProb !== null && maxProb >= 20) {
+      text += " Elevated probabilities across North America increase the odds.";
     }
-    if (kp >= 4) {
-      return "Possible in the Upper Peninsula. Lower Peninsula unlikely unless skies are very dark and clear.";
-    }
-    return "Low probability across Michigan. Best chances remain in the far northern Upper Peninsula.";
+    return text;
   };
 
   return {
@@ -111,7 +118,7 @@ export function useCurrentConditions() {
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
-    michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null),
+    michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz),
     riskLevel: getMichiganRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz),
     isLoading:
       kpQuery.isLoading ||

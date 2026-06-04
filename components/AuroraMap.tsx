@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from "react-le
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useOvationData } from "../lib/use-noaa-data";
-import { filterOvationCoordinates } from "../lib/noaa";
+import { filterOvationCoordinates, getAuroraColor, getAuroraMarkerRadius } from "../lib/noaa";
 
 // leaflet.heat augments Leaflet with L.heatLayer (canvas-based, high performance for dense point data)
 declare module "leaflet" {
@@ -77,11 +77,11 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
       return;
     }
 
-    // Prepare data: [lat, lon, intensity 0-1]. Give low probs a small floor so the field is visible when filtered low.
+    // Prepare data: [lat, lon, intensity 0-1]. Use pow scaling for better visual pop on higher probs while keeping low-end subtle.
     const heatData = points.map((p) => [
       p.position[0],
       p.position[1],
-      Math.max(0.04, p.prob / 100),
+      Math.max(0.05, Math.pow(p.prob / 100, 0.7)),
     ] as [number, number, number]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,24 +126,8 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
     }));
   }, [ovationData, minProb]);
 
-  // Refined calm aurora color scale (used for high-prob marker peaks)
-  // Low values kept subtle so the heatmap field provides the smooth context
-  const getColor = (prob: number) => {
-    if (prob < 5) return "#166534"; // very low / subtle dark green
-    if (prob < 15) return "#22c55e"; // low - green
-    if (prob < 30) return "#eab308"; // moderate - yellow
-    if (prob < 50) return "#f97316"; // elevated - orange
-    return "#a78bfa"; // high - violet (stands out on dark)
-  };
-
-  const getRadius = (prob: number) => {
-    if (prob < 15) return 3;
-    if (prob < 40) return 3.5;
-    return 4.5; // larger for the strongest areas
-  };
-
   // High probability markers for precise interaction + visual pop on top of the heatmap field
-  const highProbThreshold = Math.max(minProb, 12);
+  const highProbThreshold = Math.max(minProb, 10);
   const highProbPoints = useMemo(
     () => points.filter((p) => p.prob >= highProbThreshold),
     [points, highProbThreshold]
@@ -210,10 +194,10 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
             <CircleMarker
               key={idx}
               center={p.position}
-              radius={getRadius(p.prob)}
+              radius={getAuroraMarkerRadius(p.prob)}
               pathOptions={{
-                color: getColor(p.prob),
-                fillColor: getColor(p.prob),
+                color: getAuroraColor(p.prob),
+                fillColor: getAuroraColor(p.prob),
                 fillOpacity: 0.85,
                 weight: 0.8,
               }}

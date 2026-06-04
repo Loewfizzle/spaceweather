@@ -146,3 +146,22 @@ export function maxOvationNorthAmerica(data: OvationResponse | null): number {
   if (relevant.length === 0) return 0;
   return Math.max(...relevant.map((p) => p.prob));
 }
+
+/**
+ * Premium calm aurora color scale for markers (and reference for heatmap).
+ * Subtle for low probs (so heat field provides context), stronger for high.
+ */
+export function getAuroraColor(prob: number): string {
+  if (prob < 5) return "#166534"; // very low / subtle dark green
+  if (prob < 15) return "#22c55e"; // low - green
+  if (prob < 30) return "#eab308"; // moderate - yellow
+  if (prob < 50) return "#f97316"; // elevated - orange
+  return "#a78bfa"; // high - violet (stands out on dark)
+}
+
+/** Radius for high-prob marker peaks (scaled for visual weight). */
+export function getAuroraMarkerRadius(prob: number): number {
+  if (prob < 15) return 3;
+  if (prob < 40) return 3.5;
+  return 4.5; // larger for the strongest areas
+}
