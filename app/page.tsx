@@ -47,6 +47,13 @@ ChartJS.register(
   Legend
 );
 
+// Alert threshold presets (module scope for stability + used by effect, handler, and render)
+const ALERT_THRESHOLDS = {
+  sensitive: { kp: 3, prob: 10 },
+  balanced: { kp: 4, prob: 15 },
+  strong: { kp: 5, prob: 25 },
+} as const;
+
 export default function AuroraWatch() {
   const {
     kp,
@@ -56,6 +63,7 @@ export default function AuroraWatch() {
     solarWindDensity,
     bz,
     michiganGuidance,
+    riskLevel,
     isLoading,
     error,
     refetchAll,
@@ -69,14 +77,6 @@ export default function AuroraWatch() {
 
   // User controllable min probability for map points (makes OVATION viz much more useful)
   const [minProb, setMinProb] = useState(3);
-
-  // For relative "last updated" that refreshes
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 30000); // update every 30s
-    return () => clearInterval(interval);
-  }, []);
 
   // Kp history for chart
   const kpQuery = useKpData();
@@ -100,6 +100,42 @@ export default function AuroraWatch() {
       if (stored) lastNotifiedRef.current = parseInt(stored, 10);
     }
   }, []);
+
+  // Notifications v2: persisted user prefs (enable + sensitivity for thresholds)
+  // These are independent of browser Notification.permission (which gates delivery)
+  const [alertsEnabled, setAlertsEnabledState] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const v = localStorage.getItem("aw_alerts_enabled");
+      return v === null ? true : v === "1";
+    }
+    return true;
+  });
+  const [alertSensitivity, setAlertSensitivityState] = useState<
+    "sensitive" | "balanced" | "strong"
+  >(() => {
+    if (typeof window !== "undefined") {
+      const v = localStorage.getItem("aw_alert_sensitivity") as
+        | "sensitive"
+        | "balanced"
+        | "strong"
+        | null;
+      return v === "sensitive" || v === "strong" ? v : "balanced";
+    }
+    return "balanced";
+  });
+
+  const setAlertsEnabled = (val: boolean) => {
+    setAlertsEnabledState(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("aw_alerts_enabled", val ? "1" : "0");
+    }
+  };
+  const setAlertSensitivity = (val: "sensitive" | "balanced" | "strong") => {
+    setAlertSensitivityState(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("aw_alert_sensitivity", val);
+    }
+  };
 
   // Update permission after user explicitly requests it (in handleEnableAlerts)
 
@@ -159,16 +195,24 @@ export default function AuroraWatch() {
 
   // Auto-trigger browser notification when conditions look good for Michigan
   // Throttled to avoid spam (min 30 min between notifications)
+  // Respects user alertsEnabled toggle + chosen sensitivity threshold
   useEffect(() => {
-    if (notificationPermission !== "granted" || kp === null || isLoading) return;
+    if (
+      notificationPermission !== "granted" ||
+      kp === null ||
+      isLoading ||
+      !alertsEnabled
+    )
+      return;
 
     const now = Date.now();
     const last = lastNotifiedRef.current;
     if (now - last < 1000 * 60 * 30) return;
 
+    const thresh = ALERT_THRESHOLDS[alertSensitivity];
     const likelyForMI =
-      kp >= 4 ||
-      (maxAuroraProbNA !== null && maxAuroraProbNA >= 20) ||
+      kp >= thresh.kp ||
+      (maxAuroraProbNA !== null && maxAuroraProbNA >= thresh.prob) ||
       (bz !== null && bz <= -5);
 
     if (likelyForMI) {
@@ -185,7 +229,15 @@ export default function AuroraWatch() {
         console.warn("Could not show notification", e);
       }
     }
-  }, [kp, maxAuroraProbNA, bz, notificationPermission, isLoading]);
+  }, [
+    kp,
+    maxAuroraProbNA,
+    bz,
+    notificationPermission,
+    isLoading,
+    alertsEnabled,
+    alertSensitivity,
+  ]);
 
   const formatTime = (iso?: string | null) => {
     if (!iso) return "—";
@@ -212,10 +264,11 @@ export default function AuroraWatch() {
     }
 
     if (notificationPermission === "granted") {
-      // Test notification
+      // Test notification (works even if user has toggled auto alerts off)
       try {
+        const thresh = ALERT_THRESHOLDS[alertSensitivity];
         new Notification("AuroraWatch Test", {
-          body: "This is a test. Real alerts will fire automatically when Michigan conditions look promising (Kp ≥4 or high OVATION prob).",
+          body: `Test. You will receive real alerts when Kp ≥ ${thresh.kp} or OVATION ≥ ${thresh.prob}% (or strong −Bz) for Michigan.`,
           tag: "aurorawatch-test",
         });
       } catch (e) {
@@ -228,7 +281,9 @@ export default function AuroraWatch() {
     setNotificationPermission(perm);
 
     if (perm === "granted") {
-      // Optionally fire one immediately on enable for confirmation
+      // Turn auto alerts on by default when user grants permission
+      setAlertsEnabled(true);
+      // Confirmation notification
       try {
         new Notification("AuroraWatch", {
           body: "Alerts enabled. We'll notify you when aurora looks likely over Michigan.",
@@ -261,6 +316,16 @@ export default function AuroraWatch() {
               <Activity className="w-3.5 h-3.5" />
               <span>Kp {kp !== null ? kp.toFixed(1) : "—"}</span>
             </div>
+
+            {/* Michigan risk level (new in notifications v2 polish) — always visible, MI-focused */}
+            {riskLevel && (
+              <div
+                className={`risk-pill risk-${riskLevel.toLowerCase()}`}
+                title="Current aurora visibility risk for Michigan (Kp + OVATION + Bz)"
+              >
+                MI {riskLevel}
+              </div>
+            )}
 
             <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#64748b]">
               <Clock className="w-3.5 h-3.5" />
@@ -496,30 +561,125 @@ export default function AuroraWatch() {
         </div>
       </div>
 
-      {/* Notifications - now functional */}
+      {/* Notifications v2 — persistent toggle, live MI risk badge, user threshold presets */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
-        <div className="card p-6 flex flex-col sm:flex-row gap-5 sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="mt-0.5">
-              <Bell className="w-5 h-5 text-[#64748b]" />
-            </div>
-            <div>
-              <div className="font-semibold">Get notified</div>
-              <div className="text-sm text-[#94a3b8] max-w-md">
-                Browser alerts when conditions look promising for Michigan (Kp ≥ 4 or significant OVATION probability).
-                We check on every data refresh.
+        <div className="card p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+            {/* Left: description + controls */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Bell className="w-5 h-5 text-[#64748b] shrink-0" />
+                <div className="font-semibold">Alerts for Michigan</div>
+                {riskLevel && (
+                  <span
+                    className={`risk-pill risk-${riskLevel.toLowerCase()} ml-0.5`}
+                    title="Live risk derived from Kp, max OVATION probability over North America, and Bz"
+                  >
+                    {riskLevel}
+                  </span>
+                )}
               </div>
+
+              <div className="text-sm text-[#94a3b8] max-w-md">
+                Browser notifications when Michigan conditions meet your threshold.
+                Evaluated on every data refresh (∼5 min).
+              </div>
+
+              {/* On/Off toggle (only functional once permission granted) */}
+              <div className="mt-4 flex items-center gap-3">
+                <div className="text-xs text-[#64748b]">Auto alerts</div>
+                <div className="inline-flex rounded-full border border-[#1e2937] text-xs overflow-hidden select-none">
+                  <button
+                    onClick={() => {
+                      if (notificationPermission === "granted") setAlertsEnabled(true);
+                    }}
+                    disabled={notificationPermission !== "granted"}
+                    className={`px-3 py-1 transition-colors ${
+                      alertsEnabled && notificationPermission === "granted"
+                        ? "bg-[#22c55e] text-[#05070f] font-medium"
+                        : "text-[#64748b] hover:bg-[#1e2937]"
+                    }`}
+                  >
+                    On
+                  </button>
+                  <button
+                    onClick={() => setAlertsEnabled(false)}
+                    disabled={notificationPermission !== "granted"}
+                    className={`px-3 py-1 transition-colors ${
+                      !alertsEnabled || notificationPermission !== "granted"
+                        ? "bg-[#334155] text-white"
+                        : "text-[#64748b] hover:bg-[#1e2937]"
+                    }`}
+                  >
+                    Off
+                  </button>
+                </div>
+                {notificationPermission === "granted" && alertsEnabled && (
+                  <div className="text-[10px] text-[#22c55e]">Active</div>
+                )}
+                {notificationPermission === "denied" && (
+                  <div className="text-[10px] text-red-400">Blocked in browser settings</div>
+                )}
+              </div>
+
+              {/* User threshold presets (sensitivity) */}
+              <div className="mt-4">
+                <div className="text-xs text-[#64748b] mb-1.5">Notify me for:</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {(
+                    [
+                      { key: "sensitive", label: "Sensitive", desc: "Kp ≥3 or 10%" },
+                      { key: "balanced", label: "Balanced", desc: "Kp ≥4 or 15%" },
+                      { key: "strong", label: "Strong only", desc: "Kp ≥5 or 25%" },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setAlertSensitivity(opt.key)}
+                      className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                        alertSensitivity === opt.key
+                          ? "bg-[#0f1425] border-[#22c55e] text-[#22c55e]"
+                          : "border-[#1e2937] text-[#94a3b8] hover:border-[#334155]"
+                      }`}
+                      title={opt.desc}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-1 text-[10px] text-[#475569]">
+                  Current threshold: Kp ≥ {ALERT_THRESHOLDS[alertSensitivity].kp} or OVATION ≥{" "}
+                  {ALERT_THRESHOLDS[alertSensitivity].prob}% (plus strong southward Bz)
+                </div>
+              </div>
+
               {notificationPermission === "granted" && (
-                <div className="mt-1 text-xs text-[#22c55e]">Alerts enabled — you will receive notifications automatically.</div>
+                <div className="mt-3 text-[10px] text-[#64748b]">
+                  Throttled to once per 30 min • Respects Do Not Disturb
+                </div>
+              )}
+            </div>
+
+            {/* Right: primary action */}
+            <div className="sm:shrink-0 sm:pt-1">
+              <button
+                onClick={handleEnableAlerts}
+                className="button button-primary w-full sm:w-auto justify-center min-w-[168px]"
+                disabled={notificationPermission === "denied"}
+              >
+                {notificationPermission === "granted"
+                  ? "Send test alert"
+                  : notificationPermission === "denied"
+                  ? "Notifications blocked"
+                  : "Enable browser alerts"}
+              </button>
+              {notificationPermission === "granted" && !alertsEnabled && (
+                <div className="mt-2 text-[10px] text-[#64748b] text-center sm:text-left">
+                  Auto alerts are paused
+                </div>
               )}
             </div>
           </div>
-          <button
-            onClick={handleEnableAlerts}
-            className="button button-primary w-full sm:w-auto justify-center"
-          >
-            {notificationPermission === "granted" ? "Test notification" : "Enable browser alerts"}
-          </button>
         </div>
       </div>
 

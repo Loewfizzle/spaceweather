@@ -60,6 +60,24 @@ export function useSolarWindData() {
   };
 }
 
+// Michigan-specific risk level for visibility (used by alerts UI + header badge)
+export function getMichiganRiskLevel(
+  kp: number | null,
+  maxAuroraProbNA: number | null,
+  bz: number | null
+): "Quiet" | "Moderate" | "High" {
+  if (kp === null) return "Quiet";
+  const prob = maxAuroraProbNA ?? 0;
+  const b = bz ?? 0;
+  if (kp >= 5 || prob >= 25 || b <= -8) {
+    return "High";
+  }
+  if (kp >= 4 || prob >= 15 || b <= -5) {
+    return "Moderate";
+  }
+  return "Quiet";
+}
+
 // Combined hook for current conditions + Michigan guidance
 export function useCurrentConditions() {
   const kpQuery = useKpData();
@@ -94,6 +112,7 @@ export function useCurrentConditions() {
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
     michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null),
+    riskLevel: getMichiganRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz),
     isLoading:
       kpQuery.isLoading ||
       ovationQuery.isLoading ||
