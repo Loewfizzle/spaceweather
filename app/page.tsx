@@ -27,7 +27,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { formatDistanceToNow } from "date-fns";
-import { useCurrentConditions, useKpData, useSolarActivity, getTonightOutlook } from "../lib/use-noaa-data";
+import { useCurrentConditions, useKpData, useSolarActivity, getTonightOutlook, useSkyConditions, type SkyCondition } from "../lib/use-noaa-data";
 
 // SSR-safe Leaflet map
 const AuroraMap = dynamic(() => import("../components/AuroraMap"), {
@@ -142,6 +142,8 @@ export default function AuroraWatch() {
     solarActivity.recentCmes,
     solarActivity.latestFlare
   );
+
+  const skyConditions = useSkyConditions();
 
   // Global last updated timestamp across main data sources for perceived performance / trust
   const lastUpdatedTimes = [
@@ -440,12 +442,13 @@ export default function AuroraWatch() {
               onClick={() => {
                 refetchAll();
                 solarActivity.refetchAll();
+                skyConditions.refetchAll();
               }}
-              disabled={isLoading || solarActivity.isLoading}
+              disabled={isLoading || solarActivity.isLoading || skyConditions.isLoading}
               className="button flex items-center gap-1.5 text-xs px-3 py-1 min-h-0"
               title="Refresh live data"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading || solarActivity.isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading || solarActivity.isLoading || skyConditions.isLoading ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
@@ -516,6 +519,63 @@ export default function AuroraWatch() {
               Error loading outlook. Using cached values if available.
             </div>
           )}
+        </div>
+
+        {/* Sky Conditions — cloud cover for tonight in key Michigan spots */}
+        <div className="mt-6 max-w-3xl">
+          <div className="section-title flex items-baseline justify-between mb-3">
+            <span>SKY CONDITIONS FOR TONIGHT</span>
+            {skyConditions.conditions.length > 0 && (
+              <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
+                Open-Meteo • updates ~45 min
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {skyConditions.isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="metric p-4">
+                  <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse mb-2" />
+                  <div className="h-6 w-12 bg-[#1e2937] rounded animate-pulse mb-1" />
+                  <div className="h-3 w-24 bg-[#1e2937] rounded animate-pulse" />
+                </div>
+              ))
+            ) : skyConditions.error ? (
+              <div className="metric col-span-1 sm:col-span-3 text-red-400 text-sm p-4">
+                Unable to load sky conditions. Check your connection.
+              </div>
+            ) : (
+              skyConditions.conditions.map((cond: SkyCondition, idx: number) => {
+                const color =
+                  cond.status === "Clear"
+                    ? "#22c55e"
+                    : cond.status === "Partly Cloudy"
+                    ? "#eab308"
+                    : "#64748b";
+                return (
+                  <div key={idx} className="metric p-4">
+                    <div className="flex items-center gap-2 text-[#64748b] text-xs mb-1.5">
+                      <Cloud className="w-3.5 h-3.5" /> {cond.name}
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <div
+                        className="text-3xl font-semibold tracking-tighter tabular-nums"
+                        style={{ color }}
+                      >
+                        {cond.cloudCover}%
+                      </div>
+                      <div className="text-sm font-medium" style={{ color }}>
+                        {cond.status}
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-[#475569] mt-1 leading-tight">
+                      {cond.note}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
 

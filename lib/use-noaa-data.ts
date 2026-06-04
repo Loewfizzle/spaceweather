@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import {
   fetchOvation,
   fetchKpIndex,
@@ -23,6 +23,8 @@ import {
   currentSunspotNumber,
   getTonightOutlook,
   TonightOutlook,
+  fetchCloudCover,
+  CloudCoverData,
 } from "./noaa";
 
 export function useOvationData() {
@@ -203,3 +205,85 @@ export function useSolarActivity() {
 }
 
 export { getTonightOutlook, type TonightOutlook };
+
+// Michigan sky conditions for aurora viewing (cloud cover tonight)
+const SKY_LOCATIONS = [
+  { name: "Marquette (UP)", lat: 46.5436, lon: -87.3954 },
+  { name: "Traverse City", lat: 44.7631, lon: -85.6206 },
+  { name: "Houghton (UP)", lat: 47.1219, lon: -88.5694 },
+];
+
+export type SkyCondition = {
+  name: string;
+  cloudCover: number;
+  status: "Clear" | "Partly Cloudy" | "Cloudy";
+  note: string;
+};
+
+export function useSkyConditions() {
+  const queries = SKY_LOCATIONS.map((loc) => ({
+    queryKey: ["cloudcover", loc.name],
+    queryFn: () => fetchCloudCover(loc.lat, loc.lon),
+    staleTime: 1000 * 60 * 45, // 45 minutes — weather changes slower than space data
+  }));
+
+  const results = useQueries({ queries });
+
+  const conditions: SkyCondition[] = SKY_LOCATIONS.map((loc, index) => {
+    const data: CloudCoverData | undefined = results[index].data;
+    if (!data) {
+      return {
+        name: loc.name,
+        cloudCover: 0,
+        status: "Cloudy" as const,
+        note: "Unable to load forecast.",
+      };
+    }
+
+    const now = new Date();
+    let minCloud = 101;
+
+    // Look for the clearest night hour in next ~18 hours (focus on 8pm-6am local)
+    for (let i = 0; i < data.time.length; i++) {
+      const t = new Date(data.time[i]);
+      const hour = t.getHours();
+      const isNightHour = hour >= 20 || hour <= 6;
+      const hoursAhead = (t.getTime() - now.getTime()) / (1000 * 60 * 60);
+      if (hoursAhead > 2 && hoursAhead < 18 && isNightHour) {
+        const c = data.cloudcover[i];
+        if (c < minCloud) {
+          minCloud = c;
+        }
+      }
+    }
+
+    const cloud = minCloud > 100 ? (data.cloudcover[0] ?? 50) : minCloud;
+    let status: "Clear" | "Partly Cloudy" | "Cloudy";
+    let note: string;
+
+    if (cloud < 20) {
+      status = "Clear";
+      note = "Clear skies — excellent viewing window likely.";
+    } else if (cloud < 50) {
+      status = "Partly Cloudy";
+      note = "Partly cloudy — look for breaks after midnight.";
+    } else {
+      status = "Cloudy";
+      note = "Cloudy skies — limited aurora viewing chances.";
+    }
+
+    return {
+      name: loc.name,
+      cloudCover: Math.round(cloud),
+      status,
+      note,
+    };
+  });
+
+  const isLoading = results.some((r) => r.isLoading);
+  const error = results.find((r) => r.error)?.error || null;
+
+  const refetchAll = () => results.forEach((r) => r.refetch());
+
+  return { conditions, isLoading, error, refetchAll };
+}

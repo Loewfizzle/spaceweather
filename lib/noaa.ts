@@ -346,3 +346,23 @@ export function getTonightOutlook(
 
   return { status, message, reasons, accentColor, drivers };
 }
+
+// --- Sky Conditions (cloud cover) using Open-Meteo (free, no key) ---
+
+export type CloudCoverData = {
+  time: string[];
+  cloudcover: number[];
+};
+
+export async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverData> {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=cloudcover&timezone=America/Detroit&forecast_days=2`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch cloud cover for ${lat},${lon}`);
+  }
+  const data = await res.json();
+  return {
+    time: data.hourly.time,
+    cloudcover: data.hourly.cloudcover,
+  };
+}
