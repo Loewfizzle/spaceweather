@@ -27,7 +27,20 @@ export const metadata: Metadata = {
   openGraph: {
     title: "AuroraWatch | Real-time Aurora & Space Weather",
     description: "Live OVATION forecasts, Kp index, and solar wind for the US and Michigan. Premium dark dashboard powered by NOAA.",
-    images: [{ url: "/favicon.ico" }],
+    images: [
+      {
+        url: "/space.jpg",
+        width: 1200,
+        height: 630,
+        alt: "AuroraWatch - Real-time Aurora & Space Weather Dashboard",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AuroraWatch | Real-time Aurora & Space Weather",
+    description: "Live OVATION forecasts, Kp index, and solar wind for the US and Michigan. Premium dark dashboard powered by NOAA.",
+    images: ["/space.jpg"],
   },
 };
 
