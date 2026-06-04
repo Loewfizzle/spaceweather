@@ -1,0 +1,16 @@
+{
+  "name": "AuroraWatch",
+  "short_name": "AuroraWatch",
+  "description": "Real-time aurora visibility and space weather for the United States, focused on Michigan.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070f",
+  "theme_color": "#05070f",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -1,0 +1,483 @@
+"use client";
+
+import {
+  MapPin,
+  Clock,
+  Bell,
+  Wind,
+  Activity,
+  Satellite,
+  Zap,
+  RefreshCw,
+} from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import dynamic from "next/dynamic";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+import { useCurrentConditions, useKpData } from "../lib/use-noaa-data";
+
+// SSR-safe Leaflet map
+const AuroraMap = dynamic(() => import("../components/AuroraMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="map-placeholder h-[420px] sm:h-[480px] flex items-center justify-center">
+      <div className="text-[#64748b]">Loading interactive map...</div>
+    </div>
+  ),
+});
+
+// Register Chart.js components once
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+export default function AuroraWatch() {
+  const {
+    kp,
+    kpTime,
+    maxAuroraProbNA,
+    solarWindSpeed,
+    solarWindDensity,
+    bz,
+    michiganGuidance,
+    isLoading,
+    error,
+    refetchAll,
+  } = useCurrentConditions();
+
+  // Map recenter control (passed to the dynamic map)
+  const [mapTarget, setMapTarget] = useState<{
+    center: [number, number];
+    zoom: number;
+  } | null>(null);
+
+  // Kp history for chart
+  const kpQuery = useKpData();
+  const kpHistory = kpQuery.data || [];
+
+  // Notifications state
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+  const [lastNotified, setLastNotified] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("aw_last_notified");
+      return stored ? parseInt(stored, 10) : 0;
+    }
+    return 0;
+  });
+
+  // Check initial permission
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  const chartData = useMemo(() => {
+    // Last ~12 entries (~36 hours of 3h Kp data)
+    const recent = kpHistory.slice(-12);
+    const labels = recent.map((entry) => {
+      const d = new Date(entry.time_tag);
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    });
+    const values = recent.map((entry) => entry.Kp);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: "Kp Index",
+          data: values,
+          borderColor: "#22c55e",
+          backgroundColor: "rgba(34, 197, 94, 0.15)",
+          borderWidth: 2,
+          tension: 0.4,
+          pointRadius: 2.5,
+          pointHoverRadius: 4,
+          pointBackgroundColor: "#22c55e",
+        },
+      ],
+    };
+  }, [kpHistory]);
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        min: 0,
+        max: 9,
+        ticks: { color: "#64748b", stepSize: 1, font: { size: 11 } },
+        grid: { color: "#1e2937" },
+      },
+      x: {
+        ticks: { color: "#64748b", font: { size: 10 } },
+        grid: { color: "#1e2937" },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "#0f1425",
+        borderColor: "#1e2937",
+        borderWidth: 1,
+        titleColor: "#f1f5f9",
+        bodyColor: "#cbd5e1",
+      },
+    },
+  };
+
+  // Auto-trigger browser notification when conditions look good for Michigan
+  // Throttled to avoid spam (min 30 min between notifications)
+  useEffect(() => {
+    if (notificationPermission !== "granted" || kp === null || isLoading) return;
+
+    const now = Date.now();
+    if (now - lastNotified < 1000 * 60 * 30) return;
+
+    const likelyForMI =
+      kp >= 4 ||
+      (maxAuroraProbNA !== null && maxAuroraProbNA >= 20) ||
+      (bz !== null && bz <= -5);
+
+    if (likelyForMI) {
+      const body = `Kp ${kp.toFixed(1)}. Aurora may be visible in parts of Michigan tonight. Check the map and current conditions.`;
+      try {
+        new Notification("AuroraWatch Alert", {
+          body,
+          tag: "aurorawatch-mi",
+        });
+        setLastNotified(now);
+        localStorage.setItem("aw_last_notified", now.toString());
+      } catch (e) {
+        // Notifications may be blocked or not supported in some contexts
+        console.warn("Could not show notification", e);
+      }
+    }
+  }, [kp, maxAuroraProbNA, bz, notificationPermission, isLoading, lastNotified]);
+
+  const formatTime = (iso?: string | null) => {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + " UTC";
+    } catch {
+      return iso;
+    }
+  };
+
+  const kpClass = kp === null
+    ? "kp-low"
+    : kp >= 5
+    ? "kp-high"
+    : kp >= 4
+    ? "kp-moderate"
+    : "kp-low";
+
+  const handleEnableAlerts = async () => {
+    if (!("Notification" in window)) {
+      alert("Browser notifications not supported in this environment.");
+      return;
+    }
+
+    if (notificationPermission === "granted") {
+      // Test notification
+      try {
+        new Notification("AuroraWatch Test", {
+          body: "This is a test. Real alerts will fire automatically when Michigan conditions look promising (Kp ≥4 or high OVATION prob).",
+          tag: "aurorawatch-test",
+        });
+      } catch (e) {
+        console.warn(e);
+      }
+      return;
+    }
+
+    const perm = await Notification.requestPermission();
+    setNotificationPermission(perm);
+
+    if (perm === "granted") {
+      // Optionally fire one immediately on enable for confirmation
+      try {
+        new Notification("AuroraWatch", {
+          body: "Alerts enabled. We'll notify you when aurora looks likely over Michigan.",
+        });
+      } catch {}
+    }
+  };
+
+  return (
+    <div className="min-h-screen pb-12">
+      {/* Sticky Header */}
+      <header className="header">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-400 to-violet-400 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-[#05070f]" />
+            </div>
+            <div>
+              <div className="font-semibold tracking-tighter text-xl">AuroraWatch</div>
+              <div className="text-[10px] text-[#64748b] -mt-1">NOAA SWPC • Michigan Focus</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Live Kp status pill - now dynamic */}
+            <div
+              className={`kp-pill ${kpClass}`}
+              title="Planetary K-index (live from NOAA)"
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>Kp {kp !== null ? kp.toFixed(1) : "—"}</span>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#64748b]">
+              <Clock className="w-3.5 h-3.5" />
+              {formatTime(kpTime)}
+            </div>
+
+            {/* Refresh button */}
+            <button
+              onClick={() => refetchAll()}
+              disabled={isLoading}
+              className="button flex items-center gap-1.5 text-xs px-3 py-1 min-h-0"
+              title="Refresh live data"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero + Michigan Guidance */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-8">
+        <div className="max-w-3xl">
+          <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-3">LIVE • NOAA SWPC DATA</div>
+          <h1 className="text-6xl sm:text-7xl font-semibold tracking-tighter leading-[0.92] mb-5">
+            Aurora &amp; space<br />weather for the<br />United States
+          </h1>
+          <p className="text-2xl text-[#94a3b8] tracking-tight max-w-2xl">
+            Real-time OVATION aurora forecasts and planetary K-index.
+            Special attention to Michigan and the Great Lakes.
+          </p>
+        </div>
+
+        {/* Michigan-specific guidance card - now dynamic */}
+        <div className="mt-8 card p-6 max-w-2xl border-l-4 border-l-[#22c55e]">
+          <div className="flex items-start gap-4">
+            <MapPin className="w-5 h-5 text-[#22c55e] mt-0.5 shrink-0" />
+            <div className="text-sm leading-relaxed">
+              <div className="font-semibold mb-1.5 text-[#22c55e]">Michigan viewers</div>
+              <p className="text-[#cbd5e1]">{michiganGuidance}</p>
+              <p className="mt-2 text-[#64748b] text-xs">
+                {bz !== null
+                  ? `Current Bz: ${bz.toFixed(1)} nT (southward is favorable).`
+                  : "Watch for sudden increases in solar wind or southward Bz."}
+              </p>
+            </div>
+          </div>
+          {isLoading && <div className="mt-2 text-xs text-[#64748b]">Loading live data…</div>}
+          {error && <div className="mt-2 text-xs text-red-400">Error loading data. Using cached values if available.</div>}
+        </div>
+      </div>
+
+      {/* Metrics Row - now live */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+        <div className="section-title">CURRENT CONDITIONS</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="metric">
+            <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+              <Wind className="w-4 h-4" /> SOLAR WIND
+            </div>
+            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+              {solarWindSpeed !== null ? Math.round(solarWindSpeed) : "—"}
+            </div>
+            <div className="text-sm text-[#64748b] -mt-1">
+              km/s{" "}
+              <span className="text-xs ml-1">
+                • {solarWindDensity !== null ? solarWindDensity.toFixed(1) : "—"} p/cm³
+              </span>
+            </div>
+          </div>
+
+          <div className="metric">
+            <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+              <Zap className="w-4 h-4" /> IMF Bz
+            </div>
+            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+              {bz !== null ? bz.toFixed(1) : "—"}
+            </div>
+            <div className="text-sm text-[#64748b] -mt-1">
+              nT <span className="text-xs ml-1">• Southward = favorable</span>
+            </div>
+          </div>
+
+          <div className="metric">
+            <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+              <Activity className="w-4 h-4" /> PLANETARY Kp
+            </div>
+            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+              {kp !== null ? kp.toFixed(1) : "—"}
+            </div>
+            <div className="text-sm text-[#64748b] -mt-1">Latest 3-hour • {kp !== null && kp < 4 ? "Quiet" : "Active"}</div>
+          </div>
+
+          <div className="metric">
+            <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
+              <Satellite className="w-4 h-4" /> OVATION (NA)
+            </div>
+            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+              {maxAuroraProbNA !== null ? Math.round(maxAuroraProbNA) : "—"}%
+            </div>
+            <div className="text-sm text-[#64748b] -mt-1">Max probability (North America)</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Map Section - now live with real OVATION data */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
+          <div>
+            <div className="section-title">AURORA MAP — OVATION MODEL</div>
+            <div className="text-sm text-[#64748b]">North America • Probability of visible aurora (0–100%)</div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="button"
+              onClick={() => setMapTarget({ center: [45.5, -86], zoom: 5.5 })}
+            >
+              Great Lakes
+            </button>
+            <button
+              className="button"
+              onClick={() => setMapTarget({ center: [44, -85], zoom: 6 })}
+            >
+              Michigan
+            </button>
+            <button
+              className="button"
+              onClick={() => setMapTarget({ center: [39, -98], zoom: 3.5 })}
+            >
+              Continental US
+            </button>
+            <button
+              className="button"
+              onClick={() => setMapTarget({ center: [48, -100], zoom: 3 })}
+            >
+              North America
+            </button>
+          </div>
+        </div>
+
+        <AuroraMap target={mapTarget} />
+
+        <div className="mt-2 text-[10px] text-[#475569] flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-[#22c55e]" /> Low &nbsp;
+          <div className="w-2 h-2 rounded-full bg-[#eab308]" /> Moderate &nbsp;
+          <div className="w-2 h-2 rounded-full bg-[#a78bfa]" /> High
+        </div>
+      </div>
+
+      {/* Forecast Timeline - live Chart.js Kp history */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+        <div className="section-title">KP OUTLOOK + MICHIGAN FORECAST</div>
+        <div className="card p-6">
+          <div className="h-56">
+            {kpQuery.isLoading ? (
+              <div className="flex h-full items-center justify-center text-[#64748b]">Loading Kp history...</div>
+            ) : kpHistory.length > 0 ? (
+              <Line data={chartData} options={chartOptions} />
+            ) : (
+              <div className="flex h-full items-center justify-center text-[#64748b]">No recent Kp data</div>
+            )}
+          </div>
+
+          <div className="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
+            <div className="text-[#cbd5e1]">
+              <span className="font-medium text-white">Tonight (Michigan):</span> {michiganGuidance}
+            </div>
+            <div className="text-[#cbd5e1]">
+              <span className="font-medium text-white">Recent trend:</span>{" "}
+              {kpHistory.length > 1 ? (
+                kpHistory[kpHistory.length - 1].Kp > kpHistory[kpHistory.length - 2].Kp
+                  ? "Rising — elevated activity possible if trend continues."
+                  : "Stable or declining — conditions quieting."
+              ) : (
+                "Based on current solar wind and Bz."
+              )}
+            </div>
+          </div>
+          <div className="mt-3 text-[10px] text-[#64748b]">
+            Chart shows last ~36 hours of 3-hour Kp values. Full multi-day forecasts available from NOAA.
+          </div>
+        </div>
+      </div>
+
+      {/* Notifications - now functional */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+        <div className="card p-6 flex flex-col sm:flex-row gap-5 sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="mt-0.5">
+              <Bell className="w-5 h-5 text-[#64748b]" />
+            </div>
+            <div>
+              <div className="font-semibold">Get notified</div>
+              <div className="text-sm text-[#94a3b8] max-w-md">
+                Browser alerts when conditions look promising for Michigan (Kp ≥ 4 or significant OVATION probability).
+                We check on every data refresh.
+              </div>
+              {notificationPermission === "granted" && (
+                <div className="mt-1 text-xs text-[#22c55e]">Alerts enabled — you will receive notifications automatically.</div>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={handleEnableAlerts}
+            className="button button-primary w-full sm:w-auto justify-center"
+          >
+            {notificationPermission === "granted" ? "Test notification" : "Enable browser alerts"}
+          </button>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-[#1e2937] pt-8 pb-10 text-xs text-[#64748b]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-y-2 justify-between">
+            <div>
+              Data provided by{" "}
+              <a
+                href="https://www.swpc.noaa.gov/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-white"
+              >
+                NOAA Space Weather Prediction Center (SWPC)
+              </a>
+              . OVATION, planetary K-index, and real-time solar wind.
+            </div>
+            <div className="text-[#475569]">Not for navigation • Updates every few minutes • Built for Michigan aurora chasers</div>
+          </div>
+          <div className="mt-4 text-[#475569] text-[10px]">
+            Last data fetch: {formatTime(kpTime)} • AuroraWatch v0.1.0
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
