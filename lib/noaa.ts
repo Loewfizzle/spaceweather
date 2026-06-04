@@ -99,13 +99,50 @@ export function latest<T extends { time_tag: string }>(arr: T[]): T | null {
   return arr[arr.length - 1];
 }
 
+export interface OvationPoint {
+  lat: number;
+  lon: number;
+  prob: number;
+}
+
+export const NORTH_AMERICA_BOUNDS = {
+  minLon: -170,
+  maxLon: -50,
+  minLat: 20,
+  maxLat: 75,
+} as const;
+
+/**
+ * Pure utility: filter raw OVATION coordinates to a region + min probability.
+ * Moved here from AuroraMap for separation of concerns, reusability, and DRY (used by max too).
+ */
+export function filterOvationCoordinates(
+  coordinates: [number, number, number][] | undefined,
+  minProb: number = 0,
+  bounds = NORTH_AMERICA_BOUNDS
+): OvationPoint[] {
+  if (!coordinates || coordinates.length === 0) return [];
+  return coordinates
+    .filter(([lon, lat, prob]) => {
+      return (
+        lon >= bounds.minLon &&
+        lon <= bounds.maxLon &&
+        lat >= bounds.minLat &&
+        lat <= bounds.maxLat &&
+        prob >= minProb
+      );
+    })
+    .map(([lon, lat, prob]) => ({
+      lat,
+      lon,
+      prob,
+    }));
+}
+
 // Helper: compute max aurora probability in North America region for metrics
 export function maxOvationNorthAmerica(data: OvationResponse | null): number {
   if (!data || !data.coordinates) return 0;
-  // Rough NA bounds: lon -170 to -50, lat 20 to 75
-  const relevant = data.coordinates.filter(([lon, lat]) => {
-    return lon >= -170 && lon <= -50 && lat >= 20 && lat <= 75;
-  });
+  const relevant = filterOvationCoordinates(data.coordinates, 0);
   if (relevant.length === 0) return 0;
-  return Math.max(...relevant.map(([, , prob]) => prob));
+  return Math.max(...relevant.map((p) => p.prob));
 }

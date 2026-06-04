@@ -30,7 +30,7 @@ import { useCurrentConditions, useKpData } from "../lib/use-noaa-data";
 const AuroraMap = dynamic(() => import("../components/AuroraMap"), {
   ssr: false,
   loading: () => (
-    <div className="map-placeholder h-[420px] sm:h-[480px] flex items-center justify-center">
+    <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
       <div className="text-[#64748b]">Loading interactive map...</div>
     </div>
   ),
@@ -516,12 +516,6 @@ export default function AuroraWatch() {
         </div>
 
         <AuroraMap target={mapTarget} minProb={minProb} />
-
-        <div className="mt-2 text-[10px] text-[#475569] flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-[#22c55e]" /> Low &nbsp;
-          <div className="w-2 h-2 rounded-full bg-[#eab308]" /> Moderate &nbsp;
-          <div className="w-2 h-2 rounded-full bg-[#a78bfa]" /> High
-        </div>
       </div>
 
       {/* Forecast Timeline - live Chart.js Kp history */}
