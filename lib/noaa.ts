@@ -366,3 +366,205 @@ export async function fetchCloudCover(lat: number, lon: number): Promise<CloudCo
     cloudcover: data.hourly.cloudcover,
   };
 }
+
+// --- Meteor Showers (hardcoded annual major showers) ---
+
+export interface MeteorShower {
+  name: string;
+  peakMonth: number; // 1-12
+  peakDay: number;
+  peakEndMonth?: number;
+  peakEndDay?: number;
+  description: string;
+  activityLevel: string;
+}
+
+export const MAJOR_METEOR_SHOWERS: MeteorShower[] = [
+  {
+    name: "Quadrantids",
+    peakMonth: 1,
+    peakDay: 3,
+    description: "Sharp, brief peak. Fast meteors best viewed after midnight.",
+    activityLevel: "Moderate–High",
+  },
+  {
+    name: "Lyrids",
+    peakMonth: 4,
+    peakDay: 22,
+    description: "Moderate display of fast meteors from Comet Thatcher.",
+    activityLevel: "Moderate",
+  },
+  {
+    name: "Eta Aquariids",
+    peakMonth: 5,
+    peakDay: 6,
+    description: "Associated with Halley's Comet; stronger in southern latitudes.",
+    activityLevel: "Moderate",
+  },
+  {
+    name: "Perseids",
+    peakMonth: 8,
+    peakDay: 12,
+    peakEndMonth: 8,
+    peakEndDay: 13,
+    description: "One of the best and most reliable annual showers. High rates of bright meteors.",
+    activityLevel: "High",
+  },
+  {
+    name: "Orionids",
+    peakMonth: 10,
+    peakDay: 21,
+    description: "Swift meteors from Halley's Comet debris. Good rates into late night.",
+    activityLevel: "Moderate",
+  },
+  {
+    name: "Leonids",
+    peakMonth: 11,
+    peakDay: 17,
+    description: "Can produce occasional meteor storms. Fast and bright.",
+    activityLevel: "Moderate–High",
+  },
+  {
+    name: "Geminids",
+    peakMonth: 12,
+    peakDay: 13,
+    peakEndMonth: 12,
+    peakEndDay: 14,
+    description: "Often considered the best shower of the year. Rich in bright, slow meteors.",
+    activityLevel: "High",
+  },
+];
+
+export function getNextMeteorShower(now: Date = new Date()): { shower: MeteorShower; peakDate: Date } | null {
+  const thisYear = now.getFullYear();
+  const candidates: Array<{ shower: MeteorShower; date: Date }> = [];
+
+  for (let offset = 0; offset <= 1; offset++) {
+    const y = thisYear + offset;
+    for (const shower of MAJOR_METEOR_SHOWERS) {
+      const candidate = new Date(y, shower.peakMonth - 1, shower.peakDay);
+      if (offset === 0 && candidate.getTime() < now.getTime()) {
+        continue;
+      }
+      candidates.push({ shower, date: candidate });
+    }
+  }
+
+  if (candidates.length === 0) return null;
+
+  candidates.sort((a, b) => a.date.getTime() - b.date.getTime());
+  const next = candidates[0];
+  return { shower: next.shower, peakDate: next.date };
+}
+
+export function formatMeteorPeak(peakDate: Date, shower: MeteorShower): string {
+  const month = peakDate.toLocaleString("en-US", { month: "long" });
+  let str = `${month} ${peakDate.getDate()}`;
+  if (shower.peakEndDay) {
+    const endMonth = shower.peakEndMonth || shower.peakMonth;
+    const end = new Date(peakDate.getFullYear(), endMonth - 1, shower.peakEndDay);
+    if (end.getMonth() === peakDate.getMonth()) {
+      str += `–${end.getDate()}`;
+    } else {
+      str += ` – ${end.toLocaleString("en-US", { month: "long", day: "numeric" })}`;
+    }
+  }
+  return `${str}, ${peakDate.getFullYear()}`;
+}
+
+export function createGoogleCalendarLink(shower: MeteorShower, peakDate: Date): string {
+  const y = peakDate.getFullYear();
+  const m = String(peakDate.getMonth() + 1).padStart(2, "0");
+  const d = String(peakDate.getDate()).padStart(2, "0");
+  const start = `${y}${m}${d}`;
+
+  // Span the peak night(s): for range use +2 days for end, else +1
+  const span = shower.peakEndDay ? 2 : 1;
+  const endDate = new Date(peakDate);
+  endDate.setDate(endDate.getDate() + span);
+  const ey = endDate.getFullYear();
+  const em = String(endDate.getMonth() + 1).padStart(2, "0");
+  const ed = String(endDate.getDate()).padStart(2, "0");
+  const end = `${ey}${em}${ed}`;
+
+  const text = encodeURIComponent(`Meteor Shower Peak: ${shower.name}`);
+  const details = encodeURIComponent(
+    `Peak night(s): ${formatMeteorPeak(peakDate, shower)}\n\n${shower.description}\n\nExpected activity: ${shower.activityLevel}\n\nBest viewed after midnight from dark skies (Michigan UP ideal).`
+  );
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}&sf=true&output=xml`;
+}
+
+// --- Fireball Tracker (NASA JPL public API) ---
+
+export interface Fireball {
+  date: string;
+  energy: number | null; // kt TNT
+  impactE: number | null;
+  lat: number | null;
+  latDir: string | null;
+  lon: number | null;
+  lonDir: string | null;
+  alt: number | null; // km
+  vel: number | null; // km/s
+}
+
+function parseNum(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = parseFloat(String(v));
+  return isNaN(n) ? null : n;
+}
+
+export async function fetchFireballs(limit = 8): Promise<Fireball[]> {
+  const url = `https://ssd-api.jpl.nasa.gov/fireball.api?limit=${limit}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error("Failed to fetch NASA fireball data");
+  }
+  const json = await res.json();
+  const fields: string[] = json.fields || [];
+  const rows: unknown[][] = json.data || [];
+
+  return rows.map((row) => {
+    const get = (name: string) => {
+      const i = fields.indexOf(name);
+      return i >= 0 ? row[i] : null;
+    };
+    return {
+      date: (get("date") as string) || "",
+      energy: parseNum(get("energy")),
+      impactE: parseNum(get("impact-e")),
+      lat: parseNum(get("lat")),
+      latDir: get("lat-dir") as string | null,
+      lon: parseNum(get("lon")),
+      lonDir: get("lon-dir") as string | null,
+      alt: parseNum(get("alt")),
+      vel: parseNum(get("vel")),
+    };
+  });
+}
+
+export function formatFireballDate(dateStr: string): string {
+  if (!dateStr) return "—";
+  try {
+    // API dates are UTC; append Z for correct parsing
+    const iso = dateStr.replace(" ", "T") + "Z";
+    const d = new Date(iso);
+    return (
+      d.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }) + " UTC"
+    );
+  } catch {
+    return dateStr;
+  }
+}
+
+export function formatFireballLocation(fb: Fireball): string {
+  if (fb.lat == null || fb.lon == null) return "Location unavailable";
+  return `${fb.lat}°${fb.latDir || ""} ${fb.lon}°${fb.lonDir || ""}`;
+}

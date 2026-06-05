@@ -26,7 +26,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { formatDistanceToNow } from "date-fns";
-import { useCurrentConditions, useKpData, useSolarActivity, getTonightOutlook } from "../lib/use-noaa-data";
+import { useCurrentConditions, useKpData, useSolarActivity, getTonightOutlook, useFireballs, getNextMeteorShower, formatMeteorPeak, createGoogleCalendarLink, formatFireballDate, formatFireballLocation, type Fireball } from "../lib/use-noaa-data";
 
 // SSR-safe Leaflet map
 const AuroraMap = dynamic(() => import("../components/AuroraMap"), {
@@ -133,6 +133,9 @@ export default function AuroraWatch() {
 
   // New solar activity data (flares, CMEs, sunspots, coronal holes)
   const solarActivity = useSolarActivity();
+
+  const fireballsQuery = useFireballs();
+  const nextMeteor = getNextMeteorShower();
 
   const tonightOutlook = getTonightOutlook(
     kp,
@@ -441,12 +444,13 @@ export default function AuroraWatch() {
               onClick={() => {
                 refetchAll();
                 solarActivity.refetchAll();
+                fireballsQuery.refetch();
               }}
-              disabled={isLoading || solarActivity.isLoading}
+              disabled={isLoading || solarActivity.isLoading || fireballsQuery.isLoading}
               className="button flex items-center justify-center gap-1.5 text-xs px-2.5 sm:px-3 py-1 min-h-[38px] sm:min-h-0"
               title="Refresh live data"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading || solarActivity.isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading || solarActivity.isLoading || fireballsQuery.isLoading ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
@@ -588,6 +592,83 @@ export default function AuroraWatch() {
               </div>
             </>
           )}
+        </div>
+      </div>
+
+      {/* Meteor Activity — Next shower + recent fireballs (inserted after current conditions, before map) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+        <div className="section-title">METEOR ACTIVITY</div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Next Meteor Shower */}
+          <div className="card p-5">
+            <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-1">NEXT METEOR SHOWER</div>
+
+            {nextMeteor ? (
+              <>
+                <div className="text-2xl font-semibold tracking-tight mb-1">{nextMeteor.shower.name}</div>
+                <div className="text-sm text-[#94a3b8] mb-2 tabular-nums">
+                  Peak: {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
+                </div>
+                <p className="text-sm text-[#cbd5e1] mb-3 leading-snug">
+                  {nextMeteor.shower.description} <span className="text-[#64748b]">({nextMeteor.shower.activityLevel})</span>
+                </p>
+                <button
+                  onClick={() => {
+                    const url = createGoogleCalendarLink(nextMeteor.shower, nextMeteor.peakDate);
+                    window.open(url, "_blank", "noopener");
+                  }}
+                  className="button w-full sm:w-auto justify-center text-xs px-4 py-1.5 min-h-0"
+                >
+                  Add Peak Night to Calendar
+                </button>
+              </>
+            ) : (
+              <div className="text-sm text-[#64748b]">No upcoming shower data available.</div>
+            )}
+          </div>
+
+          {/* Fireball Tracker */}
+          <div className="card p-5">
+            <div className="flex items-baseline justify-between mb-2">
+              <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">FIREBALL TRACKER</div>
+              <div className="text-[10px] text-[#64748b] normal-case">NASA JPL • recent</div>
+            </div>
+
+            {fireballsQuery.isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-9 bg-[#1e2937] rounded animate-pulse" />
+                ))}
+              </div>
+            ) : fireballsQuery.error ? (
+              <div className="text-xs text-red-400">Unable to load recent fireball reports right now.</div>
+            ) : fireballsQuery.fireballs.length === 0 ? (
+              <div className="text-sm text-[#64748b]">No recent fireballs reported.</div>
+            ) : (
+              <div className="space-y-1.5 text-sm">
+                {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball, idx: number) => (
+                  <div key={idx} className="flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0">
+                    <div className="min-w-0">
+                      <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatFireballDate(fb.date)}</div>
+                      <div className="text-[11px] text-[#64748b] truncate">{formatFireballLocation(fb)}</div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-3 tabular-nums">
+                      {fb.energy != null && (
+                        <div className="text-[#94a3b8]">{fb.energy} kt</div>
+                      )}
+                      {fb.alt != null && (
+                        <div className="text-[10px] text-[#64748b]">{fb.alt} km alt</div>
+                      )}
+                      {fb.energy == null && fb.alt == null && (
+                        <div className="text-[10px] text-[#64748b]">—</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

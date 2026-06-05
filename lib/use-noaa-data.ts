@@ -25,6 +25,14 @@ import {
   TonightOutlook,
   fetchCloudCover,
   CloudCoverData,
+  fetchFireballs,
+  Fireball,
+  getNextMeteorShower,
+  MeteorShower,
+  formatMeteorPeak,
+  createGoogleCalendarLink,
+  formatFireballDate,
+  formatFireballLocation,
 } from "./noaa";
 
 export function useOvationData() {
@@ -287,3 +295,25 @@ export function useSkyConditions() {
 
   return { conditions, isLoading, error, refetchAll };
 }
+
+// Fireball tracker using NASA JPL public API (historical, reverse chrono)
+export function useFireballs(limit = 8) {
+  const query = useQuery<Fireball[]>({
+    queryKey: ["fireballs", limit],
+    queryFn: () => fetchFireballs(limit),
+    staleTime: 1000 * 60 * 60, // 1 hour – data is historical
+  });
+
+  return {
+    fireballs: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch,
+  };
+}
+
+// Re-export meteor helpers (static data + pure logic)
+export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink };
+
+// Re-export fireball format helpers for display consistency
+export { formatFireballDate, formatFireballLocation, type Fireball };
