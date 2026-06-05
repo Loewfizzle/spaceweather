@@ -11,7 +11,7 @@ import {
   getAuroraColor,
   parseRecentCmes,
 } from '../../lib/noaa'
-import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse } from '../../lib/api/schemas'
+import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse, MeteorShower } from '../../lib/api/schemas'
 
 // ============================================
 // getMichiganRiskLevel
@@ -95,7 +95,7 @@ describe('getTonightOutlook', () => {
 describe('currentSunspotNumber', () => {
   it('returns null for empty or invalid regions', () => {
     expect(currentSunspotNumber([])).toBeNull()
-    expect(currentSunspotNumber(undefined as any)).toBeNull()
+    expect(currentSunspotNumber(undefined)).toBeNull()
   })
 
   it('calculates total sunspots for the latest observed date', () => {
@@ -110,8 +110,8 @@ describe('currentSunspotNumber', () => {
   it('ignores regions without observed_date or number_spots', () => {
     const regions: SolarRegion[] = [
       { observed_date: '2026-06-04', region: 1, number_spots: 10 },
-      { observed_date: null as any, region: 2, number_spots: 99 },
-      { observed_date: '2026-06-04', region: 3, number_spots: null as any },
+      { observed_date: null as unknown as string, region: 2, number_spots: 99 },
+      { observed_date: '2026-06-04', region: 3, number_spots: null as unknown as number | null },
     ]
     expect(currentSunspotNumber(regions)).toBe(10)
   })
@@ -130,7 +130,7 @@ describe('Meteor helpers', () => {
 
   it('formatMeteorPeak formats date range correctly', () => {
     // This is a simplified test - adjust if your MAJOR_METEOR_SHOWERS data changes
-    const mockShower = { name: 'Perseids', peakMonth: 8, peakDay: 12, peakEndDay: 13, activityLevel: 'High' } as any
+    const mockShower: MeteorShower = { name: 'Perseids', peakMonth: 8, peakDay: 12, peakEndDay: 13, activityLevel: 'High' }
     const date = new Date(2026, 7, 12)
     const formatted = formatMeteorPeak(date, mockShower)
     expect(formatted).toContain('August 12')
@@ -158,7 +158,7 @@ describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
       [-120, 30, 8],
       [-60, 70, 55],
     ],
-  } as any
+  }
 
   it('filters to North America bounds and min probability', () => {
     const filtered = filterOvationCoordinates(mockOvation.coordinates, 10)
@@ -182,7 +182,7 @@ describe('getAuroraColor', () => {
 describe('parseRecentCmes', () => {
   it('extracts CMEs from alerts', () => {
     const alerts: Alert[] = [
-      { message: 'CME alert: 1200 km/s Earth-directed halo', issue_datetime: '2026-06-05T08:00Z' } as any,
+      { message: 'CME alert: 1200 km/s Earth-directed halo', issue_datetime: '2026-06-05T08:00Z' } as Alert,
     ]
     const cmes = parseRecentCmes(alerts)
     expect(cmes.length).toBe(1)

@@ -4,8 +4,6 @@
  * Non-critical gets lighter treatment.
  */
 
-import type { Query } from '@tanstack/react-query';
-
 export const CRITICAL_RETRY_COUNT = 5;
 export const NON_CRITICAL_RETRY_COUNT = 2;
 
