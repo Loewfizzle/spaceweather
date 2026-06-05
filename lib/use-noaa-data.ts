@@ -112,7 +112,7 @@ export function useSolarWindData() {
     queryKey: ["plasma"],
     queryFn: fetchPlasma,
     staleTime: 1000 * 60 * 1,
-    gcTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30, // keep cached solar wind data for 30min so values stay populated during NOAA outages
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
@@ -121,7 +121,7 @@ export function useSolarWindData() {
     queryKey: ["mag"],
     queryFn: fetchMag,
     staleTime: 1000 * 60 * 1,
-    gcTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30, // keep cached mag data for 30min so Bz stays populated during NOAA outages
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
