@@ -5,29 +5,29 @@
 export default function AuroraWatchLoading() {
   return (
     <div className="min-h-screen pb-12">
-      {/* Sticky Header skeleton */}
+      {/* Sticky Header skeleton (matches new calmer layout) */}
       <header className="header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#1e2937] animate-pulse" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1e2937] animate-pulse" />
             <div>
               <div className="h-5 w-28 bg-[#1e2937] rounded animate-pulse" />
-              <div className="h-2.5 w-36 bg-[#1e2937] rounded animate-pulse mt-1" />
+              <div className="h-2.5 w-24 sm:w-36 bg-[#1e2937] rounded animate-pulse mt-1" />
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Kp pill skeleton */}
             <div className="h-8 w-20 bg-[#1e2937] rounded-full animate-pulse" />
             {/* Risk pill skeleton */}
             <div className="h-5 w-14 bg-[#1e2937] rounded-full animate-pulse" />
-            {/* Time skeleton (hidden on mobile) */}
-            <div className="hidden sm:flex items-center gap-1.5">
-              <div className="h-3 w-3 bg-[#1e2937] rounded animate-pulse" />
-              <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
+            {/* Consolidated freshness skeleton (dot + LIVE/time) */}
+            <div className="flex items-center gap-1">
+              <div className="h-1.5 w-1.5 bg-[#1e2937] rounded-full animate-pulse" />
+              <div className="h-3 w-8 sm:w-16 bg-[#1e2937] rounded animate-pulse" />
             </div>
-            {/* Refresh button skeleton */}
-            <div className="h-8 w-20 bg-[#1e2937] rounded-full animate-pulse" />
+            {/* Refresh button skeleton (narrower on mobile) */}
+            <div className="h-8 w-9 sm:w-20 bg-[#1e2937] rounded-full animate-pulse" />
           </div>
         </div>
       </header>

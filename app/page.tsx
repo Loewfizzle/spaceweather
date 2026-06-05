@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Clock,
   Bell,
   Wind,
   Activity,
@@ -389,18 +388,20 @@ export default function AuroraWatch() {
       {/* Sticky Header */}
       <header className="header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-400 to-violet-400 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-[#05070f]" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-400 to-violet-400 flex items-center justify-center flex-shrink-0">
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#05070f]" />
             </div>
             <div>
-              <div className="font-semibold tracking-tighter text-xl">AuroraWatch</div>
-              <div className="text-[10px] text-[#64748b] -mt-1">NOAA SWPC • Michigan Focus</div>
+              <div className="font-semibold tracking-tighter text-lg sm:text-xl">AuroraWatch</div>
+              <div className="text-[9px] sm:text-[10px] text-[#64748b] -mt-0.5 leading-none">
+                NOAA SWPC<span className="hidden sm:inline"> • Michigan Focus</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* Live Kp status pill - now dynamic */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Live Kp status pill */}
             <div
               className={`kp-pill ${kpClass}`}
               title="Planetary K-index (live from NOAA)"
@@ -409,7 +410,7 @@ export default function AuroraWatch() {
               <span>Kp {kp !== null ? kp.toFixed(1) : "—"}</span>
             </div>
 
-            {/* Michigan risk level (new in notifications v2 polish) — always visible, MI-focused */}
+            {/* Michigan risk level pill */}
             {riskLevel && (
               <div
                 className={`risk-pill risk-${riskLevel.toLowerCase()}`}
@@ -419,25 +420,25 @@ export default function AuroraWatch() {
               </div>
             )}
 
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#64748b]">
-              <Clock className="w-3.5 h-3.5" />
-              <span>
-                {kpTime ? formatDistanceToNow(new Date(kpTime), { addSuffix: true }) : "—"}
-              </span>
-              <span className="ml-1 px-1.5 py-0.5 rounded bg-[#22c55e]/10 text-[#22c55e] text-[10px] font-medium tracking-wider">LIVE</span>
-            </div>
-
-            {/* Global last updated indicator - subtle, always-visible for better perceived performance and trust */}
+            {/* Consolidated freshness indicator — single source of truth (latestGlobalUpdate), calm, non-redundant.
+               Mobile: compact dot + "LIVE". Desktop: live dot + precise relative time. */}
             {latestGlobalUpdate && (
-              <div className="text-[10px] text-[#64748b] flex items-center gap-1" title="Most recent data across all sources">
-                <Clock className="w-3 h-3" />
-                <span className="tabular-nums">
+              <div
+                className="flex items-center gap-1 text-[10px] text-[#64748b] tabular-nums"
+                title="Most recent data across all sources"
+              >
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#22c55e]"></span>
+                </span>
+                <span className="hidden sm:inline">
                   {formatDistanceToNow(latestGlobalUpdate, { addSuffix: true })}
                 </span>
+                <span className="sm:hidden text-[#22c55e] font-medium">LIVE</span>
               </div>
             )}
 
-            {/* Refresh button */}
+            {/* Refresh button — icon-only on mobile for breathing room, full label + larger tap target on larger screens */}
             <button
               onClick={() => {
                 refetchAll();
@@ -445,7 +446,7 @@ export default function AuroraWatch() {
                 skyConditions.refetchAll();
               }}
               disabled={isLoading || solarActivity.isLoading || skyConditions.isLoading}
-              className="button flex items-center gap-1.5 text-xs px-3 py-1 min-h-0"
+              className="button flex items-center justify-center gap-1.5 text-xs px-2.5 sm:px-3 py-1 min-h-[38px] sm:min-h-0"
               title="Refresh live data"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading || solarActivity.isLoading || skyConditions.isLoading ? "animate-spin" : ""}`} />

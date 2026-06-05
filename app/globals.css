@@ -154,6 +154,20 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+/* Calm premium header on mobile: slightly tighter status pills for breathing room
+   while keeping them prominent and readable. Main relief comes from consolidated
+   freshness indicator + icon-only refresh. */
+@media (max-width: 640px) {
+  .header .kp-pill {
+    padding: 3px 9px;
+    font-size: 12px;
+  }
+  .header .risk-pill {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+}
+
 /* Mobile-first spacing & touch targets */
 @media (max-width: 640px) {
   .metric {
