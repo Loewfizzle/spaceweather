@@ -1,0 +1,191 @@
+import { describe, it, expect } from 'vitest'
+import {
+  getMichiganRiskLevel,
+  getTonightOutlook,
+  currentSunspotNumber,
+  getNextMeteorShower,
+  formatMeteorPeak,
+  latest,
+  filterOvationCoordinates,
+  maxOvationNorthAmerica,
+  getAuroraColor,
+  parseRecentCmes,
+} from '../../lib/noaa'
+import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse } from '../../lib/api/schemas'
+
+// ============================================
+// getMichiganRiskLevel
+// ============================================
+describe('getMichiganRiskLevel', () => {
+  it('returns Quiet when kp is null', () => {
+    expect(getMichiganRiskLevel(null, 10, -3)).toBe('Quiet')
+  })
+
+  it('returns High for strong conditions (kp >= 5 or high prob or strong negative Bz)', () => {
+    expect(getMichiganRiskLevel(5, 5, -3)).toBe('High')
+    expect(getMichiganRiskLevel(4, 30, -3)).toBe('High')
+    expect(getMichiganRiskLevel(3, 5, -9)).toBe('High')
+  })
+
+  it('returns Moderate for medium conditions', () => {
+    expect(getMichiganRiskLevel(4, 5, -3)).toBe('Moderate')
+    expect(getMichiganRiskLevel(3, 20, -3)).toBe('Moderate')
+    expect(getMichiganRiskLevel(3, 5, -6)).toBe('Moderate')
+  })
+
+  it('returns Quiet for weak conditions', () => {
+    expect(getMichiganRiskLevel(2, 5, -2)).toBe('Quiet')
+    expect(getMichiganRiskLevel(3, 5, -3)).toBe('Quiet')
+  })
+})
+
+// ============================================
+// getTonightOutlook - most critical function
+// ============================================
+describe('getTonightOutlook', () => {
+  const baseCme: CmeSummary[] = []
+  const baseFlare: XrayFlare | null = null
+
+  it('returns Loading state when kp is null', () => {
+    const result = getTonightOutlook(null, -5, 15, baseCme, baseFlare)
+    expect(result.status).toBe('Loading')
+    expect(result.message).toContain('Loading current conditions')
+  })
+
+  it('returns Excellent for very high Kp or strong combination', () => {
+    const result = getTonightOutlook(7, -8, 25, baseCme, baseFlare)
+    expect(result.status).toBe('Excellent')
+    expect(result.accentColor).toBe('#22c55e')
+    expect(result.reasons.length).toBeGreaterThan(0)
+  })
+
+  it('returns Good for solid Kp + favorable Bz or high prob', () => {
+    const result = getTonightOutlook(5, -6, 15, baseCme, baseFlare)
+    expect(result.status).toBe('Good')
+  })
+
+  it('returns Moderate when Kp >= 4 or moderate prob or Earth-directed CME', () => {
+    const cmeWithImpact: CmeSummary[] = [{
+      time: '2026-06-05T10:00:00Z',
+      speed: 1200,
+      direction: 'Earth-directed',
+      earthImpact: 'Likely Earth impact',
+      note: 'Halo CME expected to arrive...',
+    }]
+    const result = getTonightOutlook(4, -3, 8, cmeWithImpact, baseFlare)
+    expect(result.status).toBe('Moderate')
+    expect(result.reasons.some(r => r.includes('CME'))).toBe(true)
+  })
+
+  it('returns Low or Quiet for weak conditions', () => {
+    const result = getTonightOutlook(2, -2, 5, baseCme, baseFlare)
+    expect(['Low', 'Quiet']).toContain(result.status)
+  })
+
+  it('includes driver string with Kp and Bz', () => {
+    const result = getTonightOutlook(4.5, -7.2, 18, baseCme, baseFlare)
+    expect(result.drivers).toContain('Kp 4.5')
+    expect(result.drivers).toContain('Bz -7.2')
+  })
+})
+
+// ============================================
+// currentSunspotNumber
+// ============================================
+describe('currentSunspotNumber', () => {
+  it('returns null for empty or invalid regions', () => {
+    expect(currentSunspotNumber([])).toBeNull()
+    expect(currentSunspotNumber(undefined as any)).toBeNull()
+  })
+
+  it('calculates total sunspots for the latest observed date', () => {
+    const regions: SolarRegion[] = [
+      { observed_date: '2026-06-04', region: 1, number_spots: 12 },
+      { observed_date: '2026-06-04', region: 2, number_spots: 8 },
+      { observed_date: '2026-06-03', region: 3, number_spots: 25 },
+    ]
+    expect(currentSunspotNumber(regions)).toBe(20) // 12 + 8
+  })
+
+  it('ignores regions without observed_date or number_spots', () => {
+    const regions: SolarRegion[] = [
+      { observed_date: '2026-06-04', region: 1, number_spots: 10 },
+      { observed_date: null as any, region: 2, number_spots: 99 },
+      { observed_date: '2026-06-04', region: 3, number_spots: null as any },
+    ]
+    expect(currentSunspotNumber(regions)).toBe(10)
+  })
+})
+
+// ============================================
+// Meteor helpers
+// ============================================
+describe('Meteor helpers', () => {
+  it('getNextMeteorShower returns a future shower', () => {
+    const result = getNextMeteorShower(new Date('2026-06-05'))
+    expect(result).not.toBeNull()
+    expect(result!.shower.name).toBeDefined()
+    expect(result!.peakDate.getTime()).toBeGreaterThan(Date.now())
+  })
+
+  it('formatMeteorPeak formats date range correctly', () => {
+    // This is a simplified test - adjust if your MAJOR_METEOR_SHOWERS data changes
+    const mockShower = { name: 'Perseids', peakMonth: 8, peakDay: 12, peakEndDay: 13, activityLevel: 'High' } as any
+    const date = new Date(2026, 7, 12)
+    const formatted = formatMeteorPeak(date, mockShower)
+    expect(formatted).toContain('August 12')
+  })
+})
+
+// ============================================
+// Utility functions
+// ============================================
+describe('latest()', () => {
+  it('returns the last item in array', () => {
+    expect(latest([{ time_tag: '1' }, { time_tag: '2' }])?.time_tag).toBe('2')
+  })
+
+  it('returns null for empty array', () => {
+    expect(latest([])).toBeNull()
+  })
+})
+
+describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
+  const mockOvation: OvationResponse = {
+    coordinates: [
+      [-100, 45, 35],
+      [-80, 50, 12],
+      [-120, 30, 8],
+      [-60, 70, 55],
+    ],
+  } as any
+
+  it('filters to North America bounds and min probability', () => {
+    const filtered = filterOvationCoordinates(mockOvation.coordinates, 10)
+    expect(filtered.length).toBe(3)
+  })
+
+  it('computes max probability in North America', () => {
+    const max = maxOvationNorthAmerica(mockOvation)
+    expect(max).toBe(55)
+  })
+})
+
+describe('getAuroraColor', () => {
+  it('returns correct color scale', () => {
+    expect(getAuroraColor(3)).toBe('#166534')
+    expect(getAuroraColor(20)).toBe('#eab308')
+    expect(getAuroraColor(60)).toBe('#a78bfa')
+  })
+})
+
+describe('parseRecentCmes', () => {
+  it('extracts CMEs from alerts', () => {
+    const alerts: Alert[] = [
+      { message: 'CME alert: 1200 km/s Earth-directed halo', issue_datetime: '2026-06-05T08:00Z' } as any,
+    ]
+    const cmes = parseRecentCmes(alerts)
+    expect(cmes.length).toBe(1)
+    expect(cmes[0].speed).toBe(1200)
+  })
+})
