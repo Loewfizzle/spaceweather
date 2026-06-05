@@ -88,11 +88,10 @@ export function useOvationData() {
     queryFn: fetchOvation,
     staleTime: 1000 * 60 * 2, // 2 minutes - fresh enough for live feel
     gcTime: 1000 * 60 * 30, // Keep data 30min for graceful degradation on outages
+    refetchInterval: 1000 * 60 * 2, // 2min — matches staleTime; aurora oval shifts continuously
     retry: shouldRetryCritical,
     retryDelay: exponentialBackoff,
     refetchOnWindowFocus: true,
-    // Critical data: Kp + OVATION power the hero outlook and Michigan risk.
-    // Most resilient retry + longest cache retention.
   });
 }
 
@@ -102,6 +101,7 @@ export function useKpData() {
     queryFn: fetchKpIndex,
     staleTime: 1000 * 60 * 3, // 3 minutes
     gcTime: 1000 * 60 * 30,
+    refetchInterval: 1000 * 60 * 3, // 3min — matches staleTime; Kp updates every 3min from NOAA
     retry: shouldRetryCritical,
     retryDelay: exponentialBackoff,
     refetchOnWindowFocus: true,
@@ -114,6 +114,7 @@ export function useSolarWindData() {
     queryFn: fetchPlasma,
     staleTime: 1000 * 60 * 1,
     gcTime: 1000 * 60 * 30, // keep cached solar wind data for 30min so values stay populated during NOAA outages
+    refetchInterval: 1000 * 60, // 60s — solar wind changes fast during active events
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
@@ -123,6 +124,7 @@ export function useSolarWindData() {
     queryFn: fetchMag,
     staleTime: 1000 * 60 * 1,
     gcTime: 1000 * 60 * 30, // keep cached mag data for 30min so Bz stays populated during NOAA outages
+    refetchInterval: 1000 * 60, // 60s — Bz flips fast and drives aurora visibility
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
