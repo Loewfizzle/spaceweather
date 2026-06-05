@@ -28,7 +28,7 @@ export type OvationResponse = z.infer<typeof OvationResponseSchema>;
 // --- NOAA Solar Wind (Plasma + Mag) ---
 // These come as string[][] from API, we validate after parsing in fetchers
 export const PlasmaEntrySchema = z.object({
-  time_tag: z.string().optional(),
+  time_tag: z.string().nullable().optional(),
   density: z.number().nullable().optional(),
   speed: z.number().nullable().optional(),
   temperature: z.number().nullable().optional(),
@@ -36,7 +36,7 @@ export const PlasmaEntrySchema = z.object({
 export type PlasmaEntry = z.infer<typeof PlasmaEntrySchema>;
 
 export const MagEntrySchema = z.object({
-  time_tag: z.string().optional(),
+  time_tag: z.string().nullable().optional(),
   bx_gsm: z.number().nullable().optional(),
   by_gsm: z.number().nullable().optional(),
   bz_gsm: z.number().nullable().optional(),

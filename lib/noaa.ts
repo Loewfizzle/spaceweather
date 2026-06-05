@@ -47,7 +47,7 @@ export {
 } from "./api/fetchers";
 
 // Helper: get most recent value from time series (tolerant of optional time_tag after defensive schemas)
-export function latest<T extends { time_tag?: string }>(arr: T[]): T | null {
+export function latest<T extends { time_tag?: string | null }>(arr: T[]): T | null {
   if (!arr || arr.length === 0) return null;
   return arr[arr.length - 1];
 }

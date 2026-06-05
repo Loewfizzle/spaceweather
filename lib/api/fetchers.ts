@@ -66,11 +66,15 @@ export async function fetchPlasma(): Promise<PlasmaEntry[]> {
 
   const headers = raw[0];
   const parsed = raw.slice(1).map((row) => {
-    const obj: Record<string, number | null> = {};
+    const obj: Record<string, string | number | null> = {};
     headers.forEach((h, i) => {
       const val = row[i];
-      const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
-      obj[h] = isNaN(num as number) ? null : num;
+      if (h === 'time_tag') {
+        obj[h] = typeof val === 'string' ? val : null;
+      } else {
+        const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
+        obj[h] = isNaN(num as number) ? null : num;
+      }
     });
     return obj;
   });
@@ -92,11 +96,15 @@ export async function fetchMag(): Promise<MagEntry[]> {
 
   const headers = raw[0];
   const parsed = raw.slice(1).map((row) => {
-    const obj: Record<string, number | null> = {};
+    const obj: Record<string, string | number | null> = {};
     headers.forEach((h, i) => {
       const val = row[i];
-      const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
-      obj[h] = isNaN(num as number) ? null : num;
+      if (h === 'time_tag') {
+        obj[h] = typeof val === 'string' ? val : null;
+      } else {
+        const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
+        obj[h] = isNaN(num as number) ? null : num;
+      }
     });
     return obj;
   });
