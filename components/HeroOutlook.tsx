@@ -59,7 +59,7 @@ export function HeroOutlook({ outlook, isLoading, error, isFetching }: HeroOutlo
         )}
       </div>
 
-      {(isLoading || isFetching) && (
+      {isLoading && (
         <div className="mt-3 h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
       )}
       {error && (

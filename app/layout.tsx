@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   description: "Premium real-time aurora visibility and space weather dashboard for the United States, with focused coverage for Michigan and the Great Lakes. Live NOAA SWPC data.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
   },
   openGraph: {
     siteName: "AuroraWatch",

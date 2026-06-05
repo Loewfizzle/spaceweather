@@ -162,7 +162,8 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
       ? "Likely Earth impact"
       : "Monitor for effects";
     const lines = msg.split("\n").filter(Boolean);
-    const shortNote = lines.slice(0, 3).join(" ").replace(/\s+/g, " ").substring(0, 140) + "...";
+    const joined = lines.slice(0, 3).join(" ").replace(/\s+/g, " ");
+    const shortNote = joined.length > 140 ? joined.substring(0, 140) + "…" : joined;
     return {
       time: a.issue_datetime,
       speed: speedMatch ? parseInt(speedMatch[1], 10) : undefined,
