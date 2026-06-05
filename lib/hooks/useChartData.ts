@@ -9,6 +9,33 @@ import type { KpEntry } from "../api/schemas";
  * Exact logic and styling (colors, tension, scales, dark theme tooltips) preserved from original god component.
  * No side effects; pure derived + memoized for render perf.
  */
+const CHART_OPTIONS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    y: {
+      min: 0,
+      max: 9,
+      ticks: { color: "#64748b", stepSize: 1, font: { size: 11 } },
+      grid: { color: "#1e2937" },
+    },
+    x: {
+      ticks: { color: "#64748b", font: { size: 10 } },
+      grid: { color: "#1e2937" },
+    },
+  },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: "#0f1425",
+      borderColor: "#1e2937",
+      borderWidth: 1,
+      titleColor: "#f1f5f9",
+      bodyColor: "#cbd5e1",
+    },
+  },
+};
+
 export function useChartData(kpHistory: KpEntry[]) {
   const chartData = useMemo(() => {
     // Last ~12 entries (~36 hours of 3h Kp data); drop entries with no valid timestamp
@@ -39,32 +66,5 @@ export function useChartData(kpHistory: KpEntry[]) {
     };
   }, [kpHistory]);
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: {
-        min: 0,
-        max: 9,
-        ticks: { color: "#64748b", stepSize: 1, font: { size: 11 } },
-        grid: { color: "#1e2937" },
-      },
-      x: {
-        ticks: { color: "#64748b", font: { size: 10 } },
-        grid: { color: "#1e2937" },
-      },
-    },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: "#0f1425",
-        borderColor: "#1e2937",
-        borderWidth: 1,
-        titleColor: "#f1f5f9",
-        bodyColor: "#cbd5e1",
-      },
-    },
-  };
-
-  return { chartData, chartOptions };
+  return { chartData, chartOptions: CHART_OPTIONS };
 }

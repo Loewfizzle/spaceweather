@@ -33,8 +33,7 @@ export function DataUnderstanding() {
           />
         </button>
 
-        {isDataInfoExpanded && (
-          <div id="understanding-data-content" className="px-6 pb-6 text-sm text-[#cbd5e1] space-y-4 border-t border-[#1e2937] pt-4">
+        <div id="understanding-data-content" className="px-6 pb-6 text-sm text-[#cbd5e1] space-y-4 border-t border-[#1e2937] pt-4" hidden={!isDataInfoExpanded}>
             <div>
               <div className="font-medium text-white mb-1">Kp Index</div>
               <p>
@@ -78,7 +77,6 @@ export function DataUnderstanding() {
               Data is provided by NOAA Space Weather Prediction Center (SWPC) for personal and educational use. This dashboard is not intended for navigation or safety-critical decisions. Conditions can change rapidly.
             </div>
           </div>
-        )}
       </div>
     </div>
   );

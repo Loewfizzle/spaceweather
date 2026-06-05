@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   exponentialBackoff,
   shouldRetryCritical,
@@ -158,9 +159,10 @@ export function useCurrentConditions() {
     Array.isArray(ovationData.coordinates) && 
     ovationData.coordinates.length > 0;
 
-  // Observability: log when OVATION yields unexpectedly low/empty NA results
-  // (e.g. oval shifted away, or processing issue). Critical for debugging map/conditions showing 0%.
-  if (ovationData && ovationData.coordinates) {
+  // Observability: log when OVATION yields unexpectedly low/empty NA results.
+  // Runs in an effect (not render body) to avoid firing on discarded renders in StrictMode.
+  useEffect(() => {
+    if (!ovationData || !ovationData.coordinates) return;
     const coordsCount = ovationData.coordinates.length;
     if (maxProbNA === 0 && coordsCount > 0) {
       logDataError(
@@ -173,11 +175,11 @@ export function useCurrentConditions() {
       logDataError(
         'OVATION: unexpectedly low NA max prob given current Kp (possible data shift or filter)',
         null,
-        { maxProbNA, kp: latestKp.Kp, coordsCount },
+        { maxProbNA, kp: latestKp.Kp, coordsCount: ovationData.coordinates.length },
         false
       );
     }
-  }
+  }, [ovationData, maxProbNA, latestKp]);
 
   // Enhanced Michigan guidance that incorporates Kp + OVATION max prob + Bz for more accurate plain-English advice.
   // (Previously Kp-only; now aligns better with riskLevel logic while staying concise.)
