@@ -38,6 +38,7 @@ export default function AuroraWatch() {
     kp,
     kpTime,
     maxAuroraProbNA,
+    ovationProcessed,
     solarWindSpeed,
     solarWindDensity,
     bz,
@@ -198,6 +199,7 @@ export default function AuroraWatch() {
         latestGlobalUpdate={latestGlobalUpdate}
         kpTime={kpTime}
         solarWindError={solarWindError}
+        ovationProcessed={ovationProcessed}
       />
 
       {/* Interactive Map Section — core interactive feature, placed prominently right after current conditions so users quickly reach the OVATION aurora map */}

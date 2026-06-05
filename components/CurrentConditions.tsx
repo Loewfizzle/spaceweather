@@ -14,6 +14,7 @@ interface CurrentConditionsProps {
   latestGlobalUpdate: Date | null;
   kpTime?: string | null;
   solarWindError?: unknown;
+  ovationProcessed?: boolean;
 }
 
 /**
@@ -32,6 +33,7 @@ export function CurrentConditions({
   latestGlobalUpdate,
   kpTime,
   solarWindError,
+  ovationProcessed,
 }: CurrentConditionsProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
@@ -96,6 +98,9 @@ export function CurrentConditions({
                 {maxAuroraProbNA !== null ? Math.round(maxAuroraProbNA) : "—"}%
               </div>
               <div className="text-sm text-[#64748b] -mt-1">Max probability (North America)</div>
+              {ovationProcessed === false && (
+                <div className="text-[9px] text-amber-400 mt-0.5">data issue (check logs)</div>
+              )}
             </div>
           </>
         )}

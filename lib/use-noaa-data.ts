@@ -151,9 +151,35 @@ export function useCurrentConditions() {
   const solarWind = useSolarWindData();
 
   const latestKp = kpQuery.data ? latest(kpQuery.data) : null;
-  const maxProbNA = ovationQuery.data
-    ? maxOvationNorthAmerica(ovationQuery.data)
+  const ovationData = ovationQuery.data;
+  const maxProbNA = ovationData
+    ? maxOvationNorthAmerica(ovationData)
     : null;
+
+  const ovationProcessed = !!ovationData && 
+    Array.isArray(ovationData.coordinates) && 
+    ovationData.coordinates.length > 0;
+
+  // Observability: log when OVATION yields unexpectedly low/empty NA results
+  // (e.g. oval shifted away, or processing issue). Critical for debugging map/conditions showing 0%.
+  if (ovationData && ovationData.coordinates) {
+    const coordsCount = ovationData.coordinates.length;
+    if (maxProbNA === 0 && coordsCount > 0) {
+      logDataError(
+        'OVATION: 0 max prob in NA after filtering (oval may be shifted or bounds/filter issue)',
+        null,
+        { coordsCount, minProbUsed: 0 },
+        false
+      );
+    } else if (maxProbNA != null && maxProbNA < 5 && latestKp?.Kp != null && latestKp.Kp >= 4) {
+      logDataError(
+        'OVATION: unexpectedly low NA max prob given current Kp (possible data shift or filter)',
+        null,
+        { maxProbNA, kp: latestKp.Kp, coordsCount },
+        false
+      );
+    }
+  }
 
   // Enhanced Michigan guidance that incorporates Kp + OVATION max prob + Bz for more accurate plain-English advice.
   // (Previously Kp-only; now aligns better with riskLevel logic while staying concise.)
@@ -190,6 +216,7 @@ export function useCurrentConditions() {
     kp: latestKp?.Kp ?? null,
     kpTime: latestKp?.time_tag ?? null,
     maxAuroraProbNA: maxProbNA,
+    ovationProcessed,  // true if we got non-empty coordinates from OVATION (for distinguishing real 0% vs processing failure)
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,

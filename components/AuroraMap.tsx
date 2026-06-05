@@ -119,10 +119,8 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
 
   // Use shared utility (filtering logic moved out of component for separation of concerns + DRY)
   const points = useMemo(() => {
-    // ovationData may be undefined while loading; coordinates is optional in schema.
-    // Safe access to satisfy strict TS inference from useQuery generic.
-    const coords = ovationData ? (ovationData as { coordinates?: unknown[][] }).coordinates : undefined;
-    const raw = filterOvationCoordinates(coords, minProb);
+    // ovationData may be undefined while loading; coordinates optional per schema.
+    const raw = filterOvationCoordinates(ovationData?.coordinates, minProb);
     return raw.map((p) => ({
       position: [p.lat, p.lon] as [number, number], // Leaflet is [lat, lon]
       prob: Math.round(p.prob),
@@ -136,7 +134,7 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
     [points, highProbThreshold]
   );
 
-  const observationTime = ovationData ? (ovationData as { ["Observation Time"]?: string })["Observation Time"] : undefined;
+  const observationTime = ovationData?.["Observation Time"];
 
   const formatObservationTime = (iso?: string) => {
     if (!iso) return null;

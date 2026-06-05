@@ -57,7 +57,13 @@ export async function fetchOvation(): Promise<OvationResponse> {
   const raw = await fetchJson<unknown>(
     'https://services.swpc.noaa.gov/json/ovation_aurora_latest.json'
   );
-  return OvationResponseSchema.parse(raw);
+  const result = OvationResponseSchema.safeParse(raw);
+  if (!result.success) {
+    logDataError('OVATION parse', result.error, { url: 'ovation_aurora_latest.json' }, true);
+    // Return safe fallback so downstream can still attempt processing or show 0 gracefully
+    return { coordinates: [] };
+  }
+  return result.data;
 }
 
 // Planetary K-index

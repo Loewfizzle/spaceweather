@@ -65,6 +65,9 @@ export const NORTH_AMERICA_BOUNDS = {
 /**
  * Pure utility: filter raw OVATION coordinates to a region + min probability.
  * Moved here from AuroraMap for separation of concerns, reusability, and DRY (used by max too).
+ * 
+ * Handles OVATION's 0-360 longitude convention by normalizing to -180..180.
+ * Supports the documented [lon, lat, prob] order (real data uses this).
  */
 export function filterOvationCoordinates(
   coordinates: Array<unknown[]> | undefined,
@@ -72,14 +75,23 @@ export function filterOvationCoordinates(
   bounds = NORTH_AMERICA_BOUNDS
 ): OvationPoint[] {
   if (!coordinates || coordinates.length === 0) return [];
+
+  const normalizeLon = (lon: number): number => {
+    let n = lon % 360;
+    if (n > 180) n -= 360;
+    if (n < -180) n += 360;
+    return n;
+  };
+
   return coordinates
     .filter((row) => {
       if (!Array.isArray(row) || row.length < 3) return false;
-      const [lon, lat, prob] = row;
+      const [rawLon, lat, prob] = row;
+      if (typeof rawLon !== 'number' || typeof lat !== 'number' || typeof prob !== 'number') {
+        return false;
+      }
+      const lon = normalizeLon(rawLon);
       return (
-        typeof lon === 'number' &&
-        typeof lat === 'number' &&
-        typeof prob === 'number' &&
         lon >= bounds.minLon &&
         lon <= bounds.maxLon &&
         lat >= bounds.minLat &&
@@ -88,17 +100,24 @@ export function filterOvationCoordinates(
       );
     })
     .map((row) => {
-      const [lon, lat, prob] = row as [number, number, number];
+      const [rawLon, lat, prob] = row as [number, number, number];
+      const lon = normalizeLon(rawLon);
       return { lat, lon, prob };
     });
 }
 
 // Helper: compute max aurora probability in North America region for metrics
 export function maxOvationNorthAmerica(data: OvationResponse | null): number {
-  if (!data || !data.coordinates) return 0;
+  if (!data || !data.coordinates || data.coordinates.length === 0) {
+    return 0;
+  }
   const relevant = filterOvationCoordinates(data.coordinates, 0);
-  if (relevant.length === 0) return 0;
-  return Math.max(...relevant.map((p) => p.prob));
+  if (relevant.length === 0) {
+    // Legitimately no points in NA bounds, or data issue - caller can log context
+    return 0;
+  }
+  const max = Math.max(...relevant.map((p) => p.prob));
+  return max;
 }
 
 /**
