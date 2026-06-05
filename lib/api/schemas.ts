@@ -98,6 +98,10 @@ export const SolarRegionSchema = z.object({
   region: z.number(),
   number_spots: z.number().nullable().optional(),
   // other fields exist but we only need these for sunspot total
+  // Additional fields from NOAA (extra props allowed by Zod by default)
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  location: z.string().nullable().optional(),
 });
 export type SolarRegion = z.infer<typeof SolarRegionSchema>;
 
