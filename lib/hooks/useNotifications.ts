@@ -22,6 +22,7 @@ interface UseNotificationsReturn {
   notificationPermission: NotificationPermission;
   alertsEnabled: boolean;
   alertSensitivity: AlertSensitivity;
+  notificationError: string | null;
   setAlertsEnabled: (val: boolean) => void;
   setAlertSensitivity: (val: AlertSensitivity) => void;
   handleEnableAlerts: () => Promise<void>;
@@ -51,6 +52,8 @@ export function useNotifications({
     }
     return "default";
   });
+
+  const [notificationError, setNotificationError] = useState<string | null>(null);
 
   // Use ref for throttle to avoid setState in effect (lint + perf)
   const lastNotifiedRef = useRef<number>(0);
@@ -143,9 +146,10 @@ export function useNotifications({
 
   const handleEnableAlerts = async () => {
     if (!("Notification" in window)) {
-      alert("Browser notifications not supported in this environment.");
+      setNotificationError("Browser notifications are not supported in this browser.");
       return;
     }
+    setNotificationError(null);
 
     if (notificationPermission === "granted") {
       // Test notification (works even if user has toggled auto alerts off)
@@ -180,6 +184,7 @@ export function useNotifications({
     notificationPermission,
     alertsEnabled,
     alertSensitivity,
+    notificationError,
     setAlertsEnabled,
     setAlertSensitivity,
     handleEnableAlerts,

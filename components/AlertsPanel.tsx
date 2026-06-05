@@ -24,6 +24,7 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading }: A
     notificationPermission,
     alertsEnabled,
     alertSensitivity,
+    notificationError,
     setAlertsEnabled,
     setAlertSensitivity,
     handleEnableAlerts,
@@ -125,6 +126,9 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading }: A
               <div className="mt-3 text-[10px] text-[#64748b]">
                 Throttled to once per 30 min • Respects Do Not Disturb
               </div>
+            )}
+            {notificationError && (
+              <div className="mt-3 text-[11px] text-red-400">{notificationError}</div>
             )}
           </div>
 

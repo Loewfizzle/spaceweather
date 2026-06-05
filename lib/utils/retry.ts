@@ -29,8 +29,10 @@ export function shouldRetryCritical(failureCount: number, error: unknown): boole
 
   const message = error instanceof Error ? error.message : String(error);
 
-  // Don't retry client errors or validation failures (data is bad, not transient)
-  if (message.includes('4') || message.includes('parse') || message.includes('Zod')) {
+  // Don't retry client errors or validation failures (data is bad, not transient).
+  // Use word-boundary regex to match HTTP 4xx status codes from fetchJson error messages
+  // ("Failed to fetch url: 404 Not Found") without false-positives on any string containing '4'.
+  if (/\b4\d\d\b/.test(message) || message.includes('parse') || message.includes('Zod')) {
     return false;
   }
 
@@ -46,7 +48,7 @@ export function shouldRetryNonCritical(failureCount: number, error: unknown): bo
 
   const message = error instanceof Error ? error.message : String(error);
 
-  if (message.includes('4') || message.includes('parse') || message.includes('Zod')) {
+  if (/\b4\d\d\b/.test(message) || message.includes('parse') || message.includes('Zod')) {
     return false;
   }
 

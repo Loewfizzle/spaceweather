@@ -11,11 +11,13 @@ import type { KpEntry } from "../api/schemas";
  */
 export function useChartData(kpHistory: KpEntry[]) {
   const chartData = useMemo(() => {
-    // Last ~12 entries (~36 hours of 3h Kp data)
-    const recent = kpHistory.slice(-12);
+    // Last ~12 entries (~36 hours of 3h Kp data); drop entries with no valid timestamp
+    const recent = kpHistory
+      .filter((entry) => !!entry.time_tag && !isNaN(new Date(entry.time_tag).getTime()))
+      .slice(-12);
     const labels = recent.map((entry) => {
-      const d = new Date(entry.time_tag || "");
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const d = new Date(entry.time_tag!);
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
     });
     const values = recent.map((entry) => entry.Kp ?? 0);
 

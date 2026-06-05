@@ -23,10 +23,10 @@ export function SolarActivity() {
           Key drivers of geomagnetic activity • Michigan-relevant
         </span>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {solarActivity.isLoading ? (
-          <LoadingSkeleton variant="metrics" count={4} />
-        ) : (
+      {solarActivity.isLoading ? (
+        <LoadingSkeleton variant="metrics" count={4} />
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <>
             {/* 1. Latest Solar Flares (highest priority) */}
             <div className="metric">
@@ -109,8 +109,8 @@ export function SolarActivity() {
               </div>
             </div>
           </>
-        )}
-      </div>
+        </div>
+      )}
       {solarActivity.error && (
         <div className="mt-2 text-[10px] text-amber-400">
           Some solar data sources unavailable — using cached values if available.

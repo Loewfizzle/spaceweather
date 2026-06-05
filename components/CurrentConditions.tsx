@@ -45,10 +45,10 @@ export function CurrentConditions({
             : kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : 'syncing…'} • auto
         </span>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {isLoading ? (
-          <LoadingSkeleton variant="metrics" count={4} />
-        ) : (
+      {isLoading ? (
+        <LoadingSkeleton variant="metrics" count={4} />
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <>
             <div className="metric">
               <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
@@ -103,8 +103,8 @@ export function CurrentConditions({
               )}
             </div>
           </>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import {
   Activity,
   RefreshCw,
 } from "lucide-react";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   useCurrentConditions,
@@ -63,12 +63,9 @@ export default function AuroraWatch() {
     logDataError('Fireball tracker (NASA)', fireballsQuery.error, ['useFireballs'], false);
   }
 
-  const tonightOutlook = getTonightOutlook(
-    kp,
-    bz,
-    maxAuroraProbNA,
-    solarActivity.recentCmes,
-    solarActivity.latestFlare
+  const tonightOutlook = useMemo(
+    () => getTonightOutlook(kp, bz, maxAuroraProbNA, solarActivity.recentCmes, solarActivity.latestFlare),
+    [kp, bz, maxAuroraProbNA, solarActivity.recentCmes, solarActivity.latestFlare]
   );
 
   // Global last updated timestamp across main data sources (via dedicated hook for separation)
@@ -91,7 +88,7 @@ export default function AuroraWatch() {
     if (!iso) return "—";
     try {
       const d = new Date(iso);
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + " UTC";
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC";
     } catch {
       return iso;
     }

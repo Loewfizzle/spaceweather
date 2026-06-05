@@ -77,10 +77,6 @@ export function filterOvationCoordinates(
   // Defensive: accept only real arrays (schema + our fallback guarantee array|undefined, but tolerate unexpected shapes without crashing)
   if (!Array.isArray(coordinates) || coordinates.length === 0) return [];
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[OVATION] first 5 raw rows (format should be [lon 0-360, lat, prob]):', coordinates.slice(0, 5));
-  }
-
   const normalizeLon = (lon: number): number => {
     // Simpler 0-360 (or any) -> -180..180; handles NOAA OVATION convention defensively.
     // Equivalent to prior ifs but compact and robust for edge values.

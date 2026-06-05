@@ -117,7 +117,7 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
 }
 
 export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
-  const { data: ovationData, isLoading, error } = useOvationData();
+  const { data: ovationData, isLoading, error, refetch } = useOvationData();
 
   // Use shared utility (filtering logic moved out of component for separation of concerns + DRY)
   const points = useMemo(() => {
@@ -151,7 +151,7 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
     if (!iso) return null;
     try {
       const d = new Date(iso);
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + " UTC";
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC";
     } catch {
       return null;
     }
@@ -173,7 +173,7 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
       <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
         <div className="text-center text-red-400 text-sm">
           Failed to load aurora data.<br />
-          <button onClick={() => window.location.reload()} className="underline mt-1">Try refreshing</button>
+          <button onClick={() => refetch()} className="underline mt-1">Try refreshing</button>
         </div>
       </div>
     );
@@ -191,8 +191,8 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
           zoomControl={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
 
           <MapController target={target} />
