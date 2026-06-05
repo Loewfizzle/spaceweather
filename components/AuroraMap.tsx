@@ -31,29 +31,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-interface MapTarget {
-  center: [number, number];
-  zoom: number;
-}
-
 interface AuroraMapProps {
-  target: MapTarget | null;
   minProb?: number;
-}
-
-function MapController({ target }: { target: MapTarget | null }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (target) {
-      map.flyTo(target.center, target.zoom, {
-        duration: 1.2,
-        easeLinearity: 0.25,
-      });
-    }
-  }, [target, map]);
-
-  return null;
 }
 
 /**
@@ -116,7 +95,7 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
   return null;
 }
 
-export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
+export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
   const { data: ovationData, isLoading, error, refetch } = useOvationData();
 
   // Use shared utility (filtering logic moved out of component for separation of concerns + DRY)
@@ -194,8 +173,6 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
-
-          <MapController target={target} />
 
           {/* Smooth, performant canvas heatmap - the primary visualization for the aurora probability field */}
           <HeatmapLayer points={points} />

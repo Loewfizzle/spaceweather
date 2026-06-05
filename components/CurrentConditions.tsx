@@ -95,12 +95,15 @@ export function CurrentConditions({
                 <Satellite className="w-4 h-4" /> OVATION (NA)
               </div>
               <div className="text-4xl font-semibold tracking-tighter tabular-nums">
-                {maxAuroraProbNA !== null ? Math.round(maxAuroraProbNA) : "—"}%
+                {ovationProcessed && maxAuroraProbNA !== null ? `${Math.round(maxAuroraProbNA)}%` : "—"}
               </div>
-              <div className="text-sm text-[#64748b] -mt-1">Max probability (North America)</div>
-              {ovationProcessed === false && (
-                <div className="text-[9px] text-amber-400 mt-0.5">data issue (check logs)</div>
-              )}
+              <div className="text-sm text-[#64748b] -mt-1">
+                {ovationProcessed === false
+                  ? "Temporarily unavailable"
+                  : maxAuroraProbNA === 0
+                  ? "Quiet — aurora oval outside NA"
+                  : "Max probability (North America)"}
+              </div>
             </div>
           </>
         </div>
