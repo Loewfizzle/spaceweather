@@ -165,7 +165,8 @@ export async function fetchCloudCover(
 ): Promise<CloudCoverData> {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=cloudcover&timezone=America/Detroit&forecast_days=2`;
   const raw = await fetchJson<unknown>(url, { cache: 'no-store' });
-  return CloudCoverDataSchema.parse(raw);
+  const parsed = CloudCoverDataSchema.parse(raw);
+  return parsed.hourly;
 }
 
 // Fireballs - now goes through our internal proxy (CORS-safe + cached)

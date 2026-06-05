@@ -128,8 +128,12 @@ export const MeteorShowerSchema = z.object({
 export type MeteorShower = z.infer<typeof MeteorShowerSchema>;
 
 // Cloud cover from Open-Meteo (used in sky, though section removed)
-export const CloudCoverDataSchema = z.object({
+// Open-Meteo wraps time/cloudcover under "hourly"; fetcher returns the inner hourly object.
+const CloudCoverHourlySchema = z.object({
   time: z.array(z.string()),
   cloudcover: z.array(z.number()),
 });
-export type CloudCoverData = z.infer<typeof CloudCoverDataSchema>;
+export const CloudCoverDataSchema = z.object({
+  hourly: CloudCoverHourlySchema,
+});
+export type CloudCoverData = z.infer<typeof CloudCoverHourlySchema>;
