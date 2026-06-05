@@ -62,8 +62,8 @@ export function HeroOutlook({ outlook, isLoading, error }: HeroOutlookProps) {
         <div className="mt-3 h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
       )}
       {error && (
-        <div className="mt-2 text-xs text-red-400">
-          Error loading outlook. Using cached values if available.
+        <div className="mt-2 text-xs text-amber-400">
+          Some data sources unavailable — displaying last known values.
         </div>
       )}
     </div>

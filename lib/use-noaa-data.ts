@@ -45,6 +45,37 @@ import type {
   CmeSummary,
 } from "./api/schemas";
 
+/**
+ * Error Handling Strategy (critical vs. enhancement / non-critical data)
+ *
+ * Philosophy: Enable graceful degradation. Core "decision" data for the user (Tonight’s Michigan
+ * Outlook / hero) must be resilient. Supporting / enhancement data can fail without breaking the
+ * primary experience.
+ *
+ * Critical (bubbles to top-level .error for the section):
+ *   - useCurrentConditions: Kp + OVATION (error = kpQuery.error || ovationQuery.error)
+ *     Bz and solar wind are treated as enhancement — nulls become "—" in UI.
+ *     Purpose: hero outlook + main risk/guidance should still attempt to render (often from cache).
+ *
+ *   - useSolarActivity: flares + alerts (error = flaresQuery.error || alertsQuery.error)
+ *     Regions (sunspots) explicitly non-fatal so sunspot card doesn't break the whole section.
+ *
+ * Non-critical / enhancement (graceful fallback to null/—, never pollute primary error):
+ *   - Solar wind (plasma + mag) inside useSolarWindData: error returned but ignored by
+ *     useCurrentConditions for its .error. Values fall back to null.
+ *   - Solar regions in useSolarActivity: sunspotNumber can be null.
+ *   - Fireballs: handled locally in MeteorActivity (uses ErrorState with retry).
+ *   - Sky (legacy, unused in UI): separate.
+ *
+ * UI pattern:
+ *   - Hero / primary outlook: show card (using available/cached data) + subtle warning line on critical error.
+ *   - Metric cards: prefer "—" fallbacks over hiding whole row.
+ *   - Section cards (solar, meteor): use ErrorState or warning only for their critical subset; render
+ *     available data otherwise.
+ *   - Top-level ErrorBoundary catches unexpected render crashes.
+ *
+ * This keeps the dashboard useful even when some NOAA endpoints are flaky.
+ */
 export function useOvationData() {
   return useQuery<OvationResponse>({
     queryKey: ["ovation"],

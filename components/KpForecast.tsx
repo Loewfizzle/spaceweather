@@ -14,6 +14,7 @@ import {
   Legend,
 } from "chart.js";
 import { LoadingSkeleton } from "./LoadingSkeleton";
+import { ErrorState } from "./ErrorState";
 
 // Register Chart.js components once (when this module is first imported)
 ChartJS.register(
@@ -49,6 +50,11 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
         <div className="h-56">
           {kpQuery.isLoading ? (
             <LoadingSkeleton variant="chart" />
+          ) : kpQuery.error ? (
+            <ErrorState
+              message="Unable to load Kp outlook data right now."
+              onRetry={kpQuery.refetch}
+            />
           ) : kpHistory.length > 0 ? (
             <Line data={chartData} options={chartOptions} />
           ) : (

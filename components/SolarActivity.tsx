@@ -26,10 +26,6 @@ export function SolarActivity() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {solarActivity.isLoading ? (
           <LoadingSkeleton variant="metrics" count={4} />
-        ) : solarActivity.error ? (
-          <div className="metric col-span-2 md:col-span-4 text-red-400 text-sm">
-            Unable to load solar data. Using cached values if available.
-          </div>
         ) : (
           <>
             {/* 1. Latest Solar Flares (highest priority) */}
@@ -112,6 +108,11 @@ export function SolarActivity() {
           </>
         )}
       </div>
+      {solarActivity.error && (
+        <div className="mt-2 text-[10px] text-amber-400">
+          Some solar data sources unavailable — using cached values if available.
+        </div>
+      )}
       <div className="text-[10px] text-[#64748b] mt-2">
         Data from NOAA SWPC • Flares update frequently; CMEs when analyzed; sunspots daily.
         {solarActivity.flareTime && (

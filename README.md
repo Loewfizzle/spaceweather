@@ -44,33 +44,53 @@ All external data is validated at runtime with Zod schemas.
 - date-fns (relative timestamps)
 - next/dynamic for code-splitting heavy components
 
-## Project Structure (Post Step 4 Refactor)
+## Project Structure
 
 ```
 app/
-  api/fireballs/route.ts   # Server proxy for NASA (CORS + caching)
-  layout.tsx               # Root metadata, OG, providers + ErrorBoundary
-  loading.tsx              # Full-page skeleton matching new IA
-  page.tsx                 # Main dashboard (client for interactivity)
-  providers.tsx            # QueryClient + global ErrorBoundary
+  api/fireballs/route.ts   # Server proxy for NASA JPL (CORS bypass + caching)
+  layout.tsx               # Root metadata (OG, etc.), Providers wrapper
+  loading.tsx              # Full-page skeleton (matches dashboard IA)
+  page.tsx                 # High-level orchestration (imports hooks + components)
+  providers.tsx            # TanStack QueryClient + top-level ErrorBoundary
 components/
-  AuroraMap.tsx
-  ErrorBoundary.tsx
-  ErrorState.tsx
+  AuroraMap.tsx            # Leaflet + heat map (dynamic import)
+  ErrorBoundary.tsx        # Top-level render error catcher
+  ErrorState.tsx           # Reusable error UI with optional retry
   EmptyState.tsx
-  LoadingSkeleton.tsx      # Variants: card, list, metrics, chart, map
+  LoadingSkeleton.tsx      # Variants for card / metrics / chart / map / list
+  + extracted presentational: HeroOutlook, CurrentConditions, AuroraMapSection,
+    KpForecast, SolarActivity, MeteorActivity, DataUnderstanding, AlertsPanel
 lib/
   api/
-    fetchers.ts            # Centralized, Zod-validated data fetching
-    schemas.ts             # Zod schemas for Kp, OVATION, Solar Wind, Fireballs + more
+    fetchers.ts            # Fetching + row parsing + Zod validation (single source for I/O)
+    schemas.ts             # All Zod schemas + inferred TS types (defensive nullables)
   constants/
-    meteors.ts             # Static major shower data
-  hooks/                   # (Prepared for future extraction of hooks)
-  noaa.ts                  # Pure utilities, business logic (getTonightOutlook, parseRecentCmes, format helpers, re-exports)
-  use-noaa-data.ts         # TanStack Query hooks + composed logic (useCurrentConditions, useSolarActivity, useFireballs, etc.)
-  utils/                   # (Prepared)
+    meteors.ts             # Static major shower data (used by business logic)
+  hooks/
+    useChartData.ts        # Kp chart data prep (used by KpForecast)
+    useGlobalFreshness.ts  # Consolidated last-updated timestamp
+    useNotifications.ts    # Alerts permission, localStorage, throttle, auto-alert effect
+  noaa.ts                  # Pure business logic + derived data (NO fetching):
+                           #   - getTonightOutlook, getMichiganRiskLevel
+                           #   - parseRecentCmes, currentSunspotNumber
+                           #   - latest(), filterOvationCoordinates, maxOvationNorthAmerica
+                           #   - getAuroraColor / getAuroraMarkerRadius
+                           #   - meteor helpers (getNextMeteorShower, format*, calendar link)
+                           #   - fireball formatters
+  use-noaa-data.ts         # React Query hooks + composition only:
+                           #   - useCurrentConditions, useSolarActivity, useFireballs, useOvationData, useKpData, useSolarWindData, useSkyConditions (legacy)
+                           #   - Re-exports of business logic for UI convenience
+  utils/                   # (lightweight / future)
 public/
-  og-image.jpg, manifest.json, etc.
+  og-image.jpg, manifest.json, favicon, etc.
+```
+
+Data layer split (after refactors):
+- lib/api/ = Fetching + Validation (Zod at the edge)
+- lib/noaa.ts = Pure business logic and data derivations (no side effects)
+- lib/use-noaa-data.ts = TanStack Query hook composition (orchestrates the above)
+- components/ + lib/hooks/ = Presentational components and UI-specific extracted logic (chart prep, notifications, freshness, etc.)
 ```
 
 ## Getting Started
@@ -87,11 +107,12 @@ Open http://localhost:3000
 
 ## Development & Production Notes
 
-- **Data fetching**: Mix of client (TanStack Query with per-hook staleTime/refetch) + server proxy for NASA. Fetchers use Zod .parse() for safety.
+- **Data fetching**: Mix of client (TanStack Query with per-hook staleTime/refetch) + server proxy for NASA. Fetchers use Zod .parse() (or safeParse+filter for resilience on CSV sources).
+- **Error handling**: Critical data (Kp + OVATION for hero outlook) vs. enhancement data (solar wind, regions/sunspots, fireballs). Critical errors bubble for the primary section; non-critical data gracefully degrades to "—" / cached values + subtle warnings. See comments in lib/use-noaa-data.ts. Top-level ErrorBoundary catches render crashes. Per-section components (SolarActivity, MeteorActivity, etc.) use ErrorState or inline warnings with retry where appropriate.
 - **Caching**: TanStack staleTime per source (1-60 min). Server proxy uses Next revalidate + Cache-Control. NOAA direct uses no-store + Query.
 - **Refresh**: Global button refetches all active queries (conditions, solar, fireballs).
 - **Map**: Dynamically imported (ssr: false) with canvas heatmap for performance.
-- **Accessibility**: ARIA on slider/map controls, keyboard friendly buttons, semantic structure. More enhancements planned.
+- **Accessibility**: ARIA on slider/map controls, keyboard friendly buttons, semantic structure.
 - The NASA proxy solves the production CORS problem that direct browser fetches to ssd-api.jpl.nasa.gov encounter.
 
 ## Deploy
