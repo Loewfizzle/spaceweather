@@ -481,7 +481,9 @@ export default function AuroraWatch() {
         <div className="section-title flex items-baseline justify-between">
           <span>CURRENT CONDITIONS</span>
           <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
-            {kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : 'syncing…'} • auto
+            {latestGlobalUpdate 
+              ? `updated ${formatDistanceToNow(latestGlobalUpdate, { addSuffix: true })}` 
+              : kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : 'syncing…'} • auto
           </span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

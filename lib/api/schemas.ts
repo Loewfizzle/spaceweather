@@ -94,9 +94,10 @@ export const AlertSchema = z.object({
 export type Alert = z.infer<typeof AlertSchema>;
 
 export const SolarRegionSchema = z.object({
-  Obsdate: z.string().optional(),
-  Numspot: z.number().optional(),
-  Region: z.string().optional(),
+  observed_date: z.string(),
+  region: z.number(),
+  number_spots: z.number().nullable().optional(),
+  // other fields exist but we only need these for sunspot total
 });
 export type SolarRegion = z.infer<typeof SolarRegionSchema>;
 

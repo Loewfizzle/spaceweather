@@ -150,12 +150,12 @@ export function parseRecentCmes(alerts: import("./api/schemas").Alert[] | undefi
 /** Compute total sunspot number from latest reported regions. */
 export function currentSunspotNumber(regions: import("./api/schemas").SolarRegion[] | undefined): number | null {
   if (!regions || regions.length === 0) return null;
-  const valid = regions.filter((r) => r.Obsdate && typeof r.Numspot === "number");
+  const valid = regions.filter((r) => r.observed_date && typeof r.number_spots === "number");
   if (valid.length === 0) return null;
-  const dates = [...new Set(valid.map((r) => r.Obsdate!))].sort().reverse();
+  const dates = [...new Set(valid.map((r) => r.observed_date!))].sort().reverse();
   const latestDate = dates[0];
-  const todays = valid.filter((r) => r.Obsdate === latestDate);
-  const total = todays.reduce((sum, r) => sum + (r.Numspot || 0), 0);
+  const todays = valid.filter((r) => r.observed_date === latestDate);
+  const total = todays.reduce((sum, r) => sum + (r.number_spots || 0), 0);
   return total > 0 ? total : null;
 }
 

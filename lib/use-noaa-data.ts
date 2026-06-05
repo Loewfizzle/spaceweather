@@ -216,7 +216,7 @@ export function useSolarActivity() {
     // raw for freshness if needed
     flareTime: latestFlare?.max_time || latestFlare?.time_tag || null,
     alertsTime: alertsQuery.data && alertsQuery.data.length > 0 ? alertsQuery.data[0].issue_datetime : null,
-    regionsTime: regionsQuery.data && regionsQuery.data.length > 0 ? regionsQuery.data[0]?.Obsdate : null,
+    regionsTime: regionsQuery.data && regionsQuery.data.length > 0 ? regionsQuery.data[0]?.observed_date : null,
   };
 }
 
