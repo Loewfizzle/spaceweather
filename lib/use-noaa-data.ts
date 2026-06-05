@@ -34,9 +34,10 @@ import {
   createGoogleCalendarLink,
   formatFireballDate,
   formatFireballLocation,
+  getCityAuroraProbabilities,
 } from "./noaa";
 
-import type { MeteorShower, TonightOutlook } from "./noaa";
+import type { MeteorShower, TonightOutlook, CityAuroraProb } from "./noaa";
 
 import type {
   // Types from the Zod schemas (single source of truth for shapes)
@@ -172,11 +173,18 @@ export function useCurrentConditions() {
     }
   }, [criticalError]);
 
+  const cityProbs = getCityAuroraProbabilities(
+    ovationData ?? null,
+    latestKp?.Kp ?? null,
+    solarWind.current.bz
+  );
+
   return {
     kp: latestKp?.Kp ?? null,
     kpTime: latestKp?.time_tag ?? null,
     maxAuroraProbNA: maxProbNA,
     ovationProcessed,  // true if we got non-empty coordinates from OVATION (for distinguishing real 0% vs processing failure)
+    cityProbs,
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
@@ -300,7 +308,7 @@ export function useFireballs(limit = 8) {
 // Re-exports of pure business logic (sourced from lib/noaa.ts) for convenience
 // of current UI consumers (page.tsx, MeteorActivity, etc.). Prefer importing
 // hooks from here; business fns are composed inside the hooks.
-export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink, type TonightOutlook, getTonightOutlook };
+export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink, type TonightOutlook, getTonightOutlook, type CityAuroraProb };
 
 // Re-export of the pure MI risk helper (defined in lib/noaa.ts)
 export { getMichiganRiskLevel };

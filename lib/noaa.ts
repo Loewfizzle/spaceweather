@@ -195,12 +195,19 @@ export function currentSunspotNumber(regions: SolarRegion[] | undefined): number
   return total > 0 ? total : null;
 }
 
+export interface CityAuroraProb {
+  name: string;
+  state: string;
+  prob: number;
+}
+
 export interface TonightOutlook {
   status: 'Excellent' | 'Good' | 'Moderate' | 'Low' | 'Quiet' | 'Loading';
   message: string;
   reasons: string[];
   accentColor: string;
   drivers?: string;
+  cityProbs?: CityAuroraProb[];
 }
 
 /**
@@ -291,6 +298,60 @@ export function getTonightOutlook(
   const drivers = `Kp ${kp.toFixed(1)} • Bz ${bz !== null ? bz.toFixed(1) : '—'} nT${speedStr}`;
 
   return { status, message, reasons, accentColor, drivers };
+}
+
+// ── City-level aurora probability ──────────────────────────────────────────
+
+const AURORA_WATCH_CITIES = [
+  { name: "Fort Ripley", state: "MN", lat: 46.17, lon: -94.36 },
+  { name: "Cedar",       state: "MI", lat: 44.75, lon: -85.56 },
+  { name: "Spring Lake", state: "MI", lat: 43.08, lon: -86.20 },
+  { name: "Hudsonville", state: "MI", lat: 42.87, lon: -85.87 },
+] as const;
+
+// Rough equatorward aurora oval boundary by Kp (Holzworth & Meng 1975, simplified).
+function estimateProbFromKp(kp: number, lat: number): number {
+  const boundary = 72 - kp * 4;
+  const margin = lat - boundary;
+  if (margin <= -15) return 0;
+  const peak = Math.min(90, 30 + kp * 8);
+  if (margin >= 0) return peak;
+  return Math.max(0, Math.round(((margin + 15) / 15) * peak));
+}
+
+/**
+ * Returns tonight's aurora viewing probability (0–99) for each watch city.
+ * Primary: nearest OVATION grid point. Fallback: Kp + latitude formula.
+ * Strong southward Bz (≤ −5 nT) adds a small boost not yet reflected in OVATION.
+ */
+export function getCityAuroraProbabilities(
+  ovationData: OvationResponse | null,
+  kp: number | null,
+  bz: number | null
+): CityAuroraProb[] {
+  const points = ovationData
+    ? filterOvationCoordinates(ovationData.coordinates, 0)
+    : [];
+
+  return AURORA_WATCH_CITIES.map((city) => {
+    let prob = 0;
+
+    if (points.length > 0) {
+      let nearestDist = Infinity;
+      for (const p of points) {
+        const d = (p.lat - city.lat) ** 2 + (p.lon - city.lon) ** 2;
+        if (d < nearestDist) { nearestDist = d; prob = p.prob; }
+      }
+    } else if (kp !== null) {
+      prob = estimateProbFromKp(kp, city.lat);
+    }
+
+    if (bz !== null && bz <= -5) {
+      prob = Math.min(99, prob + Math.round(Math.min(8, Math.abs(bz + 5) * 1.5)));
+    }
+
+    return { name: city.name, state: city.state, prob: Math.round(Math.max(0, Math.min(99, prob))) };
+  });
 }
 
 // Meteor shower calendar helpers

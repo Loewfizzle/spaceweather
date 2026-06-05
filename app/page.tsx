@@ -51,6 +51,7 @@ export default function AuroraWatch() {
     solarWindError,
     isFetching,
     refetchAll,
+    cityProbs,
   } = conditions;
 
   // New solar activity data (flares, CMEs, sunspots, coronal holes)
@@ -65,8 +66,11 @@ export default function AuroraWatch() {
   }, [fireballsQuery.error]);
 
   const tonightOutlook = useMemo(
-    () => getTonightOutlook(kp, bz, maxAuroraProbNA, solarActivity.recentCmes, solarActivity.latestFlare, solarWindSpeed),
-    [kp, bz, maxAuroraProbNA, solarActivity.recentCmes, solarActivity.latestFlare, solarWindSpeed]
+    () => ({
+      ...getTonightOutlook(kp, bz, maxAuroraProbNA, solarActivity.recentCmes, solarActivity.latestFlare, solarWindSpeed),
+      cityProbs,
+    }),
+    [kp, bz, maxAuroraProbNA, solarActivity.recentCmes, solarActivity.latestFlare, solarWindSpeed, cityProbs]
   );
 
   // Global last updated timestamp across main data sources (via dedicated hook for separation)

@@ -44,15 +44,18 @@ export function HeroOutlook({ outlook, isLoading, error, isFetching }: HeroOutlo
           {outlook.message}
         </p>
 
-        {outlook.reasons.length > 0 && (
+        {outlook.cityProbs && outlook.cityProbs.length > 0 && outlook.status !== "Loading" && (
           <div className="space-y-1 mb-1">
-            {outlook.reasons.map((reason, idx) => (
-              <div key={idx} className="text-sm text-[#94a3b8] flex items-start gap-2">
+            {outlook.cityProbs.map((city, idx) => (
+              <div key={idx} className="text-sm text-[#94a3b8] flex items-center gap-2">
                 <span
-                  className="mt-1.5 block h-1 w-1 rounded-full flex-shrink-0"
+                  className="block h-1 w-1 rounded-full flex-shrink-0"
                   style={{ backgroundColor: outlook.accentColor }}
                 />
-                {reason}
+                <span className="flex-1">{city.name}, {city.state}</span>
+                <span className="tabular-nums font-medium text-[#cbd5e1]">
+                  {city.prob > 0 ? `${city.prob}%` : "< 1%"}
+                </span>
               </div>
             ))}
           </div>

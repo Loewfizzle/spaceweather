@@ -11,6 +11,7 @@ import {
   maxOvationNorthAmerica,
   getAuroraColor,
   parseRecentCmes,
+  getCityAuroraProbabilities,
 } from '../../lib/noaa'
 import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse, MeteorShower } from '../../lib/api/schemas'
 
@@ -265,6 +266,63 @@ describe('getMichiganGuidance', () => {
     const result = getMichiganGuidance(3, 25, -8)
     expect(result).toContain('southward Bz')
     expect(result).not.toContain('probabilities across North America')
+  })
+})
+
+// ============================================
+// getCityAuroraProbabilities
+// ============================================
+describe('getCityAuroraProbabilities', () => {
+  it('returns 4 cities in north-to-south order', () => {
+    const result = getCityAuroraProbabilities(null, null, null)
+    expect(result).toHaveLength(4)
+    expect(result[0].name).toBe('Fort Ripley')
+    expect(result[3].name).toBe('Hudsonville')
+  })
+
+  it('returns 0 for all cities when no data and no kp', () => {
+    const result = getCityAuroraProbabilities(null, null, null)
+    result.forEach(c => expect(c.prob).toBe(0))
+  })
+
+  it('uses Kp-based fallback when ovation is null', () => {
+    // Kp 6 should give Fort Ripley (46°N) a meaningful probability
+    const result = getCityAuroraProbabilities(null, 6, null)
+    expect(result[0].state).toBe('MN')
+    expect(result[0].prob).toBeGreaterThan(0)
+    // Fort Ripley (northernmost) should be >= Hudsonville (southernmost)
+    expect(result[0].prob).toBeGreaterThanOrEqual(result[3].prob)
+  })
+
+  it('picks the nearest OVATION grid point for each city', () => {
+    // Place a high-probability point right near Fort Ripley (~46°N, -94°W → rawLon 266)
+    // and a low point near the Michigan cities (~44°N, -85°W → rawLon 275)
+    const ovation: OvationResponse = {
+      coordinates: [
+        [266, 46, 70],   // near Fort Ripley
+        [275, 45, 5],    // near Cedar/Spring Lake/Hudsonville
+        [275, 43, 5],
+      ],
+    }
+    const result = getCityAuroraProbabilities(ovation, 5, null)
+    expect(result[0].prob).toBe(70)   // Fort Ripley
+    expect(result[1].prob).toBeLessThanOrEqual(10)  // Cedar
+  })
+
+  it('applies Bz boost when bz <= -5', () => {
+    const base = getCityAuroraProbabilities(null, 5, null)
+    const boosted = getCityAuroraProbabilities(null, 5, -8)
+    // bz=-8: abs(-8+5)*1.5 = 4.5 → round to 5, so boosted >= base
+    boosted.forEach((c, i) => expect(c.prob).toBeGreaterThanOrEqual(base[i].prob))
+  })
+
+  it('clamps probability to 0–99', () => {
+    // Very high Kp + very negative Bz should not exceed 99
+    const result = getCityAuroraProbabilities(null, 9, -30)
+    result.forEach(c => {
+      expect(c.prob).toBeGreaterThanOrEqual(0)
+      expect(c.prob).toBeLessThanOrEqual(99)
+    })
   })
 })
 
