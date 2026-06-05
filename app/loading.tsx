@@ -32,8 +32,8 @@ export default function AuroraWatchLoading() {
         </div>
       </header>
 
-      {/* Hero + Tonight’s Outlook + Sky skeleton (mirrors real prominent decision cluster at top) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-6">
+      {/* Hero + Tonight’s Michigan Outlook skeleton */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-4">
         <div className="max-w-3xl">
           <div className="h-3 w-40 bg-[#1e2937] rounded animate-pulse mb-3" />
           <div className="space-y-2 mb-5">
@@ -53,20 +53,6 @@ export default function AuroraWatchLoading() {
             </div>
             <div className="h-4 w-full bg-[#1e2937] rounded animate-pulse" />
             <div className="h-3 w-5/6 bg-[#1e2937] rounded animate-pulse" />
-          </div>
-        </div>
-
-        {/* Sky Conditions grid skeleton (3 locations) */}
-        <div className="mt-6 max-w-3xl">
-          <div className="h-3 w-44 bg-[#1e2937] rounded animate-pulse mb-3" />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="metric p-4">
-                <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse mb-2" />
-                <div className="h-6 w-12 bg-[#1e2937] rounded animate-pulse mb-1" />
-                <div className="h-3 w-24 bg-[#1e2937] rounded animate-pulse" />
-              </div>
-            ))}
           </div>
         </div>
       </div>
