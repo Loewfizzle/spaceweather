@@ -135,8 +135,11 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
       );
   }, [ovationData, minProb]);
 
-  // High probability markers for precise interaction + visual pop on top of the heatmap field
-  const highProbThreshold = Math.max(minProb, 10);
+  // High probability markers for precise interaction + visual pop on top of the heatmap field.
+  // Threshold raised to 25: at Kp 5-6 the aurora oval has 60-70 points per latitude row at
+  // prob 10-19, which merge into solid horizontal bars. CircleMarkers are only meaningful at
+  // genuine peaks (rare, storm-level). The heatmap handles the full low-to-mid field.
+  const highProbThreshold = Math.max(minProb, 25);
   const highProbPoints = useMemo(
     () => points.filter((p) => p.prob >= highProbThreshold),
     [points, highProbThreshold]
