@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   getNextMeteorShower,
   formatMeteorPeak,
@@ -12,6 +13,7 @@ import {
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
+import { FireballModal } from "./FireballModal";
 
 /**
  * MeteorActivity
@@ -23,6 +25,7 @@ import { EmptyState } from "./EmptyState";
 export function MeteorActivity() {
   const fireballsQuery = useFireballs();
   const nextMeteor = getNextMeteorShower();
+  const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
@@ -81,29 +84,44 @@ export function MeteorActivity() {
             />
           ) : (
             <div className="space-y-1.5 text-sm">
-              {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball, idx: number) => (
-                <div key={idx} className="flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0">
-                  <div className="min-w-0">
-                    <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatFireballDate(fb.date)}</div>
-                    <div className="text-[11px] text-[#64748b] truncate">{formatFireballLocation(fb)}</div>
+              {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball, idx: number) => {
+                const hasLocation = fb.lat != null && fb.lon != null;
+                return (
+                  <div
+                    key={idx}
+                    className={`flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0 rounded transition-colors${hasLocation ? " cursor-pointer hover:bg-[#1e2937]" : ""}`}
+                    onClick={hasLocation ? () => setSelectedFireball(fb) : undefined}
+                    role={hasLocation ? "button" : undefined}
+                  >
+                    <div className="min-w-0">
+                      <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatFireballDate(fb.date)}</div>
+                      <div className="text-[11px] text-[#64748b] truncate">{formatFireballLocation(fb)}</div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-3 tabular-nums">
+                      {fb.energy != null && (
+                        <div className="text-[#94a3b8]">{fb.energy} kt</div>
+                      )}
+                      {fb.alt != null && (
+                        <div className="text-[10px] text-[#64748b]">{fb.alt} km alt</div>
+                      )}
+                      {fb.energy == null && fb.alt == null && (
+                        <div className="text-[10px] text-[#64748b]">—</div>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right flex-shrink-0 ml-3 tabular-nums">
-                    {fb.energy != null && (
-                      <div className="text-[#94a3b8]">{fb.energy} kt</div>
-                    )}
-                    {fb.alt != null && (
-                      <div className="text-[10px] text-[#64748b]">{fb.alt} km alt</div>
-                    )}
-                    {fb.energy == null && fb.alt == null && (
-                      <div className="text-[10px] text-[#64748b]">—</div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
+
+      {selectedFireball && (
+        <FireballModal
+          fireball={selectedFireball}
+          onClose={() => setSelectedFireball(null)}
+        />
+      )}
     </div>
   );
 }
