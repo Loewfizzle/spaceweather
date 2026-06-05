@@ -29,6 +29,34 @@ export function latest<T extends { time_tag?: string | null }>(arr: T[]): T | nu
   return arr[arr.length - 1];
 }
 
+/**
+ * Plain-English aurora guidance for Michigan, incorporating Kp + OVATION prob + Bz.
+ * Pure function; lives here alongside getMichiganRiskLevel and getTonightOutlook.
+ */
+export function getMichiganGuidance(
+  kp: number | null,
+  maxProb: number | null,
+  bz: number | null
+): string {
+  if (kp === null) return "Data loading...";
+  let text: string;
+  if (kp >= 7) {
+    text = "High probability of aurora visible across much of Michigan, including Lower Peninsula under dark skies.";
+  } else if (kp >= 5) {
+    text = "Good chance in the Upper Peninsula; possible in northern Lower Peninsula with clear dark skies.";
+  } else if (kp >= 4) {
+    text = "Possible in the Upper Peninsula. Lower Peninsula unlikely unless skies are very dark and clear.";
+  } else {
+    text = "Low probability across Michigan. Best chances remain in the far northern Upper Peninsula.";
+  }
+  if (bz !== null && bz <= -5) {
+    text += " Strong southward Bz currently boosting chances.";
+  } else if (maxProb !== null && maxProb >= 20) {
+    text += " Elevated probabilities across North America increase the odds.";
+  }
+  return text;
+}
+
 // Michigan-specific risk level for visibility (used by alerts UI + header badge).
 // Pure function; derived from Kp + OVATION prob + Bz. Lives here with other
 // business logic rather than inside a hook file.

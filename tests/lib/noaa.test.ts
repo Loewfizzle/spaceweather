@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   getMichiganRiskLevel,
+  getMichiganGuidance,
   getTonightOutlook,
   currentSunspotNumber,
   getNextMeteorShower,
@@ -176,6 +177,42 @@ describe('getAuroraColor', () => {
     expect(getAuroraColor(3)).toBe('#166534')
     expect(getAuroraColor(20)).toBe('#eab308')
     expect(getAuroraColor(60)).toBe('#a78bfa')
+  })
+})
+
+// ============================================
+// getMichiganGuidance
+// ============================================
+describe('getMichiganGuidance', () => {
+  it('returns loading text when kp is null', () => {
+    expect(getMichiganGuidance(null, null, null)).toBe('Data loading...')
+  })
+
+  it('returns high-confidence text for kp >= 7', () => {
+    const result = getMichiganGuidance(7, 10, -3)
+    expect(result).toContain('Lower Peninsula')
+  })
+
+  it('returns UP-focused text for kp 5-6', () => {
+    const result = getMichiganGuidance(5, 10, -3)
+    expect(result).toContain('Upper Peninsula')
+    expect(result).toContain('northern Lower')
+  })
+
+  it('appends Bz boost note when bz <= -5', () => {
+    const result = getMichiganGuidance(3, 5, -6)
+    expect(result).toContain('southward Bz')
+  })
+
+  it('appends OVATION note when maxProb >= 20 and bz not favorable', () => {
+    const result = getMichiganGuidance(3, 25, -2)
+    expect(result).toContain('probabilities across North America')
+  })
+
+  it('Bz note takes priority over OVATION note', () => {
+    const result = getMichiganGuidance(3, 25, -8)
+    expect(result).toContain('southward Bz')
+    expect(result).not.toContain('probabilities across North America')
   })
 })
 
