@@ -150,12 +150,12 @@ export function parseRecentCmes(alerts: import("./api/schemas").Alert[] | undefi
 /** Compute total sunspot number from latest reported regions. */
 export function currentSunspotNumber(regions: import("./api/schemas").SolarRegion[] | undefined): number | null {
   if (!regions || regions.length === 0) return null;
-  const valid = regions.filter((r) => r.Obsdate && typeof r.Numspot === "number");
+  const valid = regions.filter((r) => r.observed_date && typeof r.number_spots === "number");
   if (valid.length === 0) return null;
-  const dates = [...new Set(valid.map((r) => r.Obsdate!))].sort().reverse();
+  const dates = [...new Set(valid.map((r) => r.observed_date!))].sort().reverse();
   const latestDate = dates[0];
-  const todays = valid.filter((r) => r.Obsdate === latestDate);
-  const total = todays.reduce((sum, r) => sum + (r.Numspot || 0), 0);
+  const todays = valid.filter((r) => r.observed_date === latestDate);
+  const total = todays.reduce((sum, r) => sum + (r.number_spots || 0), 0);
   return total > 0 ? total : null;
 }
 
@@ -289,7 +289,6 @@ export function getNextMeteorShower(now: Date = new Date()): { shower: MeteorSho
   const next = candidates[0];
   return { shower: next.shower, peakDate: next.date };
 }
-
 export function formatMeteorPeak(peakDate: Date, shower: MeteorShower): string {
   const month = peakDate.toLocaleString("en-US", { month: "long" });
   let str = `${month} ${peakDate.getDate()}`;
@@ -304,7 +303,6 @@ export function formatMeteorPeak(peakDate: Date, shower: MeteorShower): string {
   }
   return `${str}, ${peakDate.getFullYear()}`;
 }
-
 export function createGoogleCalendarLink(shower: MeteorShower, peakDate: Date): string {
   const y = peakDate.getFullYear();
   const m = String(peakDate.getMonth() + 1).padStart(2, "0");
@@ -331,8 +329,6 @@ export function createGoogleCalendarLink(shower: MeteorShower, peakDate: Date): 
 // (re-exported below)
 
 
-// fetchFireballs is now exclusively in lib/api/fetchers.ts (uses the /api/fireballs proxy)
-
 export function formatFireballDate(dateStr: string): string {
   if (!dateStr) return "—";
   try {
@@ -353,7 +349,6 @@ export function formatFireballDate(dateStr: string): string {
     return dateStr;
   }
 }
-
 export function formatFireballLocation(fb: Fireball): string {
   if (fb.lat == null || fb.lon == null) return "Location unavailable";
   return `${fb.lat}°${fb.latDir || ""} ${fb.lon}°${fb.lonDir || ""}`;
