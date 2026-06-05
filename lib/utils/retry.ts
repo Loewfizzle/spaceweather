@@ -91,12 +91,3 @@ export function logDataError(
   }
 }
 
-/**
- * Helper to attach consistent meta for debugging (used in query options if desired).
- */
-export function dataQueryMeta(isCritical: boolean) {
-  return {
-    isCriticalData: isCritical,
-    dataLayer: 'noaa-swpc',
-  };
-}

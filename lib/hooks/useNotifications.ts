@@ -160,7 +160,7 @@ export function useNotifications({
           tag: "aurorawatch-test",
         });
       } catch (e) {
-        console.warn(e);
+        console.warn("Could not send test notification", e);
       }
       return;
     }

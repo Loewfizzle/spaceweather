@@ -22,6 +22,8 @@ import type {
   SolarRegion,
   XrayFlare,
 } from "./api/schemas";
+import type { MeteorShower } from "./api/schemas";
+import { MAJOR_METEOR_SHOWERS } from "./constants/meteors";
 
 // Helper: get most recent value from time series (tolerant of optional time_tag after defensive schemas)
 export function latest<T extends { time_tag?: string | null }>(arr: T[]): T | null {
@@ -90,26 +92,17 @@ export const NORTH_AMERICA_BOUNDS = {
   maxLat: 75,
 } as const;
 
-/**
- * Pure utility: filter raw OVATION coordinates to a region + min probability.
- * Moved here from AuroraMap for separation of concerns, reusability, and DRY (used by max too).
- * 
- * Handles OVATION's 0-360 longitude convention by normalizing to -180..180.
- * Supports the documented [lon, lat, prob] order (real data uses this).
- */
+// Filter raw OVATION coordinates to a region + min probability.
+// Normalizes NOAA's 0-360 longitude convention to -180..180.
 export function filterOvationCoordinates(
   coordinates: Array<unknown[]> | undefined,
   minProb: number = 0,
   bounds = NORTH_AMERICA_BOUNDS
 ): OvationPoint[] {
-  // Defensive: accept only real arrays (schema + our fallback guarantee array|undefined, but tolerate unexpected shapes without crashing)
   if (!Array.isArray(coordinates) || coordinates.length === 0) return [];
 
-  const normalizeLon = (lon: number): number => {
-    // Simpler 0-360 (or any) -> -180..180; handles NOAA OVATION convention defensively.
-    // Equivalent to prior ifs but compact and robust for edge values.
-    return ((((lon + 180) % 360) + 360) % 360) - 180;
-  };
+  const normalizeLon = (lon: number): number =>
+    ((((lon + 180) % 360) + 360) % 360) - 180;
 
   return coordinates
     .filter((row) => {
@@ -138,19 +131,12 @@ export function filterOvationCoordinates(
     });
 }
 
-// Helper: compute max aurora probability in North America region for metrics
+// Compute max aurora probability in the North America region.
+// Uses reduce (not spread) — real OVATION grids yield thousands of points in NA bounds.
 export function maxOvationNorthAmerica(data: OvationResponse | null): number {
-  // Defensive guard: tolerate missing/empty/unexpected coordinates without assuming .length access or shape
-  if (!data || !Array.isArray(data.coordinates) || data.coordinates.length === 0) {
-    return 0;
-  }
+  if (!data || !Array.isArray(data.coordinates) || data.coordinates.length === 0) return 0;
   const relevant = filterOvationCoordinates(data.coordinates, 0);
-  if (relevant.length === 0) {
-    // Legitimately no points in NA bounds, or data issue - caller can log context
-    return 0;
-  }
-  // Use reduce (not spread) to safely compute max even when filter returns thousands of points
-  // (real OVATION data grids can yield 5k–10k+ points in NA bounds at minProb=0).
+  if (relevant.length === 0) return 0;
   return relevant.reduce((max, p) => Math.max(max, p.prob), 0);
 }
 
@@ -177,7 +163,6 @@ export function getAuroraMarkerRadius(prob: number): number {
 
 /** Parse recent Earth-directed or relevant CMEs from alerts messages (lightweight extraction). */
 export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
-  // Implementation kept here for now (pure logic)
   if (!alerts || alerts.length === 0) return [];
   const cmeAlerts = alerts.filter((a) =>
     /CME|Coronal Mass Ejection/i.test(a.message)
@@ -312,14 +297,9 @@ export function getTonightOutlook(
   return { status, message, reasons, accentColor, drivers };
 }
 
-// Meteor helpers (pure, no network). MeteorShower type is defined in schemas
-// (for use by constants data) and re-exported here for the pure functions.
+// Meteor shower calendar helpers
 
-import type { MeteorShower } from "./api/schemas";
 export type { MeteorShower };
-
-import { MAJOR_METEOR_SHOWERS } from "./constants/meteors";
-
 export { MAJOR_METEOR_SHOWERS } from "./constants/meteors";
 
 export function getNextMeteorShower(now: Date = new Date()): { shower: MeteorShower; peakDate: Date } | null {

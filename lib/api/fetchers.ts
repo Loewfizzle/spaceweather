@@ -45,10 +45,27 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 /**
  * Centralized, schema-validated fetchers for AuroraWatch.
  * All external data goes through Zod (parse or safeParse+filter for resilience).
- * Row parsing for CSV-style endpoints (plasma, mag) and Fireball transformation
- * happen here before final schema validation.
  * Consumers should import types from './schemas', not rely on re-exports.
  */
+
+// Shared helper: convert NOAA's string[][] format (header row + data rows) to typed objects.
+function parseStringArrayRows(raw: string[][]): Record<string, string | number | null>[] {
+  if (!raw || raw.length < 2) return [];
+  const headers = raw[0];
+  return raw.slice(1).map((row) => {
+    const obj: Record<string, string | number | null> = {};
+    headers.forEach((h, i) => {
+      const val = row[i];
+      if (h === 'time_tag') {
+        obj[h] = typeof val === 'string' ? val : null;
+      } else {
+        const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
+        obj[h] = isNaN(num as number) ? null : num;
+      }
+    });
+    return obj;
+  });
+}
 
 // NOAA OVATION
 export async function fetchOvation(): Promise<OvationResponse> {
@@ -77,29 +94,7 @@ export async function fetchPlasma(): Promise<PlasmaEntry[]> {
   const raw = await fetchJson<string[][]>(
     'https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json'
   );
-  if (!raw || raw.length < 2) return [];
-
-  const headers = raw[0];
-  const parsed = raw.slice(1).map((row) => {
-    const obj: Record<string, string | number | null> = {};
-    headers.forEach((h, i) => {
-      const val = row[i];
-      if (h === 'time_tag') {
-        obj[h] = typeof val === 'string' ? val : null;
-      } else {
-        const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
-        obj[h] = isNaN(num as number) ? null : num;
-      }
-    });
-    return obj;
-  });
-
-  // Validate with Zod but filter out any rows that still fail (resilient to bad data rows)
-  const valid = parsed.filter((obj) => {
-    const result = PlasmaEntrySchema.safeParse(obj);
-    return result.success;
-  });
-  return valid;
+  return parseStringArrayRows(raw).filter((obj) => PlasmaEntrySchema.safeParse(obj).success);
 }
 
 // Magnetic field data
@@ -107,29 +102,7 @@ export async function fetchMag(): Promise<MagEntry[]> {
   const raw = await fetchJson<string[][]>(
     'https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json'
   );
-  if (!raw || raw.length < 2) return [];
-
-  const headers = raw[0];
-  const parsed = raw.slice(1).map((row) => {
-    const obj: Record<string, string | number | null> = {};
-    headers.forEach((h, i) => {
-      const val = row[i];
-      if (h === 'time_tag') {
-        obj[h] = typeof val === 'string' ? val : null;
-      } else {
-        const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
-        obj[h] = isNaN(num as number) ? null : num;
-      }
-    });
-    return obj;
-  });
-
-  // Validate with Zod but filter out any rows that still fail (resilient to bad data rows)
-  const valid = parsed.filter((obj) => {
-    const result = MagEntrySchema.safeParse(obj);
-    return result.success;
-  });
-  return valid;
+  return parseStringArrayRows(raw).filter((obj) => MagEntrySchema.safeParse(obj).success);
 }
 
 // X-ray flares
