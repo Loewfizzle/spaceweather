@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
-import type { Fireball } from "../lib/use-noaa-data";
-import { formatFireballDate, formatFireballLocation } from "../lib/use-noaa-data";
+import type { AMSFireball } from "../lib/use-noaa-data";
+import { formatAMSFireballDate, formatAMSFireballLocation } from "../lib/use-noaa-data";
 
 const FireballMap = dynamic(() => import("./FireballMap"), {
   ssr: false,
@@ -12,16 +12,8 @@ const FireballMap = dynamic(() => import("./FireballMap"), {
   ),
 });
 
-// NASA API stores lat/lon as positive magnitudes; direction indicates sign.
-function toSignedLat(lat: number, dir: string | null): number {
-  return dir === "S" ? -lat : lat;
-}
-function toSignedLon(lon: number, dir: string | null): number {
-  return dir === "W" ? -lon : lon;
-}
-
 interface FireballModalProps {
-  fireball: Fireball;
+  fireball: AMSFireball;
   onClose: () => void;
 }
 
@@ -35,9 +27,6 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 }
 
 export function FireballModal({ fireball, onClose }: FireballModalProps) {
-  const [placeName, setPlaceName] = useState<string | null>(null);
-  const [placeLoading, setPlaceLoading] = useState(false);
-
   // Lock body scroll while modal is open
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -56,33 +45,7 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Reverse geocode the impact location via Nominatim
-  useEffect(() => {
-    if (fireball.lat == null || fireball.lon == null) return;
-    const lat = toSignedLat(fireball.lat, fireball.latDir);
-    const lon = toSignedLon(fireball.lon, fireball.lonDir);
-    setPlaceLoading(true);
-    fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-      { headers: { "Accept-Language": "en" } }
-    )
-      .then((r) => r.json())
-      .then((data) => {
-        const a = data?.address;
-        if (!a) { setPlaceName(null); return; }
-        const parts = [
-          a.city || a.town || a.village || a.county,
-          a.state,
-          a.country,
-        ].filter(Boolean);
-        setPlaceName(parts.length > 0 ? parts.join(", ") : null);
-      })
-      .catch(() => setPlaceName(null))
-      .finally(() => setPlaceLoading(false));
-  }, [fireball.lat, fireball.lon, fireball.latDir, fireball.lonDir]);
-
-  const signedLat = toSignedLat(fireball.lat!, fireball.latDir);
-  const signedLon = toSignedLon(fireball.lon!, fireball.lonDir);
+  const hasMap = fireball.lat != null && fireball.lon != null;
 
   return (
     <div
@@ -96,7 +59,7 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
         className="relative w-full sm:max-w-lg overflow-hidden rounded-2xl border border-[#1e2937] bg-[#0f1425]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button overlaid top-right, above the map */}
+        {/* Close button overlaid top-right */}
         <button
           onClick={onClose}
           aria-label="Close"
@@ -105,10 +68,12 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
           ×
         </button>
 
-        {/* Map */}
-        <div className="h-[250px] sm:h-[300px] overflow-hidden">
-          <FireballMap lat={signedLat} lon={signedLon} energy={fireball.energy} />
-        </div>
+        {/* Map — only when coordinates are available */}
+        {hasMap && (
+          <div className="h-[250px] sm:h-[300px] overflow-hidden">
+            <FireballMap lat={fireball.lat!} lon={fireball.lon!} />
+          </div>
+        )}
 
         {/* Metadata panel */}
         <div className="px-5 py-4">
@@ -116,38 +81,12 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
             FIREBALL IMPACT
           </div>
           <div className="space-y-2">
-            <MetaRow label="Date / Time" value={formatFireballDate(fireball.date)} />
-
-            {/* Location row — inline JSX to support multi-line value with geocoded place name */}
-            <div className="flex justify-between text-sm border-b border-[#1e2937] pb-2 last:border-b-0 last:pb-0">
-              <span className="text-[#64748b]">Location</span>
-              <div className="ml-4 text-right">
-                {placeLoading ? (
-                  <span className="text-[#475569] text-[11px] animate-pulse">Looking up…</span>
-                ) : placeName != null ? (
-                  <>
-                    <div className="text-[#cbd5e1]">{placeName}</div>
-                    <div className="text-[10px] text-[#475569] tabular-nums">
-                      {formatFireballLocation(fireball)}
-                    </div>
-                  </>
-                ) : (
-                  <span className="text-[#cbd5e1] tabular-nums">
-                    {formatFireballLocation(fireball)}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {fireball.energy != null && (
-              <MetaRow label="Energy" value={`${fireball.energy} kt`} />
-            )}
-            {fireball.alt != null && (
-              <MetaRow label="Altitude" value={`${fireball.alt} km`} />
-            )}
-            {fireball.vel != null && (
-              <MetaRow label="Velocity" value={`${fireball.vel} km/s`} />
-            )}
+            <MetaRow label="Date / Time" value={formatAMSFireballDate(fireball.event_date)} />
+            <MetaRow label="Location" value={formatAMSFireballLocation(fireball)} />
+            <MetaRow
+              label="Witnesses"
+              value={fireball.witnesses != null ? String(fireball.witnesses) : "—"}
+            />
           </div>
         </div>
       </div>

@@ -48,32 +48,23 @@ export const MagEntrySchema = z.object({
 });
 export type MagEntry = z.infer<typeof MagEntrySchema>;
 
-// --- NASA Fireball API Response ---
-// Note: proxied via /api/fireballs, but we validate the shape here too
-export const FireballApiResponseSchema = z.object({
-  signature: z.object({
-    source: z.string(),
-    version: z.string(),
-  }).optional(),
-  count: z.string().optional(),
-  fields: z.array(z.string()),
-  data: z.array(z.array(z.unknown())),
+// --- AMS Fireball API ---
+export const AMSFireballSchema = z.object({
+  event_id: z.number(),
+  event_date: z.string(),
+  city: z.string().nullable().optional(),
+  state: z.string().nullable().optional(),
+  country: z.string().nullable().optional(),
+  witnesses: z.number().nullable().optional(),
+  lat: z.number().nullable().optional(),
+  lon: z.number().nullable().optional(),
 });
-export type FireballApiResponse = z.infer<typeof FireballApiResponseSchema>;
+export type AMSFireball = z.infer<typeof AMSFireballSchema>;
 
-// Parsed Fireball item (after our transformation)
-export const FireballSchema = z.object({
-  date: z.string(),
-  energy: z.number().nullable(),
-  impactE: z.number().nullable(),
-  lat: z.number().nullable(),
-  latDir: z.string().nullable(),
-  lon: z.number().nullable(),
-  lonDir: z.string().nullable(),
-  alt: z.number().nullable(),
-  vel: z.number().nullable(),
+export const AMSFireballApiResponseSchema = z.object({
+  fireball_report: z.array(AMSFireballSchema),
 });
-export type Fireball = z.infer<typeof FireballSchema>;
+export type AMSFireballApiResponse = z.infer<typeof AMSFireballApiResponseSchema>;
 
 // --- NOAA X-ray Flares (GOES) ---
 export const XrayFlareSchema = z.object({

@@ -1,41 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FireballApiResponseSchema } from '@/lib/api/schemas';
-
-// This is a server-side proxy for NASA's fireball API.
-// It exists to bypass CORS restrictions that prevent direct browser fetches
-// to https://ssd-api.jpl.nasa.gov in production (e.g. on space.loewfizzle.com).
-// All fireball data is now fetched server-side and proxied to the client.
+import { AMSFireballApiResponseSchema } from '@/lib/api/schemas';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   let limit = parseInt(searchParams.get('limit') || '8', 10);
-
-  // Basic input validation for the limit parameter
   if (isNaN(limit) || limit < 1 || limit > 100) {
     limit = 8;
   }
 
-  const nasaUrl = `https://ssd-api.jpl.nasa.gov/fireball.api?limit=${limit}`;
+  const apiKey = process.env.AMS_API_KEY;
+  if (!apiKey) {
+    console.error('Fireball proxy error: AMS_API_KEY is not set');
+    return NextResponse.json({ error: 'AMS API key not configured' }, { status: 500 });
+  }
+
+  const amsUrl = `https://fireball.amsmeteors.org/members/api/v1/fireball_report?api_key=${apiKey}&days=7&country=US&sortby=witnesses&order=desc&limit=${limit}`;
 
   try {
-    const res = await fetch(nasaUrl, {
-      // Use Next.js fetch with revalidation for server-side caching (5 minutes)
+    const res = await fetch(amsUrl, {
       next: { revalidate: 300 },
     });
 
     if (!res.ok) {
+      console.error(`Fireball proxy error: AMS returned ${res.status} ${res.statusText}`);
       return NextResponse.json(
-        { error: `Failed to fetch from NASA fireball API: ${res.status} ${res.statusText}` },
+        { error: `Failed to fetch from AMS fireball API: ${res.status} ${res.statusText}` },
         { status: res.status }
       );
     }
 
     const data = await res.json();
+    const validated = AMSFireballApiResponseSchema.parse(data);
 
-    // Validate with Zod even on the server proxy for defense-in-depth
-    const validated = FireballApiResponseSchema.parse(data);
-
-    // Return the raw JSON with caching headers (suitable since data changes infrequently)
     return NextResponse.json(validated, {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
@@ -44,9 +40,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Fireball proxy error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch fireball data from NASA' },
+      { error: 'Failed to fetch fireball data from AMS' },
       { status: 500 }
     );
   }
 }
-

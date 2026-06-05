@@ -7,8 +7,7 @@ import {
   XrayFlareSchema,
   AlertSchema,
   SolarRegionSchema,
-  FireballApiResponseSchema,
-  FireballSchema,
+  AMSFireballApiResponseSchema,
 } from './schemas';
 import type {
   KpEntry,
@@ -18,7 +17,7 @@ import type {
   XrayFlare,
   Alert,
   SolarRegion,
-  Fireball,
+  AMSFireball,
 } from './schemas';
 import { logDataError } from '../utils/retry';
 
@@ -129,42 +128,12 @@ export async function fetchSolarRegions(): Promise<SolarRegion[]> {
   return z.array(SolarRegionSchema).parse(raw);
 }
 
-// Fireballs - now goes through our internal proxy (CORS-safe + cached)
-export async function fetchFireballs(limit = 8): Promise<Fireball[]> {
+// Fireballs - proxied via /api/fireballs (CORS-safe + cached), sourced from AMS
+export async function fetchFireballs(limit = 8): Promise<AMSFireball[]> {
   const url = `/api/fireballs?limit=${limit}`;
   const raw = await fetchJson<unknown>(url);
-
-  // Validate the NASA response shape (proxied)
-  const validatedResponse = FireballApiResponseSchema.parse(raw);
-
-  const fields = validatedResponse.fields;
-  const rows = validatedResponse.data || [];
-
-  const parsed = rows.map((row: unknown[]) => {
-    const get = (name: string) => {
-      const i = fields.indexOf(name);
-      return i >= 0 ? row[i] : null;
-    };
-    return {
-      date: (get('date') as string) || '',
-      energy: parseNum(get('energy')),
-      impactE: parseNum(get('impact-e')),
-      lat: parseNum(get('lat')),
-      latDir: get('lat-dir') as string | null,
-      lon: parseNum(get('lon')),
-      lonDir: get('lon-dir') as string | null,
-      alt: parseNum(get('alt')),
-      vel: parseNum(get('vel')),
-    };
-  });
-
-  return z.array(FireballSchema).parse(parsed);
-}
-
-function parseNum(v: unknown): number | null {
-  if (v == null || v === '') return null;
-  const n = parseFloat(String(v));
-  return isNaN(n) ? null : n;
+  const parsed = AMSFireballApiResponseSchema.parse(raw);
+  return parsed.fireball_report;
 }
 
 // Types are exported from ./schemas (the single source of truth).

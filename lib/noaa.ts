@@ -16,8 +16,8 @@
 
 import type {
   Alert,
+  AMSFireball,
   CmeSummary,
-  Fireball,
   OvationResponse,
   SolarRegion,
   XrayFlare,
@@ -418,12 +418,10 @@ export function createGoogleCalendarLink(shower: MeteorShower, peakDate: Date): 
 
 // Fireball display formatters (pure; types come from schemas).
 
-export function formatFireballDate(dateStr: string): string {
+export function formatAMSFireballDate(dateStr: string): string {
   if (!dateStr) return "—";
   try {
-    // API dates are UTC; append Z for correct parsing
-    const iso = dateStr.replace(" ", "T") + "Z";
-    const d = new Date(iso);
+    const d = new Date(dateStr + "Z");
     return (
       d.toLocaleString("en-US", {
         month: "short",
@@ -438,7 +436,12 @@ export function formatFireballDate(dateStr: string): string {
     return dateStr;
   }
 }
-export function formatFireballLocation(fb: Fireball): string {
-  if (fb.lat == null || fb.lon == null) return "Location unavailable";
-  return `${fb.lat}°${fb.latDir || ""} ${fb.lon}°${fb.lonDir || ""}`;
+
+export function formatAMSFireballLocation(fireball: AMSFireball): string {
+  const parts = [fireball.city, fireball.state, fireball.country].filter(Boolean);
+  if (parts.length) return parts.join(", ");
+  if (fireball.lat != null && fireball.lon != null) {
+    return `${fireball.lat}°, ${fireball.lon}°`;
+  }
+  return "Location unavailable";
 }

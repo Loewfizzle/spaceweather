@@ -1,6 +1,6 @@
 "use client";
 
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -16,10 +16,9 @@ L.Icon.Default.mergeOptions({
 interface FireballMapProps {
   lat: number;
   lon: number;
-  energy: number | null;
 }
 
-export default function FireballMap({ lat, lon, energy }: FireballMapProps) {
+export default function FireballMap({ lat, lon }: FireballMapProps) {
   return (
     <MapContainer
       center={[lat, lon]}
@@ -41,13 +40,7 @@ export default function FireballMap({ lat, lon, energy }: FireballMapProps) {
           fillOpacity: 0.35,
           weight: 2,
         }}
-      >
-        {energy != null && (
-          <Tooltip permanent direction="top" offset={[0, -14]}>
-            {energy} kt
-          </Tooltip>
-        )}
-      </CircleMarker>
+      />
     </MapContainer>
   );
 }
