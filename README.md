@@ -44,6 +44,25 @@ All external data is validated at runtime with Zod schemas.
 - date-fns (relative timestamps)
 - next/dynamic for code-splitting heavy components
 
+## Testing
+
+Automated testing is set up with **Vitest** + **@testing-library/react**.
+
+```bash
+npm test          # Run tests in watch mode
+npm run test:ui   # Open Vitest UI
+npm run test:coverage
+```
+
+Key tests live in `tests/lib/noaa.test.ts` and cover the core business logic:
+- `getTonightOutlook` (most critical)
+- `getMichiganRiskLevel`
+- `currentSunspotNumber`
+- Meteor helpers
+- OVATION utilities, color scales, CME parsing, etc.
+
+We prioritize testing pure functions and data processing logic (the parts most likely to regress when NOAA data formats change).
+
 ## Project Structure
 
 ```
