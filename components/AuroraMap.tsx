@@ -1,26 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useOvationData } from "../lib/use-noaa-data";
 import { filterOvationCoordinates } from "../lib/noaa";
-
-// leaflet.heat augments Leaflet with L.heatLayer (canvas-based, high performance for dense point data)
-declare module "leaflet" {
-  function heatLayer(
-    latlngs: Array<[number, number, number?]>,
-    options?: {
-      minOpacity?: number;
-      maxZoom?: number;
-      max?: number;
-      radius?: number;
-      blur?: number;
-      gradient?: Record<string, string>;
-    }
-  ): L.Layer;
-}
 
 // Fix Leaflet default icon issue in Next.js
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,59 +20,98 @@ interface AuroraMapProps {
   minProb?: number;
 }
 
-function HeatmapLayer({ points }: { points: { position: [number, number]; prob: number }[] }) {
+// Maps a 0-100 probability to the aurora color scale at the given opacity.
+function probToColor(prob: number, alpha: number): string {
+  let r: number, g: number, b: number;
+  if (prob < 10) {
+    // dark green
+    r = 22; g = 101; b = 52;
+  } else if (prob < 25) {
+    // green
+    r = 34; g = 197; b = 94;
+  } else if (prob < 45) {
+    // yellow
+    r = 234; g = 179; b = 8;
+  } else if (prob < 65) {
+    // orange
+    r = 249; g = 115; b = 22;
+  } else {
+    // violet
+    r = 167; g = 139; b = 250;
+  }
+  return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+}
+
+function OvationCanvasLayer({ points }: { points: { position: [number, number]; prob: number }[] }) {
   const map = useMap();
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const layerRef = useRef<L.Layer | null>(null);
-  const [zoom, setZoom] = useState(() => map.getZoom());
 
   useEffect(() => {
-    const onZoom = () => setZoom(map.getZoom());
-    map.on('zoomend', onZoom);
-    return () => { map.off('zoomend', onZoom); };
-  }, [map]);
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    require('leaflet.heat');
     if (layerRef.current) {
       map.removeLayer(layerRef.current);
       layerRef.current = null;
     }
-
     if (!points || points.length === 0) return;
 
-    // Radius shrinks as zoom increases so the arc stays tight at the default
-    // NA view (~18 px at zoom 3) and remains proportional when zooming in.
-    // Formula: ~18 at z3, ~12 at z4, ~7 at z5+
-    const radius = Math.round(40 / Math.pow(1.9, zoom - 2));
-    const blur = Math.round(radius * 0.7);
+    // Create a Leaflet Layer subclass that draws to canvas
+    const CanvasLayer = L.Layer.extend({
+      onAdd(map: L.Map) {
+        const canvas = L.DomUtil.create('canvas', 'ovation-canvas-layer') as HTMLCanvasElement;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '200';
+        map.getPanes().overlayPane!.appendChild(canvas);
+        canvasRef.current = canvas;
+        this._map = map;
+        map.on('moveend zoomend', this._draw, this);
+        this._draw();
+        return this;
+      },
+      onRemove(map: L.Map) {
+        map.off('moveend zoomend', this._draw, this);
+        if (canvasRef.current?.parentNode) {
+          canvasRef.current.parentNode.removeChild(canvasRef.current);
+        }
+        canvasRef.current = null;
+      },
+      _draw() {
+        const canvas = canvasRef.current;
+        if (!canvas || !this._map) return;
+        const mapSize = this._map.getSize();
+        canvas.width = mapSize.x;
+        canvas.height = mapSize.y;
+        const ctx = canvas.getContext('2d')!;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const heatData = points.map((p) => [
-      p.position[0],
-      p.position[1],
-      Math.max(0.03, Math.pow(p.prob / 100, 0.9)),
-    ] as [number, number, number]);
+        // Compute cell size in pixels based on current zoom.
+        // OVATION grid is ~1° lon × variable lat; use 1.5° cells to avoid gaps.
+        const cellDeg = 1.5;
+        const originPx = this._map.latLngToContainerPoint([0, 0]);
+        const cellPx = this._map.latLngToContainerPoint([0, cellDeg]);
+        const cellSize = Math.max(2, Math.abs(cellPx.x - originPx.x));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const heat = (L as any).heatLayer(heatData, {
-      radius,
-      blur,
-      maxZoom: 7,
-      minOpacity: 0.15,
-      max: 1.0,
-      gradient: {
-        '0.0':  'rgba(22, 101, 52, 0)',
-        '0.05': 'rgba(34, 197, 94, 0.3)',
-        '0.2':  '#22c55e',
-        '0.45': '#eab308',
-        '0.65': '#f97316',
-        '0.82': '#a78bfa',
-        '1.0':  '#c084fc',
+        for (const point of points) {
+          const px = this._map.latLngToContainerPoint([point.position[0], point.position[1]]);
+          const alpha = Math.pow(point.prob / 100, 0.6) * 0.85;
+          if (alpha < 0.02) continue;
+          ctx.fillStyle = probToColor(point.prob, alpha);
+          ctx.fillRect(
+            Math.round(px.x - cellSize / 2),
+            Math.round(px.y - cellSize / 2),
+            Math.ceil(cellSize),
+            Math.ceil(cellSize)
+          );
+        }
       },
     });
 
-    heat.addTo(map);
-    layerRef.current = heat;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const layer = new (CanvasLayer as any)();
+    layer.addTo(map);
+    layerRef.current = layer;
 
     return () => {
       if (layerRef.current) {
@@ -95,7 +119,7 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
         layerRef.current = null;
       }
     };
-  }, [map, points, zoom]);
+  }, [map, points]);
 
   return null;
 }
@@ -112,7 +136,7 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
   }, [ovationData, minProb]);
 
   // Secondary safety guard: drop any point whose coordinates would confuse Leaflet's
-  // SVG path renderer (e.g. stray NaN/Infinity, lat/lon swapped, dateline edge cases).
+  // canvas renderer (e.g. stray NaN/Infinity, lat/lon swapped, dateline edge cases).
   const safePoints = useMemo(
     () =>
       points.filter(
@@ -167,7 +191,7 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
-          <HeatmapLayer points={safePoints} />
+          <OvationCanvasLayer points={safePoints} />
         </MapContainer>
       </div>
 
