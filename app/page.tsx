@@ -187,10 +187,10 @@ export default function AuroraWatch() {
     // Last ~12 entries (~36 hours of 3h Kp data)
     const recent = kpHistory.slice(-12);
     const labels = recent.map((entry) => {
-      const d = new Date(entry.time_tag);
+      const d = new Date(entry.time_tag || '');
       return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     });
-    const values = recent.map((entry) => entry.Kp);
+    const values = recent.map((entry) => entry.Kp ?? 0);
 
     return {
       labels,
@@ -633,7 +633,7 @@ export default function AuroraWatch() {
               <div className="text-[#cbd5e1]">
                 <span className="font-medium text-white">Recent trend:</span>{" "}
                 {kpHistory.length > 1 ? (
-                  kpHistory[kpHistory.length - 1].Kp > kpHistory[kpHistory.length - 2].Kp
+                  (kpHistory[kpHistory.length - 1].Kp ?? 0) > (kpHistory[kpHistory.length - 2].Kp ?? 0)
                     ? "Rising — elevated activity possible if trend continues."
                     : "Stable or declining — conditions quieting."
                 ) : (

@@ -66,16 +66,21 @@ export async function fetchPlasma(): Promise<PlasmaEntry[]> {
 
   const headers = raw[0];
   const parsed = raw.slice(1).map((row) => {
-    const obj: Record<string, number | string> = {};
+    const obj: Record<string, number | null> = {};
     headers.forEach((h, i) => {
       const val = row[i];
-      obj[h] = typeof val === 'string' ? parseFloat(val) : val;
+      const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
+      obj[h] = isNaN(num as number) ? null : num;
     });
     return obj;
   });
 
-  // Validate with Zod (array of objects)
-  return z.array(PlasmaEntrySchema).parse(parsed);
+  // Validate with Zod but filter out any rows that still fail (resilient to bad data rows)
+  const valid = parsed.filter((obj) => {
+    const result = PlasmaEntrySchema.safeParse(obj);
+    return result.success;
+  });
+  return valid;
 }
 
 // Magnetic field data
@@ -87,15 +92,21 @@ export async function fetchMag(): Promise<MagEntry[]> {
 
   const headers = raw[0];
   const parsed = raw.slice(1).map((row) => {
-    const obj: Record<string, number | string> = {};
+    const obj: Record<string, number | null> = {};
     headers.forEach((h, i) => {
       const val = row[i];
-      obj[h] = typeof val === 'string' ? parseFloat(val) : val;
+      const num = typeof val === 'string' ? parseFloat(val) : (typeof val === 'number' ? val : null);
+      obj[h] = isNaN(num as number) ? null : num;
     });
     return obj;
   });
 
-  return z.array(MagEntrySchema).parse(parsed);
+  // Validate with Zod but filter out any rows that still fail (resilient to bad data rows)
+  const valid = parsed.filter((obj) => {
+    const result = MagEntrySchema.safeParse(obj);
+    return result.success;
+  });
+  return valid;
 }
 
 // X-ray flares

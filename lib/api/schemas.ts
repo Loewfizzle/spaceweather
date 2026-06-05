@@ -8,41 +8,41 @@ import { z } from 'zod';
 
 // --- NOAA Planetary K-index ---
 export const KpEntrySchema = z.object({
-  time_tag: z.string(),
-  Kp: z.number(),
-  a_running: z.number().optional(),
-  station_count: z.number().optional(),
+  time_tag: z.string().optional(),
+  Kp: z.number().nullable().optional(),
+  a_running: z.number().nullable().optional(),
+  station_count: z.number().nullable().optional(),
 });
 export const KpResponseSchema = z.array(KpEntrySchema);
 export type KpEntry = z.infer<typeof KpEntrySchema>;
 
 // --- NOAA OVATION Aurora Data ---
 export const OvationResponseSchema = z.object({
-  "Observation Time": z.string(),
-  "Forecast Time": z.string(),
-  "Data Format": z.string(),
-  coordinates: z.array(z.tuple([z.number(), z.number(), z.number()])), // [lon, lat, prob]
+  "Observation Time": z.string().optional(),
+  "Forecast Time": z.string().optional(),
+  "Data Format": z.string().optional(),
+  coordinates: z.array(z.array(z.unknown())).optional(), // [lon, lat, prob] - tolerant of partial/missing data; cleaned in filterOvationCoordinates
 });
 export type OvationResponse = z.infer<typeof OvationResponseSchema>;
 
 // --- NOAA Solar Wind (Plasma + Mag) ---
 // These come as string[][] from API, we validate after parsing in fetchers
 export const PlasmaEntrySchema = z.object({
-  time_tag: z.string(),
-  density: z.number(),
-  speed: z.number(),
-  temperature: z.number(),
+  time_tag: z.string().optional(),
+  density: z.number().nullable().optional(),
+  speed: z.number().nullable().optional(),
+  temperature: z.number().nullable().optional(),
 });
 export type PlasmaEntry = z.infer<typeof PlasmaEntrySchema>;
 
 export const MagEntrySchema = z.object({
-  time_tag: z.string(),
-  bx_gsm: z.number(),
-  by_gsm: z.number(),
-  bz_gsm: z.number(),
-  lon_gsm: z.number(),
-  lat_gsm: z.number(),
-  bt: z.number(),
+  time_tag: z.string().optional(),
+  bx_gsm: z.number().nullable().optional(),
+  by_gsm: z.number().nullable().optional(),
+  bz_gsm: z.number().nullable().optional(),
+  lon_gsm: z.number().nullable().optional(),
+  lat_gsm: z.number().nullable().optional(),
+  bt: z.number().nullable().optional(),
 });
 export type MagEntry = z.infer<typeof MagEntrySchema>;
 

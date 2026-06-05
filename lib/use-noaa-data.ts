@@ -153,7 +153,10 @@ export function useCurrentConditions() {
       kpQuery.isLoading ||
       ovationQuery.isLoading ||
       solarWind.isLoading,
-    error: kpQuery.error || ovationQuery.error || solarWind.error,
+    // Only propagate errors from Kp and OVATION as fatal for the hero/outlook.
+    // Solar wind glitches (plasma/mag) are non-fatal; values gracefully fall back to null.
+    // This prevents spurious "Error loading outlook" when supporting data sources are flaky.
+    error: kpQuery.error || ovationQuery.error,
     refetchAll: () => {
       kpQuery.refetch();
       ovationQuery.refetch();

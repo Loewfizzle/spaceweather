@@ -46,8 +46,8 @@ export {
   fetchFireballs,
 } from "./api/fetchers";
 
-// Helper: get most recent value from time series
-export function latest<T extends { time_tag: string }>(arr: T[]): T | null {
+// Helper: get most recent value from time series (tolerant of optional time_tag after defensive schemas)
+export function latest<T extends { time_tag?: string }>(arr: T[]): T | null {
   if (!arr || arr.length === 0) return null;
   return arr[arr.length - 1];
 }
@@ -70,14 +70,19 @@ export const NORTH_AMERICA_BOUNDS = {
  * Moved here from AuroraMap for separation of concerns, reusability, and DRY (used by max too).
  */
 export function filterOvationCoordinates(
-  coordinates: [number, number, number][] | undefined,
+  coordinates: Array<unknown[]> | undefined,
   minProb: number = 0,
   bounds = NORTH_AMERICA_BOUNDS
 ): OvationPoint[] {
   if (!coordinates || coordinates.length === 0) return [];
   return coordinates
-    .filter(([lon, lat, prob]) => {
+    .filter((row) => {
+      if (!Array.isArray(row) || row.length < 3) return false;
+      const [lon, lat, prob] = row;
       return (
+        typeof lon === 'number' &&
+        typeof lat === 'number' &&
+        typeof prob === 'number' &&
         lon >= bounds.minLon &&
         lon <= bounds.maxLon &&
         lat >= bounds.minLat &&
@@ -85,11 +90,10 @@ export function filterOvationCoordinates(
         prob >= minProb
       );
     })
-    .map(([lon, lat, prob]) => ({
-      lat,
-      lon,
-      prob,
-    }));
+    .map((row) => {
+      const [lon, lat, prob] = row as [number, number, number];
+      return { lat, lon, prob };
+    });
 }
 
 // Helper: compute max aurora probability in North America region for metrics
