@@ -12,6 +12,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  type Plugin,
 } from "chart.js";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
@@ -42,7 +43,7 @@ interface KpForecastProps {
 export function KpForecast({ michiganGuidance }: KpForecastProps) {
   const kpQuery = useKpData();
   const kpHistory = (kpQuery.data || []) as KpEntry[];
-  const { chartData, chartOptions } = useChartData(kpHistory);
+  const { chartData, chartOptions, tonightPlugin, hasTonight } = useChartData(kpHistory);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
@@ -57,7 +58,11 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
               onRetry={kpQuery.refetch}
             />
           ) : kpHistory.length > 0 ? (
-            <Line data={chartData} options={chartOptions} />
+            <Line
+              data={chartData}
+              options={chartOptions}
+              plugins={[tonightPlugin as Plugin<"line">]}
+            />
           ) : (
             <div className="flex h-full items-center justify-center text-[#64748b]">No recent Kp data</div>
           )}
@@ -79,7 +84,8 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
           </div>
         </div>
         <div className="mt-3 text-[10px] text-[#64748b]">
-          Chart shows last ~36 hours of 3-hour Kp values. Full multi-day forecasts available from NOAA.
+          Chart shows last ~36 hours of 3-hour Kp values.{hasTonight && " Shaded area = tonight (Michigan time, 8 pm–6 am ET)."}{" "}
+          Full multi-day forecasts available from NOAA.
         </div>
       </div>
     </div>

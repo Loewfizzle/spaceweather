@@ -3,12 +3,6 @@
 import { useMemo } from "react";
 import type { KpEntry } from "../api/schemas";
 
-/**
- * useChartData
- * Prepares the limited recent Kp slice + Chart.js data + options objects for the Kp outlook timeline.
- * Exact logic and styling (colors, tension, scales, dark theme tooltips) preserved from original god component.
- * No side effects; pure derived + memoized for render perf.
- */
 const CHART_OPTIONS = {
   responsive: true,
   maintainAspectRatio: false,
@@ -36,8 +30,59 @@ const CHART_OPTIONS = {
   },
 };
 
+// Michigan is Eastern Time: UTC-5 (EST, roughly Nov–Mar) or UTC-4 (EDT, roughly Mar–Nov).
+// "Tonight" for aurora watching = local 20:00 (8 pm) through 05:59 (5:59 am next morning).
+function isTonightMichigan(utcDate: Date): boolean {
+  const month = utcDate.getUTCMonth(); // 0 = Jan
+  const isDst = month >= 2 && month <= 10; // approximate: Mar–Nov
+  const localHour = (utcDate.getUTCHours() - (isDst ? 4 : 5) + 24) % 24;
+  return localHour >= 20 || localHour < 6;
+}
+
+// Inline Chart.js plugin that shades contiguous "tonight" columns with a soft violet tint.
+// Uses beforeDraw so the shading sits behind the line and points.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeTonightPlugin(tonightMask: boolean[]): Record<string, any> {
+  return {
+    id: "tonightShade",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeDraw(chart: any) {
+      const { ctx, chartArea, scales } = chart;
+      if (!chartArea || !scales.x) return;
+
+      const n = tonightMask.length;
+      if (n < 2 || tonightMask.every((v) => !v)) return;
+
+      // Half-tick width: used to extend shading to the edges of the first/last tonight point.
+      const spacing = Math.abs(
+        scales.x.getPixelForValue(1) - scales.x.getPixelForValue(0)
+      );
+      const half = spacing / 2;
+
+      ctx.save();
+      ctx.fillStyle = "rgba(139, 92, 246, 0.08)"; // subtle violet — matches aurora violet accent
+
+      // Walk the mask and draw one filled rect per contiguous tonight block.
+      let blockStart: number | null = null;
+      for (let i = 0; i <= n; i++) {
+        const tonight = i < n && tonightMask[i];
+        if (tonight && blockStart === null) {
+          blockStart = i;
+        } else if (!tonight && blockStart !== null) {
+          const x0 = scales.x.getPixelForValue(blockStart) - half;
+          const x1 = scales.x.getPixelForValue(i - 1) + half;
+          ctx.fillRect(x0, chartArea.top, x1 - x0, chartArea.height);
+          blockStart = null;
+        }
+      }
+
+      ctx.restore();
+    },
+  };
+}
+
 export function useChartData(kpHistory: KpEntry[]) {
-  const chartData = useMemo(() => {
+  return useMemo(() => {
     // Last ~12 entries (~36 hours of 3h Kp data); drop entries with no valid timestamp
     const recent = kpHistory
       .filter((entry) => !!entry.time_tag && !isNaN(new Date(entry.time_tag).getTime()))
@@ -45,12 +90,20 @@ export function useChartData(kpHistory: KpEntry[]) {
 
     // Entries from an earlier UTC date get a "Mon 14:00" prefix so the 36h window
     // doesn't look like a single-day chart when it spans midnight.
-    const todayUtc = recent.length > 0
-      ? new Date(recent[recent.length - 1].time_tag!).toLocaleDateString("en-US", { timeZone: "UTC" })
-      : "";
+    const todayUtc =
+      recent.length > 0
+        ? new Date(recent[recent.length - 1].time_tag!).toLocaleDateString("en-US", {
+            timeZone: "UTC",
+          })
+        : "";
     const labels = recent.map((entry) => {
       const d = new Date(entry.time_tag!);
-      const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });
+      const time = d.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "UTC",
+      });
       const entryDate = d.toLocaleDateString("en-US", { timeZone: "UTC" });
       if (entryDate !== todayUtc) {
         const day = d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
@@ -58,9 +111,14 @@ export function useChartData(kpHistory: KpEntry[]) {
       }
       return time;
     });
+
     const values = recent.map((entry) => entry.Kp ?? 0);
 
-    return {
+    // Which entries fall in Michigan's overnight aurora window (8 pm – 6 am ET)?
+    const tonightMask = recent.map((entry) => isTonightMichigan(new Date(entry.time_tag!)));
+    const hasTonight = tonightMask.some((v) => v);
+
+    const chartData = {
       labels,
       datasets: [
         {
@@ -76,7 +134,12 @@ export function useChartData(kpHistory: KpEntry[]) {
         },
       ],
     };
-  }, [kpHistory]);
 
-  return { chartData, chartOptions: CHART_OPTIONS };
+    return {
+      chartData,
+      chartOptions: CHART_OPTIONS,
+      tonightPlugin: makeTonightPlugin(tonightMask),
+      hasTonight,
+    };
+  }, [kpHistory]);
 }

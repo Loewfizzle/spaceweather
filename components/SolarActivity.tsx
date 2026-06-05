@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sun, TrendingUp, Zap, Cloud } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
@@ -9,6 +9,15 @@ import { LoadingSkeleton } from "./LoadingSkeleton";
 function SdoImage({ src, alt }: { src: string; alt: string }) {
   const [imgState, setImgState] = useState<'loading' | 'loaded' | 'failed'>('loading');
   const [attempt, setAttempt] = useState(0);
+
+  // NASA SDO updates every ~15 min — keep the image in sync automatically.
+  useEffect(() => {
+    const id = setInterval(() => {
+      setAttempt((n) => n + 1);
+      setImgState('loading');
+    }, 1000 * 60 * 15);
+    return () => clearInterval(id);
+  }, []);
 
   const retry = (e: React.MouseEvent) => {
     e.preventDefault();

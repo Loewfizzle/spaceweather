@@ -57,6 +57,8 @@ export function useNotifications({
 
   // Use ref for throttle to avoid setState in effect (lint + perf)
   const lastNotifiedRef = useRef<number>(0);
+  // Track previous Kp to detect sudden surges that warrant immediate notification
+  const prevKpRef = useRef<number | null>(null);
 
   // Load throttle from storage once on mount (client only)
   useEffect(() => {
@@ -98,10 +100,13 @@ export function useNotifications({
     }
   };
 
-  // Auto-trigger browser notification when conditions look good for Michigan
-  // Throttled to avoid spam (min 30 min between notifications)
-  // Respects user alertsEnabled toggle + chosen sensitivity threshold
+  // Auto-trigger browser notification when conditions look good for Michigan.
+  // Normal cadence: 30-min throttle. Surge (Kp jumps ≥2 into alert territory): 5-min throttle.
   useEffect(() => {
+    // Always record prevKp before early returns so the ref tracks the true last-seen value.
+    const prevKp = prevKpRef.current;
+    prevKpRef.current = kp;
+
     if (
       notificationPermission !== "granted" ||
       kp === null ||
@@ -111,17 +116,24 @@ export function useNotifications({
       return;
 
     const now = Date.now();
-    const last = lastNotifiedRef.current;
-    if (now - last < 1000 * 60 * 30) return;
-
     const thresh = ALERT_THRESHOLDS[alertSensitivity];
+
     const likelyForMI =
       kp >= thresh.kp ||
       (maxAuroraProbNA !== null && maxAuroraProbNA >= thresh.prob) ||
       (bz !== null && bz <= -5);
 
+    // Surge: Kp rose ≥2 points in one poll cycle and crossed into alert territory.
+    // Use a tighter throttle so the user hears about rapid storm onset quickly.
+    const isSurge = prevKp !== null && kp - prevKp >= 2 && kp >= thresh.kp;
+    const throttleMs = isSurge ? 1000 * 60 * 5 : 1000 * 60 * 30;
+
+    if (now - lastNotifiedRef.current < throttleMs) return;
+
     if (likelyForMI) {
-      const body = `Kp ${kp.toFixed(1)}. Aurora may be visible in parts of Michigan tonight. Check the map and current conditions.`;
+      const body = isSurge
+        ? `Kp jumped to ${kp.toFixed(1)} (was ${prevKp!.toFixed(1)}). Conditions may be changing rapidly — check the aurora map now.`
+        : `Kp ${kp.toFixed(1)}. Aurora may be visible in parts of Michigan tonight. Check the map and current conditions.`;
       try {
         new Notification("AuroraWatch Alert", {
           body,
@@ -130,7 +142,6 @@ export function useNotifications({
         lastNotifiedRef.current = now;
         localStorage.setItem("aw_last_notified", now.toString());
       } catch (e) {
-        // Notifications may be blocked or not supported in some contexts
         console.warn("Could not show notification", e);
       }
     }
