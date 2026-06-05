@@ -1,0 +1,154 @@
+"use client";
+
+import { Bell } from "lucide-react";
+import { useNotifications, ALERT_THRESHOLDS } from "../lib/hooks/useNotifications";
+
+interface AlertsPanelProps {
+  riskLevel: "Quiet" | "Moderate" | "High" | null;
+  kp: number | null;
+  maxAuroraProbNA: number | null;
+  bz: number | null;
+  isLoading: boolean;
+}
+
+/**
+ * AlertsPanel
+ * Notifications v2 card: description, live MI risk badge, On/Off toggle (gated by permission),
+ * sensitivity preset buttons, current threshold readout, throttle note, and primary action button (Enable / Send test).
+ * Uses the useNotifications hook for all state, persistence, effects, and the enable handler.
+ * Receives live condition values + riskLevel (for badge) from orchestration layer.
+ * Exact original layout, conditional classes, disabled states, and messaging preserved.
+ */
+export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading }: AlertsPanelProps) {
+  const {
+    notificationPermission,
+    alertsEnabled,
+    alertSensitivity,
+    setAlertsEnabled,
+    setAlertSensitivity,
+    handleEnableAlerts,
+  } = useNotifications({ kp, maxAuroraProbNA, bz, isLoading });
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+      <div className="card p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+          {/* Left: description + controls */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Bell className="w-5 h-5 text-[#64748b] shrink-0" />
+              <div className="font-semibold">Alerts for Michigan</div>
+              {riskLevel && (
+                <span
+                  className={`risk-pill risk-${riskLevel.toLowerCase()} ml-0.5`}
+                  title="Live risk derived from Kp, max OVATION probability over North America, and Bz"
+                >
+                  {riskLevel}
+                </span>
+              )}
+            </div>
+
+            <div className="text-sm text-[#94a3b8] max-w-md">
+              Browser notifications when Michigan conditions meet your threshold.
+              Evaluated on every data refresh (∼5 min).
+            </div>
+
+            {/* On/Off toggle (only functional once permission granted) */}
+            <div className="mt-4 flex items-center gap-3">
+              <div className="text-xs text-[#64748b]">Auto alerts</div>
+              <div className="inline-flex rounded-full border border-[#1e2937] text-xs overflow-hidden select-none">
+                <button
+                  onClick={() => {
+                    if (notificationPermission === "granted") setAlertsEnabled(true);
+                  }}
+                  disabled={notificationPermission !== "granted"}
+                  className={`px-3 py-1 transition-colors ${
+                    alertsEnabled && notificationPermission === "granted"
+                      ? "bg-[#22c55e] text-[#05070f] font-medium"
+                      : "text-[#64748b] hover:bg-[#1e2937]"
+                  }`}
+                >
+                  On
+                </button>
+                <button
+                  onClick={() => setAlertsEnabled(false)}
+                  disabled={notificationPermission !== "granted"}
+                  className={`px-3 py-1 transition-colors ${
+                    !alertsEnabled || notificationPermission !== "granted"
+                      ? "bg-[#334155] text-white"
+                      : "text-[#64748b] hover:bg-[#1e2937]"
+                  }`}
+                >
+                  Off
+                </button>
+              </div>
+              {notificationPermission === "granted" && alertsEnabled && (
+                <div className="text-[10px] text-[#22c55e]">Active</div>
+              )}
+              {notificationPermission === "denied" && (
+                <div className="text-[10px] text-red-400">Blocked in browser settings</div>
+              )}
+            </div>
+
+            {/* User threshold presets (sensitivity) */}
+            <div className="mt-4">
+              <div className="text-xs text-[#64748b] mb-1.5">Notify me for:</div>
+              <div className="flex flex-wrap gap-1.5">
+                {(
+                  [
+                    { key: "sensitive", label: "Sensitive", desc: "Kp ≥3 or 10%" },
+                    { key: "balanced", label: "Balanced", desc: "Kp ≥4 or 15%" },
+                    { key: "strong", label: "Strong only", desc: "Kp ≥5 or 25%" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setAlertSensitivity(opt.key)}
+                    className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                      alertSensitivity === opt.key
+                        ? "bg-[#0f1425] border-[#22c55e] text-[#22c55e]"
+                        : "border-[#1e2937] text-[#94a3b8] hover:border-[#334155]"
+                    }`}
+                    title={opt.desc}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-1 text-[10px] text-[#475569]">
+                Current threshold: Kp ≥ {ALERT_THRESHOLDS[alertSensitivity].kp} or OVATION ≥{" "}
+                {ALERT_THRESHOLDS[alertSensitivity].prob}% (plus strong southward Bz)
+              </div>
+            </div>
+
+            {notificationPermission === "granted" && (
+              <div className="mt-3 text-[10px] text-[#64748b]">
+                Throttled to once per 30 min • Respects Do Not Disturb
+              </div>
+            )}
+          </div>
+
+          {/* Right: primary action */}
+          <div className="sm:shrink-0 sm:pt-1">
+            <button
+              onClick={handleEnableAlerts}
+              className="button button-primary w-full sm:w-auto justify-center min-w-[168px]"
+              disabled={notificationPermission === "denied"}
+            >
+              {notificationPermission === "granted"
+                ? "Send test alert"
+                : notificationPermission === "denied"
+                ? "Notifications blocked"
+                : "Enable browser alerts"}
+            </button>
+            {notificationPermission === "granted" && !alertsEnabled && (
+              <div className="mt-2 text-[10px] text-[#64748b] text-center sm:text-left">
+                Auto alerts are paused
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
