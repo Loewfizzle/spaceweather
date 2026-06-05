@@ -91,28 +91,37 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
 
   const points = useMemo(() => {
     const raw = filterOvationCoordinates(ovationData?.coordinates, minProb);
-    return raw
-      .map((p) => ({
-        position: [p.lat, p.lon] as [number, number],
-        prob: Math.round(p.prob),
-      }))
-      .filter(
-        (p) =>
-          isFinite(p.position[0]) && isFinite(p.position[1]) &&
-          p.position[0] >= -90 && p.position[0] <= 90 &&
-          p.position[1] >= -180 && p.position[1] <= 180
-      );
+    return raw.map((p) => ({
+      position: [p.lat, p.lon] as [number, number],
+      prob: Math.round(p.prob),
+    }));
   }, [ovationData, minProb]);
+
+  // Secondary safety guard: drop any point whose coordinates would confuse Leaflet's
+  // SVG path renderer (e.g. stray NaN/Infinity, lat/lon swapped, dateline edge cases).
+  const safePoints = useMemo(
+    () =>
+      points.filter(
+        (p) =>
+          isFinite(p.position[0]) &&
+          isFinite(p.position[1]) &&
+          p.position[0] >= -90 &&
+          p.position[0] <= 90 &&
+          p.position[1] >= -180 &&
+          p.position[1] <= 180
+      ),
+    [points]
+  );
 
   // Only render CircleMarkers for genuine peaks — the heatmap handles the full low-to-mid field.
   // Threshold at 25: below that, the oval produces dense horizontal bands of markers at Kp 5–6.
   const highProbThreshold = Math.max(minProb, 25);
   const highProbPoints = useMemo(
-    () => points.filter((p) => p.prob >= highProbThreshold),
-    [points, highProbThreshold]
+    () => safePoints.filter((p) => p.prob >= highProbThreshold),
+    [safePoints, highProbThreshold]
   );
 
-  const isEmpty = !isLoading && !error && points.length === 0;
+  const isEmpty = !isLoading && !error && safePoints.length === 0;
 
   if (isLoading) {
     return (
@@ -152,7 +161,7 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
-          <HeatmapLayer points={points} />
+          <HeatmapLayer points={safePoints} />
           {highProbPoints.map((p, idx) => (
             <CircleMarker
               key={idx}
@@ -211,7 +220,7 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
           <span>100%</span>
         </div>
         <div className="text-[9px] text-[#475569] tabular-nums">
-          {points.length} areas{minProb > 0 ? ` ≥ ${minProb}%` : ""} · NA
+          {safePoints.length} areas{minProb > 0 ? ` ≥ ${minProb}%` : ""} · NA
         </div>
       </div>
     </div>

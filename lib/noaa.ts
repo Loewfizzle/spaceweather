@@ -93,7 +93,7 @@ export const NORTH_AMERICA_BOUNDS = {
 } as const;
 
 // Filter raw OVATION coordinates to a region + min probability.
-// Normalizes NOAA's 0-360 longitude convention to -180..180.
+// NOAA sends longitude as 0–360; convert to -180..180 with a single subtraction.
 export function filterOvationCoordinates(
   coordinates: Array<unknown[]> | undefined,
   minProb: number = 0,
@@ -101,34 +101,30 @@ export function filterOvationCoordinates(
 ): OvationPoint[] {
   if (!Array.isArray(coordinates) || coordinates.length === 0) return [];
 
-  const normalizeLon = (lon: number): number =>
-    ((((lon + 180) % 360) + 360) % 360) - 180;
+  const results: OvationPoint[] = [];
 
-  return coordinates
-    .filter((row) => {
-      if (!Array.isArray(row) || row.length < 3) return false;
-      const [rawLon, lat, prob] = row;
-      if (
-        typeof rawLon !== 'number' || !isFinite(rawLon) ||
-        typeof lat !== 'number' || !isFinite(lat) ||
-        typeof prob !== 'number' || !isFinite(prob)
-      ) {
-        return false;
-      }
-      const lon = normalizeLon(rawLon);
-      return (
-        lon >= bounds.minLon &&
-        lon <= bounds.maxLon &&
-        lat >= bounds.minLat &&
-        lat <= bounds.maxLat &&
-        prob >= minProb
-      );
-    })
-    .map((row) => {
-      const [rawLon, lat, prob] = row as [number, number, number];
-      const lon = normalizeLon(rawLon);
-      return { lat, lon, prob };
-    });
+  for (const row of coordinates) {
+    if (!Array.isArray(row) || row.length < 3) continue;
+
+    const rawLon = row[0];
+    const lat = row[1];
+    const prob = row[2];
+
+    if (typeof rawLon !== 'number' || typeof lat !== 'number' || typeof prob !== 'number') continue;
+    if (!isFinite(rawLon) || !isFinite(lat) || !isFinite(prob)) continue;
+    if (lat < -90 || lat > 90) continue;
+    if (prob < minProb) continue;
+
+    // NOAA uses 0–360 longitude — convert to -180..180
+    const lon = rawLon > 180 ? rawLon - 360 : rawLon;
+
+    if (lon < bounds.minLon || lon > bounds.maxLon) continue;
+    if (lat < bounds.minLat || lat > bounds.maxLat) continue;
+
+    results.push({ lat, lon, prob });
+  }
+
+  return results;
 }
 
 // Compute max aurora probability in the North America region.
