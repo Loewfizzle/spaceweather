@@ -94,9 +94,13 @@ export const AlertSchema = z.object({
 export type Alert = z.infer<typeof AlertSchema>;
 
 export const SolarRegionSchema = z.object({
-  Obsdate: z.string().optional(),
-  Numspot: z.number().optional(),
-  Region: z.string().optional(),
+  observed_date: z.string().optional(),
+  number_spots: z.number().nullable().optional(),
+  region: z.number().optional(),
+  // Additional fields from NOAA (extra props allowed by Zod by default)
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  location: z.string().nullable().optional(),
 });
 export type SolarRegion = z.infer<typeof SolarRegionSchema>;
 
