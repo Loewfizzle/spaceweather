@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -38,6 +38,14 @@ interface AuroraMapProps {
 function HeatmapLayer({ points }: { points: { position: [number, number]; prob: number }[] }) {
   const map = useMap();
   const layerRef = useRef<L.Layer | null>(null);
+  const [zoom, setZoom] = useState(() => map.getZoom());
+
+  // Rebuild the layer whenever the user zooms so radius stays geographically appropriate.
+  useEffect(() => {
+    const onZoom = () => setZoom(map.getZoom());
+    map.on('zoomend', onZoom);
+    return () => { map.off('zoomend', onZoom); };
+  }, [map]);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -49,26 +57,33 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
 
     if (!points || points.length === 0) return;
 
-    // [lat, lon, intensity 0-1]. Power scaling gives visual pop at high probs while keeping low-end subtle.
+    // Radius scales with zoom so each point covers a consistent geographic footprint.
+    // At default zoom 3 this gives 6 px — tight enough to show the arc shape.
+    const radius = Math.max(6, zoom * 2);
+
+    // Exponent 1.4 (was 0.7): low-prob areas become near-transparent, high-prob
+    // clusters stay vivid — produces a band/arc rather than a filled blob.
     const heatData = points.map((p) => [
       p.position[0],
       p.position[1],
-      Math.max(0.05, Math.pow(p.prob / 100, 0.7)),
+      Math.max(0.01, Math.pow(p.prob / 100, 1.4)),
     ] as [number, number, number]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const heat = (L as any).heatLayer(heatData, {
-      radius: 20,
-      blur: 16,
-      maxZoom: 5,
-      minOpacity: 0.25,
+      radius,
+      blur: 10,
+      maxZoom: 6,
+      minOpacity: 0.05,
+      max: 1.0,
       gradient: {
-        "0.0": "rgba(22, 101, 52, 0.12)",
-        "0.15": "#22c55e",
-        "0.4": "#eab308",
-        "0.6": "#f97316",
-        "0.82": "#a78bfa",
-        "1.0": "#c084fc",
+        '0.0': 'rgba(22, 101, 52, 0)',
+        '0.1': 'rgba(34, 197, 94, 0.4)',
+        '0.3': '#22c55e',
+        '0.5': '#eab308',
+        '0.7': '#f97316',
+        '0.85': '#a78bfa',
+        '1.0': '#c084fc',
       },
     });
 
@@ -81,7 +96,7 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
         layerRef.current = null;
       }
     };
-  }, [map, points]);
+  }, [map, points, zoom]);
 
   return null;
 }
