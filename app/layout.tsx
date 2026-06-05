@@ -14,17 +14,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Hardcode the production custom domain so that OG images, canonical URLs,
+  // and social previews always resolve to space.loewfizzle.com instead of
+  // the underlying Vercel deployment URL (VERCEL_URL).
+  // This is the main fix for social preview issues.
   metadataBase: new URL(
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000"
+    process.env.VERCEL_ENV === "production"
+      ? "https://space.loewfizzle.com"
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000"
   ),
-  title: "AuroraWatch | Real-time Aurora & Space Weather",
+  title: {
+    default: "AuroraWatch | Real-time Aurora & Space Weather",
+    template: "%s | AuroraWatch",
+  },
   description: "Premium real-time aurora visibility and space weather dashboard for the United States, with focused coverage for Michigan and the Great Lakes. Live NOAA SWPC data.",
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
+    siteName: "AuroraWatch",
     title: "AuroraWatch | Real-time Aurora & Space Weather",
     description: "Premium real-time aurora visibility and space weather dashboard for the United States, with focused coverage for Michigan and the Great Lakes. Live NOAA SWPC data.",
     images: [
@@ -38,12 +48,16 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@aurorawatch", // optional: add if you have a Twitter handle
     title: "AuroraWatch | Real-time Aurora & Space Weather",
     description: "Premium real-time aurora visibility and space weather dashboard for the United States, with focused coverage for Michigan and the Great Lakes. Live NOAA SWPC data.",
     images: ["/og-image.jpg"],
   },
   keywords: ["aurora", "space weather", "Michigan", "Great Lakes", "NOAA", "Kp index", "fireball", "meteor shower"],
   authors: [{ name: "AuroraWatch" }],
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
