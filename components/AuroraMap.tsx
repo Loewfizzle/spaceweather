@@ -20,26 +20,12 @@ interface AuroraMapProps {
   minProb?: number;
 }
 
-// Maps a 0-100 probability to the aurora color scale at the given opacity.
-function probToColor(prob: number, alpha: number): string {
-  let r: number, g: number, b: number;
-  if (prob < 10) {
-    // dark green
-    r = 22; g = 101; b = 52;
-  } else if (prob < 25) {
-    // green
-    r = 34; g = 197; b = 94;
-  } else if (prob < 45) {
-    // yellow
-    r = 234; g = 179; b = 8;
-  } else if (prob < 65) {
-    // orange
-    r = 249; g = 115; b = 22;
-  } else {
-    // violet
-    r = 167; g = 139; b = 250;
-  }
-  return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+function probToRGB(prob: number): [number, number, number] {
+  if (prob < 10)  return [22,  101, 52];
+  if (prob < 25)  return [34,  197, 94];
+  if (prob < 45)  return [234, 179, 8];
+  if (prob < 65)  return [249, 115, 22];
+  return                 [167, 139, 250];
 }
 
 function OvationCanvasLayer({ points }: { points: { position: [number, number]; prob: number }[] }) {
@@ -59,19 +45,16 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
       onAdd(map: L.Map) {
         const canvas = L.DomUtil.create('canvas', 'ovation-canvas-layer') as HTMLCanvasElement;
         canvas.style.position = 'absolute';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
         canvas.style.pointerEvents = 'none';
-        canvas.style.zIndex = '200';
-        map.getPanes().overlayPane!.appendChild(canvas);
+        map.getPanes().mapPane!.appendChild(canvas);
         canvasRef.current = canvas;
         this._map = map;
-        map.on('moveend zoomend', this._draw, this);
+        map.on('move zoom moveend zoomend', this._draw, this);
         this._draw();
         return this;
       },
       onRemove(map: L.Map) {
-        map.off('moveend zoomend', this._draw, this);
+        map.off('move zoom moveend zoomend', this._draw, this);
         if (canvasRef.current?.parentNode) {
           canvasRef.current.parentNode.removeChild(canvasRef.current);
         }
@@ -80,30 +63,36 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
       _draw() {
         const canvas = canvasRef.current;
         if (!canvas || !this._map) return;
-        const mapSize = this._map.getSize();
-        canvas.width = mapSize.x;
-        canvas.height = mapSize.y;
+
+        const size = this._map.getSize();
+        canvas.width = size.x;
+        canvas.height = size.y;
+
+        // Offset the canvas so it tracks the mapPane's CSS transform automatically.
+        const topLeft = this._map.containerPointToLayerPoint([0, 0]);
+        L.DomUtil.setPosition(canvas, topLeft);
+
         const ctx = canvas.getContext('2d')!;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Compute cell size in pixels based on current zoom.
-        // OVATION grid is ~1° lon × variable lat; use 1.5° cells to avoid gaps.
-        const cellDeg = 1.5;
-        const originPx = this._map.latLngToContainerPoint([0, 0]);
-        const cellPx = this._map.latLngToContainerPoint([0, cellDeg]);
+        // cellDeg = 2.0 so adjacent radial gradients overlap enough to blend at all zooms.
+        const cellDeg = 2.0;
+        const originPx = this._map.latLngToLayerPoint([0, 0]);
+        const cellPx = this._map.latLngToLayerPoint([0, cellDeg]);
         const cellSize = Math.max(2, Math.abs(cellPx.x - originPx.x));
 
         for (const point of points) {
-          const px = this._map.latLngToContainerPoint([point.position[0], point.position[1]]);
-          const alpha = Math.pow(point.prob / 100, 0.6) * 0.85;
+          const px = this._map.latLngToLayerPoint([point.position[0], point.position[1]]);
+          const alpha = Math.pow(point.prob / 100, 0.6) * 0.9;
           if (alpha < 0.02) continue;
-          ctx.fillStyle = probToColor(point.prob, alpha);
-          ctx.fillRect(
-            Math.round(px.x - cellSize / 2),
-            Math.round(px.y - cellSize / 2),
-            Math.ceil(cellSize),
-            Math.ceil(cellSize)
-          );
+          const [r, g, b] = probToRGB(point.prob);
+          const gradient = ctx.createRadialGradient(px.x, px.y, 0, px.x, px.y, cellSize * 0.85);
+          gradient.addColorStop(0, `rgba(${r},${g},${b},${alpha.toFixed(3)})`);
+          gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(px.x, px.y, cellSize * 0.85, 0, Math.PI * 2);
+          ctx.fill();
         }
       },
     });
