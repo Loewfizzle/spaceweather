@@ -40,7 +40,6 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
   const layerRef = useRef<L.Layer | null>(null);
   const [zoom, setZoom] = useState(() => map.getZoom());
 
-  // Rebuild the layer whenever the user zooms so radius stays geographically appropriate.
   useEffect(() => {
     const onZoom = () => setZoom(map.getZoom());
     map.on('zoomend', onZoom);
@@ -57,33 +56,33 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
 
     if (!points || points.length === 0) return;
 
-    // Radius scales with zoom so each point covers a consistent geographic footprint.
-    // At default zoom 3 this gives 6 px — tight enough to show the arc shape.
-    const radius = Math.max(6, zoom * 2);
+    // Radius shrinks as zoom increases so the arc stays tight at the default
+    // NA view (~18 px at zoom 3) and remains proportional when zooming in.
+    // Formula: ~18 at z3, ~12 at z4, ~7 at z5+
+    const radius = Math.round(40 / Math.pow(1.9, zoom - 2));
+    const blur = Math.round(radius * 0.7);
 
-    // Exponent 1.4 (was 0.7): low-prob areas become near-transparent, high-prob
-    // clusters stay vivid — produces a band/arc rather than a filled blob.
     const heatData = points.map((p) => [
       p.position[0],
       p.position[1],
-      Math.max(0.01, Math.pow(p.prob / 100, 1.4)),
+      Math.max(0.03, Math.pow(p.prob / 100, 0.9)),
     ] as [number, number, number]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const heat = (L as any).heatLayer(heatData, {
       radius,
-      blur: 10,
-      maxZoom: 6,
-      minOpacity: 0.05,
+      blur,
+      maxZoom: 7,
+      minOpacity: 0.15,
       max: 1.0,
       gradient: {
-        '0.0': 'rgba(22, 101, 52, 0)',
-        '0.1': 'rgba(34, 197, 94, 0.4)',
-        '0.3': '#22c55e',
-        '0.5': '#eab308',
-        '0.7': '#f97316',
-        '0.85': '#a78bfa',
-        '1.0': '#c084fc',
+        '0.0':  'rgba(22, 101, 52, 0)',
+        '0.05': 'rgba(34, 197, 94, 0.3)',
+        '0.2':  '#22c55e',
+        '0.45': '#eab308',
+        '0.65': '#f97316',
+        '0.82': '#a78bfa',
+        '1.0':  '#c084fc',
       },
     });
 
