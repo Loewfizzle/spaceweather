@@ -94,8 +94,8 @@ export const AlertSchema = z.object({
 export type Alert = z.infer<typeof AlertSchema>;
 
 export const SolarRegionSchema = z.object({
-  observed_date: z.string(),
-  region: z.number(),
+  observed_date: z.string().optional(),
+  region: z.number().optional(),
   number_spots: z.number().nullable().optional(),
   // other fields exist but we only need these for sunspot total
   // Additional fields from NOAA (extra props allowed by Zod by default)

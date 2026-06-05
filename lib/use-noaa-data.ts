@@ -197,7 +197,10 @@ export function useSolarActivity() {
 
   const isLoading =
     flaresQuery.isLoading || alertsQuery.isLoading || regionsQuery.isLoading;
-  const error = flaresQuery.error || alertsQuery.error || regionsQuery.error;
+  // Only treat flares and alerts as fatal errors for the hook.
+  // Sunspot data (regions) is non-critical for outlook computation and solar display;
+  // failure there should not hide the other solar cards or trigger hero error.
+  const error = flaresQuery.error || alertsQuery.error;
 
   const refetchAll = () => {
     flaresQuery.refetch();

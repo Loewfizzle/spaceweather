@@ -468,7 +468,7 @@ export default function AuroraWatch() {
           {(isLoading || solarActivity.isLoading) && (
             <div className="mt-3 h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
           )}
-          {(error || solarActivity.error) && (
+          {error && (
             <div className="mt-2 text-xs text-red-400">
               Error loading outlook. Using cached values if available.
             </div>
