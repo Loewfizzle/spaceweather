@@ -35,12 +35,6 @@ interface AuroraMapProps {
   minProb?: number;
 }
 
-/**
- * Canvas heatmap layer (using leaflet.heat).
- * High performance even with thousands of OVATION points.
- * Provides the smooth, glowing aurora probability field.
- * Intensity + gradient tuned for premium dark theme + aurora aesthetics.
- */
 function HeatmapLayer({ points }: { points: { position: [number, number]; prob: number }[] }) {
   const map = useMap();
   const layerRef = useRef<L.Layer | null>(null);
@@ -48,17 +42,14 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('leaflet.heat');
-    // Cleanup previous layer
     if (layerRef.current) {
       map.removeLayer(layerRef.current);
       layerRef.current = null;
     }
 
-    if (!points || points.length === 0) {
-      return;
-    }
+    if (!points || points.length === 0) return;
 
-    // Prepare data: [lat, lon, intensity 0-1]. Use pow scaling for better visual pop on higher probs while keeping low-end subtle.
+    // [lat, lon, intensity 0-1]. Power scaling gives visual pop at high probs while keeping low-end subtle.
     const heatData = points.map((p) => [
       p.position[0],
       p.position[1],
@@ -67,12 +58,12 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const heat = (L as any).heatLayer(heatData, {
-      radius: 20, // base size of heat blobs; good balance on mobile + desktop
+      radius: 20,
       blur: 16,
       maxZoom: 5,
       minOpacity: 0.25,
       gradient: {
-        "0.0": "rgba(22, 101, 52, 0.12)", // very subtle dark green for faint background
+        "0.0": "rgba(22, 101, 52, 0.12)",
         "0.15": "#22c55e",
         "0.4": "#eab308",
         "0.6": "#f97316",
@@ -98,43 +89,30 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
 export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
   const { data: ovationData, isLoading, error, refetch } = useOvationData();
 
-  // Use shared utility (filtering logic moved out of component for separation of concerns + DRY)
   const points = useMemo(() => {
-    // ovationData may be undefined while loading; coordinates optional per schema.
     const raw = filterOvationCoordinates(ovationData?.coordinates, minProb);
     return raw
       .map((p) => ({
-        position: [p.lat, p.lon] as [number, number], // Leaflet is [lat, lon]
+        position: [p.lat, p.lon] as [number, number],
         prob: Math.round(p.prob),
       }))
-      .filter((p) =>
-        isFinite(p.position[0]) && isFinite(p.position[1]) &&
-        p.position[0] >= -90 && p.position[0] <= 90 &&
-        p.position[1] >= -180 && p.position[1] <= 180
+      .filter(
+        (p) =>
+          isFinite(p.position[0]) && isFinite(p.position[1]) &&
+          p.position[0] >= -90 && p.position[0] <= 90 &&
+          p.position[1] >= -180 && p.position[1] <= 180
       );
   }, [ovationData, minProb]);
 
-  // High probability markers for precise interaction + visual pop on top of the heatmap field.
-  // Threshold raised to 25: at Kp 5-6 the aurora oval has 60-70 points per latitude row at
-  // prob 10-19, which merge into solid horizontal bars. CircleMarkers are only meaningful at
-  // genuine peaks (rare, storm-level). The heatmap handles the full low-to-mid field.
+  // Only render CircleMarkers for genuine peaks — the heatmap handles the full low-to-mid field.
+  // Threshold at 25: below that, the oval produces dense horizontal bands of markers at Kp 5–6.
   const highProbThreshold = Math.max(minProb, 25);
   const highProbPoints = useMemo(
     () => points.filter((p) => p.prob >= highProbThreshold),
     [points, highProbThreshold]
   );
 
-  const observationTime = ovationData?.["Observation Time"];
-
-  const formatObservationTime = (iso?: string) => {
-    if (!iso) return null;
-    try {
-      const d = new Date(iso);
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC";
-    } catch {
-      return null;
-    }
-  };
+  const isEmpty = !isLoading && !error && points.length === 0;
 
   if (isLoading) {
     return (
@@ -150,9 +128,11 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
   if (error) {
     return (
       <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
-        <div className="text-center text-red-400 text-sm">
-          Failed to load aurora data.<br />
-          <button onClick={() => refetch()} className="underline mt-1">Try refreshing</button>
+        <div className="text-center text-sm">
+          <div className="text-[#94a3b8] mb-2">Aurora data temporarily unavailable.</div>
+          <button onClick={() => refetch()} className="text-[#64748b] underline underline-offset-2 hover:text-white transition-colors">
+            Try refreshing
+          </button>
         </div>
       </div>
     );
@@ -160,7 +140,6 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[#1e2937] bg-[#05070f]">
-      {/* Responsive height container; map fills it. Improved polish vs fixed inline style. */}
       <div className="h-[420px] sm:h-[480px] md:h-[520px]">
         <MapContainer
           center={[48, -100]}
@@ -173,12 +152,7 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
-
-          {/* Smooth, performant canvas heatmap - the primary visualization for the aurora probability field */}
           <HeatmapLayer points={points} />
-
-          {/* Hybrid: only render CircleMarkers for higher-prob "peaks" (precise tooltips + visual emphasis).
-              The heatmap handles the smooth low-to-mid field for all points >= minProb. */}
           {highProbPoints.map((p, idx) => (
             <CircleMarker
               key={idx}
@@ -204,43 +178,41 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
         </MapContainer>
       </div>
 
-      {/* Improved premium legend with gradient bar, better info, data freshness, and quiet-state guidance */}
-      <div className="absolute bottom-3 right-3 z-10 rounded-lg border border-[#1e2937] bg-[#0f1425]/95 px-3 py-2 text-[10px] text-[#cbd5e1] shadow backdrop-blur-sm">
-        <div className="mb-1 font-medium tracking-wide">Aurora Probability (OVATION)</div>
+      {/* Empty state: centered overlay when no aurora areas pass the current filter.
+          pointer-events-none so the map stays pannable/zoomable beneath it. */}
+      {isEmpty && (
+        <div className="absolute inset-0 z-[10] flex items-center justify-center pointer-events-none">
+          <div className="bg-[#0a0e1a]/85 backdrop-blur-sm border border-[#1e2937] rounded-xl px-5 py-4 text-center mx-6 max-w-[260px]">
+            <div className="text-[#94a3b8] text-sm font-medium mb-1.5">
+              {minProb > 3 ? "No areas above threshold" : "Geomagnetically quiet"}
+            </div>
+            <div className="text-[10px] text-[#64748b] leading-relaxed">
+              {minProb > 3
+                ? `No aurora areas ≥ ${minProb}% visible. Lower the filter slider to see more of the oval.`
+                : "The aurora oval is currently positioned away from North America. Conditions may improve when Kp rises."}
+            </div>
+          </div>
+        </div>
+      )}
 
-        {/* Smooth gradient bar matching the heatmap stops */}
+      {/* Legend — z-[20] keeps it above the empty state overlay */}
+      <div className="absolute bottom-3 right-3 z-[20] rounded-lg border border-[#1e2937] bg-[#0f1425]/95 px-3 py-2 text-[10px] text-[#cbd5e1] shadow backdrop-blur-sm">
+        <div className="mb-1 font-medium tracking-wide">Aurora Probability</div>
         <div
-          className="h-2 w-36 rounded-full mb-1 border border-[#1e2937]/50"
+          className="h-2 w-32 rounded-full mb-1 border border-[#1e2937]/50"
           style={{
             background:
               "linear-gradient(to right, #166534, #22c55e, #eab308, #f97316, #a78bfa, #c084fc)",
           }}
         />
-        <div className="flex justify-between text-[9px] text-[#64748b] w-36 mb-1 tabular-nums">
+        <div className="flex justify-between text-[9px] text-[#64748b] w-32 mb-1 tabular-nums">
           <span>0</span>
-          <span>25</span>
           <span>50</span>
-          <span>75</span>
           <span>100%</span>
         </div>
-
-        <div className="text-[9px] text-[#64748b]">
-          {minProb > 0 ? `≥ ${minProb}% • ` : ""}
-          {points.length} areas (NA)
+        <div className="text-[9px] text-[#475569] tabular-nums">
+          {points.length} areas{minProb > 0 ? ` ≥ ${minProb}%` : ""} · NA
         </div>
-
-        {observationTime && (
-          <div className="mt-0.5 text-[8px] text-[#475569]">
-            as of {formatObservationTime(observationTime)}
-          </div>
-        )}
-
-        {/* Quiet / empty state guidance (very useful for real low-activity NOAA data) */}
-        {points.length === 0 && !isLoading && (
-          <div className="mt-1.5 text-[9px] text-[#eab308]">
-            No areas ≥ {minProb}%. Lower the filter slider or conditions are quiet.
-          </div>
-        )}
       </div>
     </div>
   );
