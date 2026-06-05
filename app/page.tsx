@@ -24,6 +24,8 @@ import { DataUnderstanding } from "../components/DataUnderstanding";
 import { AlertsPanel } from "../components/AlertsPanel";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
 import { logDataError } from "../lib/utils/retry";
+import { ErrorBoundary } from "../components/ErrorBoundary";
+import { ErrorState } from "../components/ErrorState";
 
 // Lightweight Suspense fallbacks matching the app's premium dark skeleton style
 const MapSectionSkeleton = () => <LoadingSkeleton variant="map" className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />;
@@ -181,12 +183,14 @@ export default function AuroraWatch() {
           </p>
         </div>
 
-        <HeroOutlook
-          outlook={tonightOutlook}
-          isLoading={isLoading || solarActivity.isLoading}
-          error={error}
-          isFetching={isFetching}
-        />
+        <ErrorBoundary fallback={<ErrorState message="Outlook unavailable — check back shortly." />}>
+          <HeroOutlook
+            outlook={tonightOutlook}
+            isLoading={isLoading || solarActivity.isLoading}
+            error={error}
+            isFetching={isFetching}
+          />
+        </ErrorBoundary>
       </div>
 
       <CurrentConditions
@@ -203,34 +207,44 @@ export default function AuroraWatch() {
       />
 
       {/* Interactive Map Section — core interactive feature, placed prominently right after current conditions so users quickly reach the OVATION aurora map */}
-      <Suspense fallback={<MapSectionSkeleton />}>
-        <AuroraMapSection />
-      </Suspense>
+      <ErrorBoundary fallback={<ErrorState message="Aurora map unavailable. Try refreshing." className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />}>
+        <Suspense fallback={<MapSectionSkeleton />}>
+          <AuroraMapSection />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Forecast Timeline - live Chart.js Kp history */}
-      <Suspense fallback={<KpOutlookSkeleton />}>
-        <KpForecast michiganGuidance={michiganGuidance} />
-      </Suspense>
+      <ErrorBoundary fallback={<ErrorState message="Kp forecast unavailable." className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />}>
+        <Suspense fallback={<KpOutlookSkeleton />}>
+          <KpForecast michiganGuidance={michiganGuidance} />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* SOLAR ACTIVITY — key solar drivers for aurora (positioned after Kp outlook to provide context for why conditions may change) */}
-      <Suspense fallback={<SolarActivitySkeleton />}>
-        <SolarActivity />
-      </Suspense>
+      <ErrorBoundary fallback={<ErrorState message="Solar activity data unavailable." className="max-w-7xl mx-auto px-4 sm:px-6 pb-10" />}>
+        <Suspense fallback={<SolarActivitySkeleton />}>
+          <SolarActivity />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Meteor Activity — Next shower + recent fireballs (positioned after core space weather data; still useful for additional sky phenomena) */}
-      <MeteorActivity />
+      <ErrorBoundary fallback={<ErrorState message="Meteor activity data unavailable." className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />}>
+        <MeteorActivity />
+      </ErrorBoundary>
 
       {/* Understanding the Data — educational section, collapsed by default (kept collapsed; position after Solar follows logical "see the data → understand it" flow) */}
       <DataUnderstanding />
 
       {/* Notifications v2 — persistent toggle, live MI risk badge, user threshold presets */}
-      <AlertsPanel
-        riskLevel={riskLevel}
-        kp={kp}
-        maxAuroraProbNA={maxAuroraProbNA}
-        bz={bz}
-        isLoading={isLoading}
-      />
+      <ErrorBoundary fallback={<ErrorState message="Alerts unavailable." className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />}>
+        <AlertsPanel
+          riskLevel={riskLevel}
+          kp={kp}
+          maxAuroraProbNA={maxAuroraProbNA}
+          bz={bz}
+          isLoading={isLoading}
+        />
+      </ErrorBoundary>
 
       {/* Footer */}
       <footer className="border-t border-[#1e2937] pt-8 pb-10 text-xs text-[#64748b]">
