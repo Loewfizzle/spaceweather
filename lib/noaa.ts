@@ -74,20 +74,24 @@ export function filterOvationCoordinates(
   minProb: number = 0,
   bounds = NORTH_AMERICA_BOUNDS
 ): OvationPoint[] {
-  if (!coordinates || coordinates.length === 0) return [];
+  // Defensive: accept only real arrays (schema + our fallback guarantee array|undefined, but tolerate unexpected shapes without crashing)
+  if (!Array.isArray(coordinates) || coordinates.length === 0) return [];
 
   const normalizeLon = (lon: number): number => {
-    let n = lon % 360;
-    if (n > 180) n -= 360;
-    if (n < -180) n += 360;
-    return n;
+    // Simpler 0-360 (or any) -> -180..180; handles NOAA OVATION convention defensively.
+    // Equivalent to prior ifs but compact and robust for edge values.
+    return ((((lon + 180) % 360) + 360) % 360) - 180;
   };
 
   return coordinates
     .filter((row) => {
       if (!Array.isArray(row) || row.length < 3) return false;
       const [rawLon, lat, prob] = row;
-      if (typeof rawLon !== 'number' || typeof lat !== 'number' || typeof prob !== 'number') {
+      if (
+        typeof rawLon !== 'number' || !isFinite(rawLon) ||
+        typeof lat !== 'number' || !isFinite(lat) ||
+        typeof prob !== 'number' || !isFinite(prob)
+      ) {
         return false;
       }
       const lon = normalizeLon(rawLon);
@@ -108,7 +112,8 @@ export function filterOvationCoordinates(
 
 // Helper: compute max aurora probability in North America region for metrics
 export function maxOvationNorthAmerica(data: OvationResponse | null): number {
-  if (!data || !data.coordinates || data.coordinates.length === 0) {
+  // Defensive guard: tolerate missing/empty/unexpected coordinates without assuming .length access or shape
+  if (!data || !Array.isArray(data.coordinates) || data.coordinates.length === 0) {
     return 0;
   }
   const relevant = filterOvationCoordinates(data.coordinates, 0);
@@ -116,8 +121,9 @@ export function maxOvationNorthAmerica(data: OvationResponse | null): number {
     // Legitimately no points in NA bounds, or data issue - caller can log context
     return 0;
   }
-  const max = Math.max(...relevant.map((p) => p.prob));
-  return max;
+  // Use reduce (not spread) to safely compute max even when filter returns thousands of points
+  // (real OVATION data grids can yield 5k–10k+ points in NA bounds at minProb=0).
+  return relevant.reduce((max, p) => Math.max(max, p.prob), 0);
 }
 
 /**
