@@ -90,8 +90,8 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
         for (const point of points) {
           // containerPoint matches canvas coords after setPosition cancels pane offset.
           const px = this._map.latLngToContainerPoint([point.position[0], point.position[1]]);
-          const alpha = Math.pow(point.prob / 100, 0.6) * 0.9;
-          if (alpha < 0.02) continue;
+          const alpha = Math.pow(point.prob / 100, 1.1) * 0.9;
+          if (alpha < 0.06) continue;
           const [r, g, b] = probToRGB(point.prob);
           const gradient = ctx.createRadialGradient(px.x, px.y, 0, px.x, px.y, cellSize * 0.85);
           gradient.addColorStop(0, `rgba(${r},${g},${b},${alpha.toFixed(3)})`);
