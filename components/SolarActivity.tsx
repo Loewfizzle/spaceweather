@@ -7,22 +7,63 @@ import { useSolarActivity } from "../lib/use-noaa-data";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 
 function SdoImage({ src, alt }: { src: string; alt: string }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return (
-      <div className="w-full aspect-square bg-[#05070f] flex items-center justify-center text-[#475569] text-xs text-center px-6 py-8">
-        Image temporarily unavailable · NASA SDO
-      </div>
-    );
-  }
+  const [imgState, setImgState] = useState<'loading' | 'loaded' | 'failed'>('loading');
+  const [attempt, setAttempt] = useState(0);
+
+  const retry = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setImgState('loading');
+    setAttempt((n) => n + 1);
+  };
+
+  const openSdo = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(SDO_DATA_URL, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      onError={() => setFailed(true)}
-      className="w-full aspect-square object-cover block"
-    />
+    <div className="relative w-full aspect-square overflow-hidden bg-black">
+      {/* Pulse skeleton while image is in-flight */}
+      {imgState === 'loading' && (
+        <div className="absolute inset-0 animate-pulse bg-[#0f1425]" />
+      )}
+
+      {/* Error state — no nested <a> (card is already an <a>); use buttons instead */}
+      {imgState === 'failed' && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-6 text-center">
+          <span className="text-[#475569] text-xs leading-relaxed">
+            Image temporarily unavailable
+          </span>
+          <button
+            onClick={openSdo}
+            className="text-[10px] text-[#64748b] hover:text-white underline underline-offset-2 transition-colors"
+          >
+            View on NASA SDO ↗
+          </button>
+          <button
+            onClick={retry}
+            className="text-[10px] text-[#475569] hover:text-[#64748b] transition-colors"
+          >
+            retry
+          </button>
+        </div>
+      )}
+
+      {/* Image always in DOM so the browser can fetch it; fades in once loaded.
+          key={attempt} forces a full remount (and re-fetch) on retry. */}
+      <img
+        key={attempt}
+        src={src}
+        alt={alt}
+        onLoad={() => setImgState('loaded')}
+        onError={() => setImgState('failed')}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+          imgState === 'loaded' ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+    </div>
   );
 }
 
@@ -131,12 +172,10 @@ export function SolarActivity() {
                 </div>
               </div>
 
-              <div className="bg-black">
-                <SdoImage
-                  src={SDO_SUNSPOT_URL}
-                  alt="Live SDO HMI Continuum image of the solar disk showing sunspot regions"
-                />
-              </div>
+              <SdoImage
+                src={SDO_SUNSPOT_URL}
+                alt="Live SDO HMI Continuum image of the solar disk showing sunspot regions"
+              />
 
               <div className="px-4 py-3 text-[10px] text-[#475569] leading-relaxed">
                 <span className="text-[#64748b] font-medium">HMI Continuum</span> — visible-light
@@ -160,12 +199,10 @@ export function SolarActivity() {
                 <span className="text-[10px] text-[#334155]">↗ NASA SDO</span>
               </div>
 
-              <div className="bg-black">
-                <SdoImage
-                  src={SDO_CORONAL_URL}
-                  alt="Live SDO AIA 193Å extreme ultraviolet image showing coronal holes as dark regions"
-                />
-              </div>
+              <SdoImage
+                src={SDO_CORONAL_URL}
+                alt="Live SDO AIA 193Å extreme ultraviolet image showing coronal holes as dark regions"
+              />
 
               <div className="px-4 py-3 text-[10px] text-[#475569] leading-relaxed">
                 <span className="text-[#64748b] font-medium">AIA 193Å</span> — extreme ultraviolet

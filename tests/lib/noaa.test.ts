@@ -203,6 +203,25 @@ describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
     expect(filtered.length).toBe(1)
     expect(filtered[0].lon).toBeCloseTo(-100)
   })
+
+  it('includes points exactly at NA longitude boundaries (190→-170, 310→-50)', () => {
+    const coords = [
+      [190, 45, 10],  // 190 > 180 → 190 - 360 = -170 (exactly minLon, included)
+      [310, 45, 10],  // 310 > 180 → 310 - 360 = -50  (exactly maxLon, included)
+      [189, 45, 10],  // 189 ≤ 180 → stays 189 (outside NA), excluded
+      [311, 45, 10],  // 311 > 180 → 311 - 360 = -49  (outside maxLon), excluded
+    ]
+    const filtered = filterOvationCoordinates(coords, 0)
+    expect(filtered).toHaveLength(2)
+    const lons = filtered.map((p) => p.lon).sort((a, b) => a - b)
+    expect(lons).toEqual([-170, -50])
+  })
+
+  it('normalizes lon=360 to 0 (prime meridian, excluded from NA)', () => {
+    // 360 > 180 → 360 - 360 = 0; lon 0 is outside NA bounds [-170, -50]
+    const coords = [[360, 50, 20]]
+    expect(filterOvationCoordinates(coords, 0)).toHaveLength(0)
+  })
 })
 
 describe('getAuroraColor', () => {
