@@ -516,13 +516,16 @@ function parseNum(v: unknown): number | null {
 
 export async function fetchFireballs(limit = 8): Promise<Fireball[]> {
   const url = `https://ssd-api.jpl.nasa.gov/fireball.api?limit=${limit}`;
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error("Failed to fetch NASA fireball data");
+  // Use shared fetchJson for consistency with all other data sources (better error messages)
+  const json = await fetchJson<{ fields?: string[]; data?: unknown[][] }>(url);
+
+  // Robust validation of NASA API response shape (prevents fragile parsing crashes)
+  if (!json || !Array.isArray(json.fields) || !Array.isArray(json.data)) {
+    throw new Error('Invalid response structure from NASA fireball API (missing fields or data)');
   }
-  const json = await res.json();
-  const fields: string[] = json.fields || [];
-  const rows: unknown[][] = json.data || [];
+
+  const fields: string[] = json.fields;
+  const rows: unknown[][] = json.data;
 
   return rows.map((row) => {
     const get = (name: string) => {

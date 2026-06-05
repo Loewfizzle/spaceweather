@@ -137,6 +137,12 @@ export default function AuroraWatch() {
   const fireballsQuery = useFireballs();
   const nextMeteor = getNextMeteorShower();
 
+  // Dev-only: log fireball errors for easier debugging of production issues (CORS, network, or parse failures from NASA API)
+  // Does not affect production bundle or UX
+  if (fireballsQuery.error && process.env.NODE_ENV === 'development') {
+    console.error('[AuroraWatch] Fireball fetch error (check network tab / CORS):', fireballsQuery.error);
+  }
+
   const tonightOutlook = getTonightOutlook(
     kp,
     bz,
@@ -595,84 +601,7 @@ export default function AuroraWatch() {
         </div>
       </div>
 
-      {/* Meteor Activity — Next shower + recent fireballs (inserted after current conditions, before map) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-        <div className="section-title">METEOR ACTIVITY</div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Next Meteor Shower */}
-          <div className="card p-5">
-            <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-1">NEXT METEOR SHOWER</div>
-
-            {nextMeteor ? (
-              <>
-                <div className="text-2xl font-semibold tracking-tight mb-1">{nextMeteor.shower.name}</div>
-                <div className="text-sm text-[#94a3b8] mb-2 tabular-nums">
-                  Peak: {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
-                </div>
-                <p className="text-sm text-[#cbd5e1] mb-3 leading-snug">
-                  {nextMeteor.shower.description} <span className="text-[#64748b]">({nextMeteor.shower.activityLevel})</span>
-                </p>
-                <button
-                  onClick={() => {
-                    const url = createGoogleCalendarLink(nextMeteor.shower, nextMeteor.peakDate);
-                    window.open(url, "_blank", "noopener");
-                  }}
-                  className="button w-full sm:w-auto justify-center text-xs px-4 py-1.5 min-h-0"
-                >
-                  Add Peak Night to Calendar
-                </button>
-              </>
-            ) : (
-              <div className="text-sm text-[#64748b]">No upcoming shower data available.</div>
-            )}
-          </div>
-
-          {/* Fireball Tracker */}
-          <div className="card p-5">
-            <div className="flex items-baseline justify-between mb-2">
-              <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">FIREBALL TRACKER</div>
-              <div className="text-[10px] text-[#64748b] normal-case">NASA JPL • recent</div>
-            </div>
-
-            {fireballsQuery.isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-9 bg-[#1e2937] rounded animate-pulse" />
-                ))}
-              </div>
-            ) : fireballsQuery.error ? (
-              <div className="text-xs text-red-400">Unable to load recent fireball reports right now.</div>
-            ) : fireballsQuery.fireballs.length === 0 ? (
-              <div className="text-sm text-[#64748b]">No recent fireballs reported.</div>
-            ) : (
-              <div className="space-y-1.5 text-sm">
-                {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball, idx: number) => (
-                  <div key={idx} className="flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0">
-                    <div className="min-w-0">
-                      <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatFireballDate(fb.date)}</div>
-                      <div className="text-[11px] text-[#64748b] truncate">{formatFireballLocation(fb)}</div>
-                    </div>
-                    <div className="text-right flex-shrink-0 ml-3 tabular-nums">
-                      {fb.energy != null && (
-                        <div className="text-[#94a3b8]">{fb.energy} kt</div>
-                      )}
-                      {fb.alt != null && (
-                        <div className="text-[10px] text-[#64748b]">{fb.alt} km alt</div>
-                      )}
-                      {fb.energy == null && fb.alt == null && (
-                        <div className="text-[10px] text-[#64748b]">—</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Interactive Map Section — primary visual feature, moved significantly higher so users reach the core interactive experience early (after decision summary + current data) */}
+      {/* Interactive Map Section — core interactive feature, placed prominently right after current conditions so users quickly reach the OVATION aurora map */}
       <Suspense fallback={<MapSectionSkeleton />}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
@@ -777,7 +706,7 @@ export default function AuroraWatch() {
         </div>
       </Suspense>
 
-      {/* SOLAR ACTIVITY — key solar drivers for aurora (moved after Kp outlook per reorg for clearer flow: status/outlook/data/visual → forecast → drivers → learn) */}
+      {/* SOLAR ACTIVITY — key solar drivers for aurora (positioned after Kp outlook to provide context for why conditions may change) */}
       <Suspense fallback={<SolarActivitySkeleton />}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
           <div className="section-title flex items-baseline justify-between">
@@ -891,6 +820,85 @@ export default function AuroraWatch() {
           </div>
         </div>
       </Suspense>
+
+      {/* Meteor Activity — Next shower + recent fireballs (positioned after core space weather data; still useful for additional sky phenomena) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+        <div className="section-title">METEOR ACTIVITY</div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Next Meteor Shower */}
+          <div className="card p-5">
+            <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-1">NEXT METEOR SHOWER</div>
+
+            {nextMeteor ? (
+              <>
+                <div className="text-2xl font-semibold tracking-tight mb-1">{nextMeteor.shower.name}</div>
+                <div className="text-sm text-[#94a3b8] mb-2 tabular-nums">
+                  Peak: {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
+                </div>
+                <p className="text-sm text-[#cbd5e1] mb-3 leading-snug">
+                  {nextMeteor.shower.description} <span className="text-[#64748b]">({nextMeteor.shower.activityLevel})</span>
+                </p>
+                <button
+                  onClick={() => {
+                    const url = createGoogleCalendarLink(nextMeteor.shower, nextMeteor.peakDate);
+                    window.open(url, "_blank", "noopener");
+                  }}
+                  className="button w-full sm:w-auto justify-center text-xs px-4 py-1.5 min-h-0"
+                >
+                  Add Peak Night to Calendar
+                </button>
+              </>
+            ) : (
+              <div className="text-sm text-[#64748b]">No upcoming shower data available.</div>
+            )}
+          </div>
+
+          {/* Fireball Tracker */}
+          <div className="card p-5">
+            <div className="flex items-baseline justify-between mb-2">
+              <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">FIREBALL TRACKER</div>
+              <div className="text-[10px] text-[#64748b] normal-case">NASA JPL • recent</div>
+            </div>
+
+            {fireballsQuery.isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-9 bg-[#1e2937] rounded animate-pulse" />
+                ))}
+              </div>
+            ) : fireballsQuery.error ? (
+              <div className="text-xs text-red-400">
+                Unable to load recent fireball reports right now.
+              </div>
+            ) : fireballsQuery.fireballs.length === 0 ? (
+              <div className="text-sm text-[#64748b]">No recent fireballs reported.</div>
+            ) : (
+              <div className="space-y-1.5 text-sm">
+                {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball, idx: number) => (
+                  <div key={idx} className="flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0">
+                    <div className="min-w-0">
+                      <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatFireballDate(fb.date)}</div>
+                      <div className="text-[11px] text-[#64748b] truncate">{formatFireballLocation(fb)}</div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-3 tabular-nums">
+                      {fb.energy != null && (
+                        <div className="text-[#94a3b8]">{fb.energy} kt</div>
+                      )}
+                      {fb.alt != null && (
+                        <div className="text-[10px] text-[#64748b]">{fb.alt} km alt</div>
+                      )}
+                      {fb.energy == null && fb.alt == null && (
+                        <div className="text-[10px] text-[#64748b]">—</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Understanding the Data — educational section, collapsed by default (kept collapsed; position after Solar follows logical "see the data → understand it" flow) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
