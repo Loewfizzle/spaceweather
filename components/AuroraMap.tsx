@@ -46,7 +46,7 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
         const canvas = L.DomUtil.create('canvas', 'ovation-canvas-layer') as HTMLCanvasElement;
         canvas.style.position = 'absolute';
         canvas.style.pointerEvents = 'none';
-        map.getPanes().mapPane!.appendChild(canvas);
+        map.getPanes().overlayPane!.appendChild(canvas);
         canvasRef.current = canvas;
         this._map = map;
         map.on('move zoom moveend zoomend', this._draw, this);
@@ -65,24 +65,31 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
         if (!canvas || !this._map) return;
 
         const size = this._map.getSize();
-        canvas.width = size.x;
-        canvas.height = size.y;
+        // Only reset dimensions on resize — assigning canvas.width always clears it.
+        if (canvas.width !== size.x || canvas.height !== size.y) {
+          canvas.width = size.x;
+          canvas.height = size.y;
+        }
 
-        // Offset the canvas so it tracks the mapPane's CSS transform automatically.
+        // setPosition cancels the pane's CSS transform so that canvas pixel (x,y)
+        // corresponds exactly to container pixel (x,y).  We must then draw using
+        // latLngToContainerPoint (not latLngToLayerPoint) to stay in the same space.
         const topLeft = this._map.containerPointToLayerPoint([0, 0]);
         L.DomUtil.setPosition(canvas, topLeft);
 
         const ctx = canvas.getContext('2d')!;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // cellDeg = 2.0 so adjacent radial gradients overlap enough to blend at all zooms.
+        // cellSize: pixel span of cellDeg degrees longitude at current zoom.
+        // Using a difference so the pane offset cancels out.
         const cellDeg = 2.0;
-        const originPx = this._map.latLngToLayerPoint([0, 0]);
-        const cellPx = this._map.latLngToLayerPoint([0, cellDeg]);
+        const originPx = this._map.latLngToContainerPoint([0, 0]);
+        const cellPx   = this._map.latLngToContainerPoint([0, cellDeg]);
         const cellSize = Math.max(2, Math.abs(cellPx.x - originPx.x));
 
         for (const point of points) {
-          const px = this._map.latLngToLayerPoint([point.position[0], point.position[1]]);
+          // containerPoint matches canvas coords after setPosition cancels pane offset.
+          const px = this._map.latLngToContainerPoint([point.position[0], point.position[1]]);
           const alpha = Math.pow(point.prob / 100, 0.6) * 0.9;
           if (alpha < 0.02) continue;
           const [r, g, b] = probToRGB(point.prob);
