@@ -2,96 +2,49 @@
 // Types and fetchers for NOAA SWPC public JSON data
 // All endpoints are public and suitable for client-side fetching with caching via TanStack Query
 
-export type OvationResponse = {
-  "Observation Time": string;
-  "Forecast Time": string;
-  "Data Format": string;
-  coordinates: [number, number, number][]; // [Longitude, Latitude, Aurora prob]
-};
+// Types re-exported from the central Zod schemas layer (lib/api/schemas.ts)
+// for backward compat during migration. Prefer importing directly from lib/api/schemas in new code.
+import type {
+  OvationResponse,
+  KpEntry,
+  PlasmaEntry,
+  MagEntry,
+  XrayFlare,
+  Alert,
+  SolarRegion,
+  CloudCoverData,
+  Fireball,
+  CmeSummary,
+} from "./api/schemas";
 
-export type KpEntry = {
-  time_tag: string;
-  Kp: number;
-  a_running: number;
-  station_count: number;
-};
+export type {
+  OvationResponse,
+  KpEntry,
+  PlasmaEntry,
+  MagEntry,
+  XrayFlare,
+  Alert,
+  SolarRegion,
+  CloudCoverData,
+  Fireball,
+  CmeSummary,
+} from "./api/schemas";
 
-export type PlasmaEntry = {
-  time_tag: string;
-  density: number;
-  speed: number;
-  temperature: number;
-};
+// NOTE: All fetchers have been moved to lib/api/fetchers.ts (Step 1)
+// This file now focuses on pure utilities, business logic, and re-exports for backward compatibility.
+// All new code should import from lib/api/ or lib/hooks/.
 
-export type MagEntry = {
-  time_tag: string;
-  bx_gsm: number;
-  by_gsm: number;
-  bz_gsm: number;
-  lon_gsm: number;
-  lat_gsm: number;
-  bt: number;
-};
-
-// Base fetch helper with error handling
-async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    // NOAA endpoints are public; no credentials needed
-    cache: "no-store", // always fresh, Query will control refetch
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
-  }
-  return res.json() as Promise<T>;
-}
-
-// OVATION aurora probability grid (global, updates frequently)
-export async function fetchOvation(): Promise<OvationResponse> {
-  return fetchJson<OvationResponse>(
-    "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json"
-  );
-}
-
-// Planetary K-index (3-hourly, latest entry is most recent)
-export async function fetchKpIndex(): Promise<KpEntry[]> {
-  return fetchJson<KpEntry[]>(
-    "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json"
-  );
-}
-
-// Solar wind plasma (speed, density) - 6-hour window
-export async function fetchPlasma(): Promise<PlasmaEntry[]> {
-  const raw = await fetchJson<string[][]>(
-    "https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json"
-  );
-  if (!raw || raw.length < 2) return [];
-  const headers = raw[0];
-  return raw.slice(1).map((row) => {
-    const obj: Record<string, number | string> = {};
-    headers.forEach((h, i) => {
-      const val = row[i];
-      obj[h] = typeof val === "string" ? parseFloat(val) : val;
-    });
-    return obj as PlasmaEntry;
-  });
-}
-
-// IMF / magnetic field (Bz is key for aurora)
-export async function fetchMag(): Promise<MagEntry[]> {
-  const raw = await fetchJson<string[][]>(
-    "https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json"
-  );
-  if (!raw || raw.length < 2) return [];
-  const headers = raw[0];
-  return raw.slice(1).map((row) => {
-    const obj: Record<string, number | string> = {};
-    headers.forEach((h, i) => {
-      const val = row[i];
-      obj[h] = typeof val === "string" ? parseFloat(val) : val;
-    });
-    return obj as MagEntry;
-  });
-}
+export { 
+  fetchOvation,
+  fetchKpIndex,
+  fetchPlasma,
+  fetchMag,
+  fetchXrayFlaresLatest,
+  fetchAlerts,
+  fetchSolarRegions,
+  fetchCloudCover,
+  fetchFireballs,
+} from "./api/fetchers";
 
 // Helper: get most recent value from time series
 export function latest<T extends { time_tag: string }>(arr: T[]): T | null {
@@ -166,47 +119,11 @@ export function getAuroraMarkerRadius(prob: number): number {
   return 4.5; // larger for the strongest areas
 }
 
-// --- Solar Activity Types & Fetchers (for new SOLAR ACTIVITY section) ---
-
-export type XrayFlare = {
-  time_tag: string;
-  satellite: number;
-  current_class?: string;
-  max_class?: string;
-  begin_time?: string;
-  max_time?: string;
-  end_time?: string;
-  region?: number;
-};
-
-export async function fetchXrayFlaresLatest(): Promise<XrayFlare[]> {
-  return fetchJson<XrayFlare[]>(
-    "https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json"
-  );
-}
-
-export type Alert = {
-  product_id: string;
-  issue_datetime: string;
-  message: string;
-};
-
-export async function fetchAlerts(): Promise<Alert[]> {
-  return fetchJson<Alert[]>(
-    "https://services.swpc.noaa.gov/products/alerts.json"
-  );
-}
-
-export type CmeSummary = {
-  time: string;
-  speed?: number;
-  direction?: string;
-  earthImpact?: string;
-  note: string;
-};
+// --- Solar Activity (pure functions only - fetchers moved to lib/api/fetchers.ts) ---
 
 /** Parse recent Earth-directed or relevant CMEs from alerts messages (lightweight extraction). */
-export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
+export function parseRecentCmes(alerts: import("./api/schemas").Alert[] | undefined): import("./api/schemas").CmeSummary[] {
+  // Implementation kept here for now (pure logic)
   if (!alerts || alerts.length === 0) return [];
   const cmeAlerts = alerts.filter((a) =>
     /CME|Coronal Mass Ejection/i.test(a.message)
@@ -218,7 +135,6 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
     const impactNote = /Earth-directed|will reach Earth|geomagnetic storm/i.test(msg)
       ? "Likely Earth impact"
       : "Monitor for effects";
-    // Extract a short summary
     const lines = msg.split("\n").filter(Boolean);
     const shortNote = lines.slice(0, 3).join(" ").replace(/\s+/g, " ").substring(0, 140) + "...";
     return {
@@ -231,25 +147,11 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
   });
 }
 
-export type SolarRegion = {
-  Obsdate?: string;
-  Numspot?: number;
-  Region?: string;
-  // other fields available but we only need for total
-};
-
-export async function fetchSolarRegions(): Promise<SolarRegion[]> {
-  return fetchJson<SolarRegion[]>(
-    "https://services.swpc.noaa.gov/json/solar_regions.json"
-  );
-}
-
 /** Compute total sunspot number from latest reported regions. */
-export function currentSunspotNumber(regions: SolarRegion[] | undefined): number | null {
+export function currentSunspotNumber(regions: import("./api/schemas").SolarRegion[] | undefined): number | null {
   if (!regions || regions.length === 0) return null;
   const valid = regions.filter((r) => r.Obsdate && typeof r.Numspot === "number");
   if (valid.length === 0) return null;
-  // find most recent date
   const dates = [...new Set(valid.map((r) => r.Obsdate!))].sort().reverse();
   const latestDate = dates[0];
   const todays = valid.filter((r) => r.Obsdate === latestDate);
@@ -347,25 +249,8 @@ export function getTonightOutlook(
   return { status, message, reasons, accentColor, drivers };
 }
 
-// --- Sky Conditions (cloud cover) using Open-Meteo (free, no key) ---
-
-export type CloudCoverData = {
-  time: string[];
-  cloudcover: number[];
-};
-
-export async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverData> {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=cloudcover&timezone=America/Detroit&forecast_days=2`;
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch cloud cover for ${lat},${lon}`);
-  }
-  const data = await res.json();
-  return {
-    time: data.hourly.time,
-    cloudcover: data.hourly.cloudcover,
-  };
-}
+// Sky / Meteor pure logic re-exported from api/fetchers where applicable.
+// The hardcoded meteor data and pure functions stay here for now.
 
 // --- Meteor Showers (hardcoded annual major showers) ---
 
@@ -379,61 +264,9 @@ export interface MeteorShower {
   activityLevel: string;
 }
 
-export const MAJOR_METEOR_SHOWERS: MeteorShower[] = [
-  {
-    name: "Quadrantids",
-    peakMonth: 1,
-    peakDay: 3,
-    description: "Sharp, brief peak. Fast meteors best viewed after midnight.",
-    activityLevel: "Moderate–High",
-  },
-  {
-    name: "Lyrids",
-    peakMonth: 4,
-    peakDay: 22,
-    description: "Moderate display of fast meteors from Comet Thatcher.",
-    activityLevel: "Moderate",
-  },
-  {
-    name: "Eta Aquariids",
-    peakMonth: 5,
-    peakDay: 6,
-    description: "Associated with Halley's Comet; stronger in southern latitudes.",
-    activityLevel: "Moderate",
-  },
-  {
-    name: "Perseids",
-    peakMonth: 8,
-    peakDay: 12,
-    peakEndMonth: 8,
-    peakEndDay: 13,
-    description: "One of the best and most reliable annual showers. High rates of bright meteors.",
-    activityLevel: "High",
-  },
-  {
-    name: "Orionids",
-    peakMonth: 10,
-    peakDay: 21,
-    description: "Swift meteors from Halley's Comet debris. Good rates into late night.",
-    activityLevel: "Moderate",
-  },
-  {
-    name: "Leonids",
-    peakMonth: 11,
-    peakDay: 17,
-    description: "Can produce occasional meteor storms. Fast and bright.",
-    activityLevel: "Moderate–High",
-  },
-  {
-    name: "Geminids",
-    peakMonth: 12,
-    peakDay: 13,
-    peakEndMonth: 12,
-    peakEndDay: 14,
-    description: "Often considered the best shower of the year. Rich in bright, slow meteors.",
-    activityLevel: "High",
-  },
-];
+import { MAJOR_METEOR_SHOWERS } from "./constants/meteors";
+
+export { MAJOR_METEOR_SHOWERS } from "./constants/meteors";
 
 export function getNextMeteorShower(now: Date = new Date()): { shower: MeteorShower; peakDate: Date } | null {
   const thisYear = now.getFullYear();
@@ -494,61 +327,11 @@ export function createGoogleCalendarLink(shower: MeteorShower, peakDate: Date): 
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}&sf=true&output=xml`;
 }
 
-// --- Fireball Tracker (NASA JPL public API) ---
+// --- Fireball Tracker types moved to lib/api/schemas.ts ---
+// (re-exported below)
 
-export interface Fireball {
-  date: string;
-  energy: number | null; // kt TNT
-  impactE: number | null;
-  lat: number | null;
-  latDir: string | null;
-  lon: number | null;
-  lonDir: string | null;
-  alt: number | null; // km
-  vel: number | null; // km/s
-}
 
-function parseNum(v: unknown): number | null {
-  if (v == null || v === "") return null;
-  const n = parseFloat(String(v));
-  return isNaN(n) ? null : n;
-}
-
-export async function fetchFireballs(limit = 8): Promise<Fireball[]> {
-  // Use our internal API proxy route instead of calling NASA directly.
-  // This solves CORS errors in production (browser cannot directly fetch from ssd-api.jpl.nasa.gov).
-  // The proxy (app/api/fireballs/route.ts) handles the external fetch on the server.
-  const url = `/api/fireballs?limit=${limit}`;
-
-  // Use shared fetchJson for consistency with all other data sources (better error messages)
-  const json = await fetchJson<{ fields?: string[]; data?: unknown[][] }>(url);
-
-  // Robust validation of NASA API response shape (prevents fragile parsing crashes)
-  if (!json || !Array.isArray(json.fields) || !Array.isArray(json.data)) {
-    throw new Error('Invalid response structure from NASA fireball API (missing fields or data)');
-  }
-
-  const fields: string[] = json.fields;
-  const rows: unknown[][] = json.data;
-
-  return rows.map((row) => {
-    const get = (name: string) => {
-      const i = fields.indexOf(name);
-      return i >= 0 ? row[i] : null;
-    };
-    return {
-      date: (get("date") as string) || "",
-      energy: parseNum(get("energy")),
-      impactE: parseNum(get("impact-e")),
-      lat: parseNum(get("lat")),
-      latDir: get("lat-dir") as string | null,
-      lon: parseNum(get("lon")),
-      lonDir: get("lon-dir") as string | null,
-      alt: parseNum(get("alt")),
-      vel: parseNum(get("vel")),
-    };
-  });
-}
+// fetchFireballs is now exclusively in lib/api/fetchers.ts (uses the /api/fireballs proxy)
 
 export function formatFireballDate(dateStr: string): string {
   if (!dateStr) return "—";

@@ -1,6 +1,8 @@
 // app/loading.tsx
 // Full-page skeleton for improved initial load experience and perceived performance.
-// Matches the premium dark theme, layout structure, and animate-pulse style of existing skeletons.
+// Uses the shared LoadingSkeleton component for consistency (Step 2).
+
+import { LoadingSkeleton } from "../components/LoadingSkeleton";
 
 export default function AuroraWatchLoading() {
   return (
@@ -133,22 +135,8 @@ export default function AuroraWatchLoading() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
         <div className="section-title">METEOR ACTIVITY</div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Shower card skeleton */}
-          <div className="card p-5">
-            <div className="h-3 w-28 bg-[#1e2937] rounded animate-pulse mb-2" />
-            <div className="h-6 w-36 bg-[#1e2937] rounded animate-pulse mb-1" />
-            <div className="h-4 w-28 bg-[#1e2937] rounded animate-pulse mb-2" />
-            <div className="h-3 w-full bg-[#1e2937] rounded animate-pulse mb-1" />
-            <div className="h-3 w-5/6 bg-[#1e2937] rounded animate-pulse mb-3" />
-            <div className="h-8 w-36 bg-[#1e2937] rounded animate-pulse" />
-          </div>
-          {/* Fireball list skeleton */}
-          <div className="card p-5">
-            <div className="h-3 w-28 bg-[#1e2937] rounded animate-pulse mb-3" />
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-8 bg-[#1e2937] rounded animate-pulse mb-1.5" />
-            ))}
-          </div>
+          <LoadingSkeleton variant="card" />
+          <LoadingSkeleton variant="list" count={4} />
         </div>
       </div>
 

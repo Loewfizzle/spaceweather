@@ -42,6 +42,8 @@ export const metadata: Metadata = {
     description: "Premium real-time aurora visibility and space weather dashboard for the United States, with focused coverage for Michigan and the Great Lakes. Live NOAA SWPC data.",
     images: ["/og-image.jpg"],
   },
+  keywords: ["aurora", "space weather", "Michigan", "Great Lakes", "NOAA", "Kp index", "fireball", "meteor shower"],
+  authors: [{ name: "AuroraWatch" }],
 };
 
 export default function RootLayout({

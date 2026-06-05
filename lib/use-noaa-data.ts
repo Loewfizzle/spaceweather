@@ -2,38 +2,46 @@
 
 import { useQuery, useQueries } from "@tanstack/react-query";
 import {
+  // New centralized, Zod-validated data layer
   fetchOvation,
   fetchKpIndex,
   fetchPlasma,
   fetchMag,
+  fetchXrayFlaresLatest,
+  fetchAlerts,
+  fetchSolarRegions,
+  fetchCloudCover,
+  fetchFireballs,
+} from "./api/fetchers";
+
+import {
+  // Keep pure business logic + types in noaa.ts for now (will be reorganized in Step 4)
   latest,
   maxOvationNorthAmerica,
-  OvationResponse,
-  KpEntry,
-  PlasmaEntry,
-  MagEntry,
-  fetchXrayFlaresLatest,
-  XrayFlare,
-  fetchAlerts,
-  Alert,
   parseRecentCmes,
-  CmeSummary,
-  fetchSolarRegions,
-  SolarRegion,
   currentSunspotNumber,
   getTonightOutlook,
-  TonightOutlook,
-  fetchCloudCover,
-  CloudCoverData,
-  fetchFireballs,
-  Fireball,
   getNextMeteorShower,
-  MeteorShower,
   formatMeteorPeak,
   createGoogleCalendarLink,
   formatFireballDate,
   formatFireballLocation,
 } from "./noaa";
+
+import type { MeteorShower, TonightOutlook } from "./noaa";
+
+import type {
+  OvationResponse,
+  KpEntry,
+  PlasmaEntry,
+  MagEntry,
+  XrayFlare,
+  Alert,
+  SolarRegion,
+  CloudCoverData,
+  Fireball,
+  CmeSummary,
+} from "./api/schemas";
 
 export function useOvationData() {
   return useQuery<OvationResponse>({
@@ -212,7 +220,7 @@ export function useSolarActivity() {
   };
 }
 
-export { getTonightOutlook, type TonightOutlook };
+
 
 // Michigan sky conditions for aurora viewing (cloud cover tonight)
 const SKY_LOCATIONS = [
@@ -313,7 +321,7 @@ export function useFireballs(limit = 8) {
 }
 
 // Re-export meteor helpers (static data + pure logic)
-export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink };
+export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink, type TonightOutlook, getTonightOutlook };
 
 // Re-export fireball format helpers for display consistency
 export { formatFireballDate, formatFireballLocation, type Fireball };

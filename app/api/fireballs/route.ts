@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { FireballApiResponseSchema } from '@/lib/api/schemas';
 
 // This is a server-side proxy for NASA's fireball API.
 // It exists to bypass CORS restrictions that prevent direct browser fetches
@@ -31,8 +32,11 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json();
 
+    // Validate with Zod even on the server proxy for defense-in-depth
+    const validated = FireballApiResponseSchema.parse(data);
+
     // Return the raw JSON with caching headers (suitable since data changes infrequently)
-    return NextResponse.json(data, {
+    return NextResponse.json(validated, {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
       },

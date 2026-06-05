@@ -27,18 +27,14 @@ import {
 import { Line } from "react-chartjs-2";
 import { formatDistanceToNow } from "date-fns";
 import { useCurrentConditions, useKpData, useSolarActivity, getTonightOutlook, useFireballs, getNextMeteorShower, formatMeteorPeak, createGoogleCalendarLink, formatFireballDate, formatFireballLocation, type Fireball } from "../lib/use-noaa-data";
+import { LoadingSkeleton } from "../components/LoadingSkeleton";
+import { ErrorState } from "../components/ErrorState";
+import { EmptyState } from "../components/EmptyState";
 
 // SSR-safe Leaflet map
 const AuroraMap = dynamic(() => import("../components/AuroraMap"), {
   ssr: false,
-  loading: () => (
-    <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
-      <div className="text-center">
-        <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
-        <div className="text-[#64748b] text-sm">Preparing live aurora map…</div>
-      </div>
-    </div>
-  ),
+  loading: () => <LoadingSkeleton variant="map" />,
 });
 
 // Register Chart.js components once
@@ -53,61 +49,11 @@ ChartJS.register(
 );
 
 // Lightweight Suspense fallbacks matching the app's premium dark skeleton style
-const MapSectionSkeleton = () => (
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
-      <div>
-        <div className="section-title">AURORA MAP — OVATION MODEL</div>
-        <div className="h-4 w-64 bg-[#1e2937] rounded animate-pulse" />
-      </div>
-      <div className="flex flex-wrap gap-2 items-center">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-8 w-20 bg-[#1e2937] rounded-full animate-pulse" />
-        ))}
-        <div className="h-8 w-28 bg-[#1e2937] rounded-full animate-pulse ml-2" />
-      </div>
-    </div>
-    <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
-      <div className="text-center">
-        <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
-        <div className="text-[#64748b] text-sm">Loading interactive map…</div>
-      </div>
-    </div>
-  </div>
-);
+const MapSectionSkeleton = () => <LoadingSkeleton variant="map" className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />;
 
-const KpOutlookSkeleton = () => (
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-    <div className="section-title">KP OUTLOOK + MICHIGAN FORECAST</div>
-    <div className="card p-6">
-      <div className="h-56 bg-[#1e2937] rounded-xl animate-pulse flex items-center justify-center">
-        <div className="text-[#64748b] text-sm">Loading Kp history…</div>
-      </div>
-      <div className="mt-5 grid sm:grid-cols-2 gap-4">
-        <div className="h-4 w-3/4 bg-[#1e2937] rounded animate-pulse" />
-        <div className="h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
-      </div>
-    </div>
-  </div>
-);
+const KpOutlookSkeleton = () => <LoadingSkeleton variant="chart" className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />;
 
-const SolarActivitySkeleton = () => (
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-    <div className="section-title flex items-baseline justify-between">
-      <span>SOLAR ACTIVITY</span>
-      <div className="h-3 w-56 bg-[#1e2937] rounded animate-pulse" />
-    </div>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="metric">
-          <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
-          <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
-          <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
-        </div>
-      ))}
-    </div>
-  </div>
-);
+const SolarActivitySkeleton = () => <LoadingSkeleton variant="metrics" count={4} className="max-w-7xl mx-auto px-4 sm:px-6 pb-10" />;
 
 // Alert threshold presets (module scope for stability + used by effect, handler, and render)
 const ALERT_THRESHOLDS = {
@@ -540,14 +486,7 @@ export default function AuroraWatch() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {isLoading ? (
-            // Simple skeletons for premium loading feel
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="metric">
-                <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
-                <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
-                <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
-              </div>
-            ))
+            <LoadingSkeleton variant="metrics" count={4} />
           ) : (
             <>
               <div className="metric">
@@ -647,6 +586,9 @@ export default function AuroraWatch() {
                   onChange={(e) => setMinProb(parseInt(e.target.value))}
                   className="w-20 accent-[#22c55e] cursor-pointer"
                   aria-label="Minimum aurora probability to show on map"
+                  aria-valuemin={0}
+                  aria-valuemax={50}
+                  aria-valuenow={minProb}
                 />
                 <span className="tabular-nums font-mono w-8 text-right text-[#22c55e]">{minProb}%</span>
                 {minProb > 3 && (
@@ -674,9 +616,7 @@ export default function AuroraWatch() {
           <div className="card p-6">
             <div className="h-56">
               {kpQuery.isLoading ? (
-                <div className="h-full w-full rounded-xl bg-[#1e2937] animate-pulse flex items-center justify-center">
-                  <div className="text-[#64748b] text-sm">Syncing recent Kp data…</div>
-                </div>
+                <LoadingSkeleton variant="chart" />
               ) : kpHistory.length > 0 ? (
                 <Line data={chartData} options={chartOptions} />
               ) : (
@@ -717,13 +657,7 @@ export default function AuroraWatch() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {solarActivity.isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="metric">
-                  <div className="h-3 w-16 bg-[#1e2937] rounded animate-pulse mb-3" />
-                  <div className="h-8 w-14 bg-[#1e2937] rounded animate-pulse mb-1" />
-                  <div className="h-3 w-20 bg-[#1e2937] rounded animate-pulse" />
-                </div>
-              ))
+              <LoadingSkeleton variant="metrics" count={4} />
             ) : solarActivity.error ? (
               <div className="metric col-span-2 md:col-span-4 text-red-400 text-sm">
                 Unable to load solar data. Using cached values if available.
@@ -850,7 +784,10 @@ export default function AuroraWatch() {
                 </button>
               </>
             ) : (
-              <div className="text-sm text-[#64748b]">No upcoming shower data available.</div>
+              <EmptyState
+                title="No upcoming shower data"
+                description="No major meteor shower peaks in the near future."
+              />
             )}
           </div>
 
@@ -862,17 +799,17 @@ export default function AuroraWatch() {
             </div>
 
             {fireballsQuery.isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-9 bg-[#1e2937] rounded animate-pulse" />
-                ))}
-              </div>
+              <LoadingSkeleton variant="list" count={4} />
             ) : fireballsQuery.error ? (
-              <div className="text-xs text-red-400">
-                Unable to load recent fireball reports right now.
-              </div>
+              <ErrorState
+                message="Unable to load recent fireball reports right now."
+                onRetry={fireballsQuery.refetch}
+              />
             ) : fireballsQuery.fireballs.length === 0 ? (
-              <div className="text-sm text-[#64748b]">No recent fireballs reported.</div>
+              <EmptyState
+                title="No recent fireballs reported"
+                description="NASA has not reported any fireballs in the recent window."
+              />
             ) : (
               <div className="space-y-1.5 text-sm">
                 {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball, idx: number) => (
