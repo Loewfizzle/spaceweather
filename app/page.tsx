@@ -23,6 +23,7 @@ import { MeteorActivity } from "../components/MeteorActivity";
 import { DataUnderstanding } from "../components/DataUnderstanding";
 import { AlertsPanel } from "../components/AlertsPanel";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
+import { logDataError } from "../lib/utils/retry";
 
 // Lightweight Suspense fallbacks matching the app's premium dark skeleton style
 const MapSectionSkeleton = () => <LoadingSkeleton variant="map" className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />;
@@ -44,6 +45,8 @@ export default function AuroraWatch() {
     riskLevel,
     isLoading,
     error,
+    solarWindError,
+    isFetching,
     refetchAll,
   } = conditions;
 
@@ -52,10 +55,9 @@ export default function AuroraWatch() {
 
   const fireballsQuery = useFireballs();
 
-  // Dev-only: log fireball errors for easier debugging of production issues (CORS, network, or parse failures from NASA API)
-  // Does not affect production bundle or UX
-  if (fireballsQuery.error && process.env.NODE_ENV === 'development') {
-    console.error('[AuroraWatch] Fireball fetch error (check network tab / CORS):', fireballsQuery.error);
+  // Observability: structured logging (dev always, prod throttled for critical)
+  if (fireballsQuery.error) {
+    logDataError('Fireball tracker (NASA)', fireballsQuery.error, ['useFireballs'], false);
   }
 
   const tonightOutlook = getTonightOutlook(
@@ -182,6 +184,7 @@ export default function AuroraWatch() {
           outlook={tonightOutlook}
           isLoading={isLoading || solarActivity.isLoading}
           error={error}
+          isFetching={isFetching}
         />
       </div>
 
@@ -194,6 +197,7 @@ export default function AuroraWatch() {
         isLoading={isLoading}
         latestGlobalUpdate={latestGlobalUpdate}
         kpTime={kpTime}
+        solarWindError={solarWindError}
       />
 
       {/* Interactive Map Section — core interactive feature, placed prominently right after current conditions so users quickly reach the OVATION aurora map */}

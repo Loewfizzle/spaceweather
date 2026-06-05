@@ -13,7 +13,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             staleTime: 1000 * 60 * 1, // 1 minute default; individual hooks override for freshness needs
             refetchInterval: 1000 * 60 * 5, // 5 minutes — balanced for live NOAA feel
             refetchOnWindowFocus: true,
-            retry: 2,
+            retry: 0, // Per-hook override for critical vs non-critical (see use-noaa-data.ts)
+            gcTime: 1000 * 60 * 10, // 10 min default cache retention
           },
         },
       })

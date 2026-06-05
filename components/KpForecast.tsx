@@ -15,6 +15,7 @@ import {
 } from "chart.js";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
+import type { KpEntry } from "../lib/api/schemas";
 
 // Register Chart.js components once (when this module is first imported)
 ChartJS.register(
@@ -40,7 +41,7 @@ interface KpForecastProps {
  */
 export function KpForecast({ michiganGuidance }: KpForecastProps) {
   const kpQuery = useKpData();
-  const kpHistory = kpQuery.data || [];
+  const kpHistory = (kpQuery.data || []) as KpEntry[];
   const { chartData, chartOptions } = useChartData(kpHistory);
 
   return (

@@ -88,6 +88,9 @@ export function SolarActivity() {
               <div className="text-[10px] text-[#475569] mt-1">
                 Current solar cycle activity level. More sunspots generally mean higher aurora odds over time.
               </div>
+              {solarActivity.regionsError && (
+                <div className="text-[9px] text-amber-400 mt-0.5">sunspot data delayed</div>
+              )}
             </div>
 
             {/* 4. Coronal Holes (lighter treatment) */}
@@ -111,6 +114,7 @@ export function SolarActivity() {
       {solarActivity.error && (
         <div className="mt-2 text-[10px] text-amber-400">
           Some solar data sources unavailable — using cached values if available.
+          {solarActivity.isFetching && ' (retrying…)'}
         </div>
       )}
       <div className="text-[10px] text-[#64748b] mt-2">

@@ -2,6 +2,12 @@
 
 import { useQuery, useQueries } from "@tanstack/react-query";
 import {
+  exponentialBackoff,
+  shouldRetryCritical,
+  shouldRetryNonCritical,
+  logDataError,
+} from "./utils/retry";
+import {
   // Fetchers are the single source for network + validation (lib/api/fetchers)
   fetchOvation,
   fetchKpIndex,
@@ -80,7 +86,13 @@ export function useOvationData() {
   return useQuery<OvationResponse>({
     queryKey: ["ovation"],
     queryFn: fetchOvation,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 2, // 2 minutes - fresh enough for live feel
+    gcTime: 1000 * 60 * 30, // Keep data 30min for graceful degradation on outages
+    retry: shouldRetryCritical,
+    retryDelay: exponentialBackoff,
+    refetchOnWindowFocus: true,
+    // Critical data: Kp + OVATION power the hero outlook and Michigan risk.
+    // Most resilient retry + longest cache retention.
   });
 }
 
@@ -88,7 +100,11 @@ export function useKpData() {
   return useQuery<KpEntry[]>({
     queryKey: ["kp"],
     queryFn: fetchKpIndex,
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60 * 3, // 3 minutes
+    gcTime: 1000 * 60 * 30,
+    retry: shouldRetryCritical,
+    retryDelay: exponentialBackoff,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -97,12 +113,18 @@ export function useSolarWindData() {
     queryKey: ["plasma"],
     queryFn: fetchPlasma,
     staleTime: 1000 * 60 * 1,
+    gcTime: 1000 * 60 * 5,
+    retry: shouldRetryNonCritical,
+    retryDelay: exponentialBackoff,
   });
 
   const magQuery = useQuery<MagEntry[]>({
     queryKey: ["mag"],
     queryFn: fetchMag,
     staleTime: 1000 * 60 * 1,
+    gcTime: 1000 * 60 * 5,
+    retry: shouldRetryNonCritical,
+    retryDelay: exponentialBackoff,
   });
 
   const currentPlasma = plasmaQuery.data ? latest(plasmaQuery.data) : null;
@@ -155,6 +177,15 @@ export function useCurrentConditions() {
     return text;
   };
 
+  // Observability: expose fetching state and separate non-critical errors for UI indicators
+  const criticalError = kpQuery.error || ovationQuery.error;
+  const nonCriticalError = solarWind.error;
+
+  if (process.env.NODE_ENV === 'development' && criticalError) {
+    // Log only when error present; throttled inside logDataError for prod
+    logDataError('Critical data (Kp/OVATION)', criticalError, ['useCurrentConditions'], true);
+  }
+
   return {
     kp: latestKp?.Kp ?? null,
     kpTime: latestKp?.time_tag ?? null,
@@ -168,10 +199,14 @@ export function useCurrentConditions() {
       kpQuery.isLoading ||
       ovationQuery.isLoading ||
       solarWind.isLoading,
+    // Critical error for hero (only Kp/OVATION)
+    error: criticalError,
+    // For partial data UI (e.g. show subtle note in Current Conditions when solar wind delayed)
+    solarWindError: nonCriticalError,
+    isFetching: kpQuery.isFetching || ovationQuery.isFetching || solarWind.plasma.isFetching || solarWind.mag.isFetching,
     // Only propagate errors from Kp and OVATION as fatal for the hero/outlook.
     // Solar wind glitches (plasma/mag) are non-fatal; values gracefully fall back to null.
     // This prevents spurious "Error loading outlook" when supporting data sources are flaky.
-    error: kpQuery.error || ovationQuery.error,
     refetchAll: () => {
       kpQuery.refetch();
       ovationQuery.refetch();
@@ -186,19 +221,28 @@ export function useSolarActivity() {
   const flaresQuery = useQuery<XrayFlare[]>({
     queryKey: ["xray-flares"],
     queryFn: fetchXrayFlaresLatest,
-    staleTime: 1000 * 60 * 5, // 5 minutes - flares update frequently
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
+    retry: shouldRetryCritical, // flares are high priority for solar context
+    retryDelay: exponentialBackoff,
   });
 
   const alertsQuery = useQuery<Alert[]>({
     queryKey: ["alerts"],
     queryFn: fetchAlerts,
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
+    retry: shouldRetryCritical,
+    retryDelay: exponentialBackoff,
   });
 
   const regionsQuery = useQuery<SolarRegion[]>({
     queryKey: ["solar-regions"],
     queryFn: fetchSolarRegions,
-    staleTime: 1000 * 60 * 30, // 30 min is fine for sunspots
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60, // sunspots change slowly, keep longer
+    retry: shouldRetryNonCritical,
+    retryDelay: exponentialBackoff,
   });
 
   const latestFlare = flaresQuery.data && flaresQuery.data.length > 0
@@ -219,6 +263,7 @@ export function useSolarActivity() {
   // Sunspot data (regions) is non-critical for outlook computation and solar display;
   // failure there should not hide the other solar cards or trigger hero error.
   const error = flaresQuery.error || alertsQuery.error;
+  const regionsError = regionsQuery.error;
 
   const refetchAll = () => {
     flaresQuery.refetch();
@@ -233,6 +278,8 @@ export function useSolarActivity() {
     coronalHoleNote,
     isLoading,
     error,
+    regionsError, // for potential subtle UI note when sunspots delayed but flares ok
+    isFetching: flaresQuery.isFetching || alertsQuery.isFetching || regionsQuery.isFetching,
     refetchAll,
     // raw for freshness if needed
     flareTime: latestFlare?.max_time || latestFlare?.time_tag || null,
@@ -332,11 +379,14 @@ export function useFireballs(limit = 8) {
   const query = useQuery<Fireball[]>({
     queryKey: ["fireballs", limit],
     queryFn: () => fetchFireballs(limit),
-    staleTime: 1000 * 60 * 60, // 1 hour – data is historical
+    staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60 * 4, // historical, keep 4h
+    retry: shouldRetryNonCritical,
+    retryDelay: exponentialBackoff,
   });
 
   return {
-    fireballs: query.data || [],
+    fireballs: (query.data || []) as Fireball[],
     isLoading: query.isLoading,
     error: query.error,
     refetch: query.refetch,

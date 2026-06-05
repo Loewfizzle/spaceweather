@@ -13,6 +13,7 @@ interface CurrentConditionsProps {
   isLoading: boolean;
   latestGlobalUpdate: Date | null;
   kpTime?: string | null;
+  solarWindError?: unknown;
 }
 
 /**
@@ -30,6 +31,7 @@ export function CurrentConditions({
   isLoading,
   latestGlobalUpdate,
   kpTime,
+  solarWindError,
 }: CurrentConditionsProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
@@ -59,6 +61,9 @@ export function CurrentConditions({
                   • {solarWindDensity !== null ? solarWindDensity.toFixed(1) : "—"} p/cm³
                 </span>
               </div>
+              {!!solarWindError && (
+                <div className="text-[9px] text-amber-400 mt-0.5">data delayed</div>
+              )}
             </div>
 
             <div className="metric">

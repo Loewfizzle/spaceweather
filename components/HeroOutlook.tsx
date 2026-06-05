@@ -6,6 +6,7 @@ interface HeroOutlookProps {
   outlook: TonightOutlook;
   isLoading?: boolean;
   error?: Error | null;
+  isFetching?: boolean;
 }
 
 /**
@@ -14,7 +15,7 @@ interface HeroOutlookProps {
  * Receives pre-computed outlook (from getTonightOutlook pure fn) + loading/error flags.
  * Exact markup, border accent via inline style, reasons dots, drivers, pulse, and error message preserved 100%.
  */
-export function HeroOutlook({ outlook, isLoading, error }: HeroOutlookProps) {
+export function HeroOutlook({ outlook, isLoading, error, isFetching }: HeroOutlookProps) {
   return (
     <div
       className="mt-8 card p-6 max-w-3xl border-l-4"
@@ -58,12 +59,13 @@ export function HeroOutlook({ outlook, isLoading, error }: HeroOutlookProps) {
         )}
       </div>
 
-      {(isLoading) && (
+      {(isLoading || isFetching) && (
         <div className="mt-3 h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
       )}
       {error && (
         <div className="mt-2 text-xs text-amber-400">
           Some data sources unavailable — displaying last known values.
+          {isFetching && ' (retrying…)'}
         </div>
       )}
     </div>

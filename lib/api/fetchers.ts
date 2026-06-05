@@ -22,17 +22,26 @@ import type {
   CloudCoverData,
   Fireball,
 } from './schemas';
+import { logDataError } from '../utils/retry';
 
 // Base fetch helper (shared, server + client safe)
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    cache: 'no-store',
-    ...options,
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+  try {
+    const res = await fetch(url, {
+      cache: 'no-store',
+      ...options,
+    });
+    if (!res.ok) {
+      const error = new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+      logDataError(`HTTP ${res.status}`, error, { url }, false);
+      throw error;
+    }
+    return res.json() as Promise<T>;
+  } catch (error) {
+    // Network errors, CORS, etc.
+    logDataError('Network/Parse', error, { url }, false);
+    throw error;
   }
-  return res.json() as Promise<T>;
 }
 
 /**
