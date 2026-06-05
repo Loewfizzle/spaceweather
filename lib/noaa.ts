@@ -515,7 +515,11 @@ function parseNum(v: unknown): number | null {
 }
 
 export async function fetchFireballs(limit = 8): Promise<Fireball[]> {
-  const url = `https://ssd-api.jpl.nasa.gov/fireball.api?limit=${limit}`;
+  // Use our internal API proxy route instead of calling NASA directly.
+  // This solves CORS errors in production (browser cannot directly fetch from ssd-api.jpl.nasa.gov).
+  // The proxy (app/api/fireballs/route.ts) handles the external fetch on the server.
+  const url = `/api/fireballs?limit=${limit}`;
+
   // Use shared fetchJson for consistency with all other data sources (better error messages)
   const json = await fetchJson<{ fields?: string[]; data?: unknown[][] }>(url);
 

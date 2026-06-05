@@ -296,7 +296,7 @@ export function useSkyConditions() {
   return { conditions, isLoading, error, refetchAll };
 }
 
-// Fireball tracker using NASA JPL public API (historical, reverse chrono)
+// Fireball tracker (proxied via our /api/fireballs route to avoid CORS issues in production)
 export function useFireballs(limit = 8) {
   const query = useQuery<Fireball[]>({
     queryKey: ["fireballs", limit],
