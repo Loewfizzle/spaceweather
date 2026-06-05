@@ -1,9 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import { Sun, TrendingUp, Zap, Cloud } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
 import { LoadingSkeleton } from "./LoadingSkeleton";
+
+function SdoImage({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="w-full aspect-square bg-[#05070f] flex items-center justify-center text-[#475569] text-xs text-center px-6 py-8">
+        Image temporarily unavailable · NASA SDO
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="w-full aspect-square object-cover block"
+    />
+  );
+}
 
 // Live NASA SDO imagery — updates every ~15 minutes.
 // Using plain <img> (not next/image) so the browser always fetches the
@@ -110,13 +131,10 @@ export function SolarActivity() {
                 </div>
               </div>
 
-              {/* bg-black ensures seamless framing around the solar disk */}
               <div className="bg-black">
-                <img
+                <SdoImage
                   src={SDO_SUNSPOT_URL}
                   alt="Live SDO HMI Continuum image of the solar disk showing sunspot regions"
-                  loading="lazy"
-                  className="w-full aspect-[4/3] object-cover block"
                 />
               </div>
 
@@ -143,11 +161,9 @@ export function SolarActivity() {
               </div>
 
               <div className="bg-black">
-                <img
+                <SdoImage
                   src={SDO_CORONAL_URL}
                   alt="Live SDO AIA 193Å extreme ultraviolet image showing coronal holes as dark regions"
-                  loading="lazy"
-                  className="w-full aspect-[4/3] object-cover block"
                 />
               </div>
 

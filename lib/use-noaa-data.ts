@@ -227,7 +227,8 @@ export function useSolarActivity() {
     queryKey: ["solar-regions"],
     queryFn: fetchSolarRegions,
     staleTime: 1000 * 60 * 30,
-    gcTime: 1000 * 60 * 60, // sunspots change slowly, keep longer
+    gcTime: 1000 * 60 * 60,
+    refetchInterval: false, // sunspot regions update daily; no background polling needed
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
@@ -282,7 +283,8 @@ export function useFireballs(limit = 8) {
     queryKey: ["fireballs", limit],
     queryFn: () => fetchFireballs(limit),
     staleTime: 1000 * 60 * 60,
-    gcTime: 1000 * 60 * 60 * 4, // historical, keep 4h
+    gcTime: 1000 * 60 * 60 * 4,
+    refetchInterval: false, // historical data; no background polling needed
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });

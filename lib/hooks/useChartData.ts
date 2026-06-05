@@ -42,9 +42,21 @@ export function useChartData(kpHistory: KpEntry[]) {
     const recent = kpHistory
       .filter((entry) => !!entry.time_tag && !isNaN(new Date(entry.time_tag).getTime()))
       .slice(-12);
+
+    // Entries from an earlier UTC date get a "Mon 14:00" prefix so the 36h window
+    // doesn't look like a single-day chart when it spans midnight.
+    const todayUtc = recent.length > 0
+      ? new Date(recent[recent.length - 1].time_tag!).toLocaleDateString("en-US", { timeZone: "UTC" })
+      : "";
     const labels = recent.map((entry) => {
       const d = new Date(entry.time_tag!);
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+      const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });
+      const entryDate = d.toLocaleDateString("en-US", { timeZone: "UTC" });
+      if (entryDate !== todayUtc) {
+        const day = d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+        return `${day} ${time}`;
+      }
+      return time;
     });
     const values = recent.map((entry) => entry.Kp ?? 0);
 
