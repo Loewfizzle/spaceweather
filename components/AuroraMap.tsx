@@ -67,6 +67,8 @@ function HeatmapLayer({ points }: { points: { position: [number, number]; prob: 
   const layerRef = useRef<L.Layer | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('leaflet.heat');
     // Cleanup previous layer
     if (layerRef.current) {
       map.removeLayer(layerRef.current);
