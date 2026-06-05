@@ -7,7 +7,6 @@ import {
   XrayFlareSchema,
   AlertSchema,
   SolarRegionSchema,
-  CloudCoverDataSchema,
   FireballApiResponseSchema,
   FireballSchema,
 } from './schemas';
@@ -19,7 +18,6 @@ import type {
   XrayFlare,
   Alert,
   SolarRegion,
-  CloudCoverData,
   Fireball,
 } from './schemas';
 import { logDataError } from '../utils/retry';
@@ -156,17 +154,6 @@ export async function fetchSolarRegions(): Promise<SolarRegion[]> {
     'https://services.swpc.noaa.gov/json/solar_regions.json'
   );
   return z.array(SolarRegionSchema).parse(raw);
-}
-
-// Cloud cover (Open-Meteo)
-export async function fetchCloudCover(
-  lat: number,
-  lon: number
-): Promise<CloudCoverData> {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=cloudcover&timezone=America/Detroit&forecast_days=2`;
-  const raw = await fetchJson<unknown>(url, { cache: 'no-store' });
-  const parsed = CloudCoverDataSchema.parse(raw);
-  return parsed.hourly;
 }
 
 // Fireballs - now goes through our internal proxy (CORS-safe + cached)
