@@ -2,7 +2,7 @@
 
 import { useQuery, useQueries } from "@tanstack/react-query";
 import {
-  // New centralized, Zod-validated data layer
+  // Fetchers are the single source for network + validation (lib/api/fetchers)
   fetchOvation,
   fetchKpIndex,
   fetchPlasma,
@@ -15,12 +15,13 @@ import {
 } from "./api/fetchers";
 
 import {
-  // Keep pure business logic + types in noaa.ts for now (will be reorganized in Step 4)
+  // Pure business logic and helpers live in lib/noaa.ts
   latest,
   maxOvationNorthAmerica,
   parseRecentCmes,
   currentSunspotNumber,
   getTonightOutlook,
+  getMichiganRiskLevel,
   getNextMeteorShower,
   formatMeteorPeak,
   createGoogleCalendarLink,
@@ -31,6 +32,7 @@ import {
 import type { MeteorShower, TonightOutlook } from "./noaa";
 
 import type {
+  // Types from the Zod schemas (single source of truth for shapes)
   OvationResponse,
   KpEntry,
   PlasmaEntry,
@@ -87,24 +89,6 @@ export function useSolarWindData() {
     isLoading: plasmaQuery.isLoading || magQuery.isLoading,
     error: plasmaQuery.error || magQuery.error,
   };
-}
-
-// Michigan-specific risk level for visibility (used by alerts UI + header badge)
-export function getMichiganRiskLevel(
-  kp: number | null,
-  maxAuroraProbNA: number | null,
-  bz: number | null
-): "Quiet" | "Moderate" | "High" {
-  if (kp === null) return "Quiet";
-  const prob = maxAuroraProbNA ?? 0;
-  const b = bz ?? 0;
-  if (kp >= 5 || prob >= 25 || b <= -8) {
-    return "High";
-  }
-  if (kp >= 4 || prob >= 15 || b <= -5) {
-    return "Moderate";
-  }
-  return "Quiet";
 }
 
 // Combined hook for current conditions + Michigan guidance
@@ -228,7 +212,9 @@ export function useSolarActivity() {
 
 
 
-// Michigan sky conditions for aurora viewing (cloud cover tonight)
+// Michigan sky conditions for aurora viewing (cloud cover tonight).
+// Note: UI section was removed ("for now"); hook retained to avoid behavior changes
+// and for potential future re-use. It still performs real Open-Meteo fetches.
 const SKY_LOCATIONS = [
   { name: "Marquette (UP)", lat: 46.5436, lon: -87.3954 },
   { name: "Traverse City", lat: 44.7631, lon: -85.6206 },
@@ -326,8 +312,13 @@ export function useFireballs(limit = 8) {
   };
 }
 
-// Re-export meteor helpers (static data + pure logic)
+// Re-exports of pure business logic (sourced from lib/noaa.ts) for convenience
+// of current UI consumers (page.tsx, MeteorActivity, etc.). Prefer importing
+// hooks from here; business fns are composed inside the hooks.
 export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink, type TonightOutlook, getTonightOutlook };
+
+// Re-export of the pure MI risk helper (defined in lib/noaa.ts)
+export { getMichiganRiskLevel };
 
 // Re-export fireball format helpers for display consistency
 export { formatFireballDate, formatFireballLocation, type Fireball };

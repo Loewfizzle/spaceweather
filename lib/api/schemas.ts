@@ -1,14 +1,16 @@
 import { z } from 'zod';
 
 // ============================================
-// Zod Schemas for External Data Sources
+// Zod Schemas for External Data Sources (and a few internal derived shapes)
 // These provide runtime validation + TypeScript inference
-// for all NOAA and NASA responses used in AuroraWatch.
+// for all NOAA SWPC + NASA + Open-Meteo responses used in AuroraWatch.
+// All schemas are intentionally defensive (nullable/optional) to tolerate
+// real-world variations, missing fields, or upstream data glitches.
 // ============================================
 
 // --- NOAA Planetary K-index ---
 export const KpEntrySchema = z.object({
-  time_tag: z.string().optional(),
+  time_tag: z.string().nullable().optional(),
   Kp: z.number().nullable().optional(),
   a_running: z.number().nullable().optional(),
   station_count: z.number().nullable().optional(),
@@ -73,7 +75,7 @@ export const FireballSchema = z.object({
 });
 export type Fireball = z.infer<typeof FireballSchema>;
 
-// --- Other existing schemas (for completeness in data layer) ---
+// --- NOAA X-ray Flares (GOES) ---
 export const XrayFlareSchema = z.object({
   time_tag: z.string(),
   satellite: z.number(),
@@ -97,8 +99,7 @@ export const SolarRegionSchema = z.object({
   observed_date: z.string().optional(),
   region: z.number().optional(),
   number_spots: z.number().nullable().optional(),
-  // other fields exist but we only need these for sunspot total
-  // Additional fields from NOAA (extra props allowed by Zod by default)
+  // Additional fields from NOAA exist; extra props allowed by Zod by default.
   latitude: z.number().nullable().optional(),
   longitude: z.number().nullable().optional(),
   location: z.string().nullable().optional(),

@@ -37,8 +37,10 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 
 /**
  * Centralized, schema-validated fetchers for AuroraWatch.
- * All external data now goes through Zod .parse() for runtime safety.
- * This replaces direct usage in old lib/noaa.ts over time.
+ * All external data goes through Zod (parse or safeParse+filter for resilience).
+ * Row parsing for CSV-style endpoints (plasma, mag) and Fireball transformation
+ * happen here before final schema validation.
+ * Consumers should import types from './schemas', not rely on re-exports.
  */
 
 // NOAA OVATION
@@ -189,15 +191,5 @@ function parseNum(v: unknown): number | null {
   return isNaN(n) ? null : n;
 }
 
-// Re-export types for convenience (centralized)
-export type {
-  KpEntry,
-  OvationResponse,
-  PlasmaEntry,
-  MagEntry,
-  XrayFlare,
-  Alert,
-  SolarRegion,
-  CloudCoverData,
-  Fireball,
-};
+// Types are exported from ./schemas (the single source of truth).
+// Do not add re-exports here to avoid confusion about ownership.

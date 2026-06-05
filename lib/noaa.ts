@@ -1,55 +1,52 @@
 // lib/noaa.ts
-// Types and fetchers for NOAA SWPC public JSON data
-// All endpoints are public and suitable for client-side fetching with caching via TanStack Query
+// Pure business logic, derived calculations, and data-processing utilities
+// for AuroraWatch (Michigan-focused aurora + space weather).
+//
+// This module owns:
+// - Time-series helpers (latest)
+// - OVATION data utilities (filtering, max prob, color/radius scales for viz)
+// - Solar activity parsing (CMEs, sunspots)
+// - Michigan outlook computation (getTonightOutlook + risk/guidance helpers)
+// - Meteor shower calendar helpers
+// - Fireball display formatters
+//
+// Data fetching + Zod validation lives in lib/api/ (fetchers + schemas).
+// React hook composition lives in lib/use-noaa-data.ts.
+// UI components and page import business results via the hooks barrel where convenient.
 
-// Types re-exported from the central Zod schemas layer (lib/api/schemas.ts)
-// for backward compat during migration. Prefer importing directly from lib/api/schemas in new code.
 import type {
-  OvationResponse,
-  KpEntry,
-  PlasmaEntry,
-  MagEntry,
-  XrayFlare,
   Alert,
-  SolarRegion,
-  CloudCoverData,
-  Fireball,
   CmeSummary,
-} from "./api/schemas";
-
-export type {
+  Fireball,
   OvationResponse,
-  KpEntry,
-  PlasmaEntry,
-  MagEntry,
-  XrayFlare,
-  Alert,
   SolarRegion,
-  CloudCoverData,
-  Fireball,
-  CmeSummary,
+  XrayFlare,
 } from "./api/schemas";
-
-// NOTE: All fetchers have been moved to lib/api/fetchers.ts (Step 1)
-// This file now focuses on pure utilities, business logic, and re-exports for backward compatibility.
-// All new code should import from lib/api/ or lib/hooks/.
-
-export { 
-  fetchOvation,
-  fetchKpIndex,
-  fetchPlasma,
-  fetchMag,
-  fetchXrayFlaresLatest,
-  fetchAlerts,
-  fetchSolarRegions,
-  fetchCloudCover,
-  fetchFireballs,
-} from "./api/fetchers";
 
 // Helper: get most recent value from time series (tolerant of optional time_tag after defensive schemas)
 export function latest<T extends { time_tag?: string | null }>(arr: T[]): T | null {
   if (!arr || arr.length === 0) return null;
   return arr[arr.length - 1];
+}
+
+// Michigan-specific risk level for visibility (used by alerts UI + header badge).
+// Pure function; derived from Kp + OVATION prob + Bz. Lives here with other
+// business logic rather than inside a hook file.
+export function getMichiganRiskLevel(
+  kp: number | null,
+  maxAuroraProbNA: number | null,
+  bz: number | null
+): "Quiet" | "Moderate" | "High" {
+  if (kp === null) return "Quiet";
+  const prob = maxAuroraProbNA ?? 0;
+  const b = bz ?? 0;
+  if (kp >= 5 || prob >= 25 || b <= -8) {
+    return "High";
+  }
+  if (kp >= 4 || prob >= 15 || b <= -5) {
+    return "Moderate";
+  }
+  return "Quiet";
 }
 
 export interface OvationPoint {
@@ -126,7 +123,7 @@ export function getAuroraMarkerRadius(prob: number): number {
 // --- Solar Activity (pure functions only - fetchers moved to lib/api/fetchers.ts) ---
 
 /** Parse recent Earth-directed or relevant CMEs from alerts messages (lightweight extraction). */
-export function parseRecentCmes(alerts: import("./api/schemas").Alert[] | undefined): import("./api/schemas").CmeSummary[] {
+export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
   // Implementation kept here for now (pure logic)
   if (!alerts || alerts.length === 0) return [];
   const cmeAlerts = alerts.filter((a) =>
@@ -152,7 +149,7 @@ export function parseRecentCmes(alerts: import("./api/schemas").Alert[] | undefi
 }
 
 /** Compute total sunspot number from latest reported regions. */
-export function currentSunspotNumber(regions: import("./api/schemas").SolarRegion[] | undefined): number | null {
+export function currentSunspotNumber(regions: SolarRegion[] | undefined): number | null {
   if (!regions || regions.length === 0) return null;
   const valid = regions.filter((r) => r.observed_date && typeof r.number_spots === "number");
   if (valid.length === 0) return null;
@@ -253,20 +250,11 @@ export function getTonightOutlook(
   return { status, message, reasons, accentColor, drivers };
 }
 
-// Sky / Meteor pure logic re-exported from api/fetchers where applicable.
-// The hardcoded meteor data and pure functions stay here for now.
+// Meteor helpers (pure, no network). MeteorShower type is defined in schemas
+// (for use by constants data) and re-exported here for the pure functions.
 
-// --- Meteor Showers (hardcoded annual major showers) ---
-
-export interface MeteorShower {
-  name: string;
-  peakMonth: number; // 1-12
-  peakDay: number;
-  peakEndMonth?: number;
-  peakEndDay?: number;
-  description: string;
-  activityLevel: string;
-}
+import type { MeteorShower } from "./api/schemas";
+export type { MeteorShower };
 
 import { MAJOR_METEOR_SHOWERS } from "./constants/meteors";
 
@@ -329,9 +317,7 @@ export function createGoogleCalendarLink(shower: MeteorShower, peakDate: Date): 
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}&sf=true&output=xml`;
 }
 
-// --- Fireball Tracker types moved to lib/api/schemas.ts ---
-// (re-exported below)
-
+// Fireball display formatters (pure; types come from schemas).
 
 export function formatFireballDate(dateStr: string): string {
   if (!dateStr) return "—";
