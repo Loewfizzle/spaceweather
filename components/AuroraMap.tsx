@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useOvationData } from "../lib/use-noaa-data";
-import { filterOvationCoordinates, getAuroraColor, getAuroraMarkerRadius } from "../lib/noaa";
+import { filterOvationCoordinates } from "../lib/noaa";
 
 // leaflet.heat augments Leaflet with L.heatLayer (canvas-based, high performance for dense point data)
 declare module "leaflet" {
@@ -113,14 +113,6 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
     [points]
   );
 
-  // Only render CircleMarkers for genuine peaks — the heatmap handles the full low-to-mid field.
-  // Threshold at 25: below that, the oval produces dense horizontal bands of markers at Kp 5–6.
-  const highProbThreshold = Math.max(minProb, 25);
-  const highProbPoints = useMemo(
-    () => safePoints.filter((p) => p.prob >= highProbThreshold),
-    [safePoints, highProbThreshold]
-  );
-
   const isEmpty = !isLoading && !error && safePoints.length === 0;
 
   if (isLoading) {
@@ -162,28 +154,6 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
           <HeatmapLayer points={safePoints} />
-          {highProbPoints.map((p, idx) => (
-            <CircleMarker
-              key={idx}
-              center={p.position}
-              radius={getAuroraMarkerRadius(p.prob)}
-              pathOptions={{
-                color: getAuroraColor(p.prob),
-                fillColor: getAuroraColor(p.prob),
-                fillOpacity: 0.85,
-                weight: 0.8,
-              }}
-            >
-              <Tooltip direction="top" offset={[0, -4]} opacity={0.95}>
-                <div className="text-xs">
-                  <div className="font-semibold">Aurora probability: {p.prob}%</div>
-                  <div className="text-[#64748b]">
-                    {p.position[0].toFixed(1)}°N, {Math.abs(p.position[1]).toFixed(1)}°W
-                  </div>
-                </div>
-              </Tooltip>
-            </CircleMarker>
-          ))}
         </MapContainer>
       </div>
 
