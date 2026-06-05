@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Fireball } from "../lib/use-noaa-data";
 import { formatFireballDate, formatFireballLocation } from "../lib/use-noaa-data";
@@ -35,6 +35,9 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 }
 
 export function FireballModal({ fireball, onClose }: FireballModalProps) {
+  const [placeName, setPlaceName] = useState<string | null>(null);
+  const [placeLoading, setPlaceLoading] = useState(false);
+
   // Lock body scroll while modal is open
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -53,19 +56,44 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Reverse geocode the impact location via Nominatim
+  useEffect(() => {
+    if (fireball.lat == null || fireball.lon == null) return;
+    const lat = toSignedLat(fireball.lat, fireball.latDir);
+    const lon = toSignedLon(fireball.lon, fireball.lonDir);
+    setPlaceLoading(true);
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+      { headers: { "Accept-Language": "en" } }
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        const a = data?.address;
+        if (!a) { setPlaceName(null); return; }
+        const parts = [
+          a.city || a.town || a.village || a.county,
+          a.state,
+          a.country,
+        ].filter(Boolean);
+        setPlaceName(parts.length > 0 ? parts.join(", ") : null);
+      })
+      .catch(() => setPlaceName(null))
+      .finally(() => setPlaceLoading(false));
+  }, [fireball.lat, fireball.lon, fireball.latDir, fireball.lonDir]);
+
   const signedLat = toSignedLat(fireball.lat!, fireball.latDir);
   const signedLon = toSignedLon(fireball.lon!, fireball.lonDir);
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[#05070f]/80 backdrop-blur-sm p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070f]/80 backdrop-blur-sm p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Fireball impact detail"
     >
       <div
-        className="relative w-full sm:max-w-lg overflow-hidden rounded-t-2xl sm:rounded-2xl border border-[#1e2937] bg-[#0f1425]"
+        className="relative w-full sm:max-w-lg overflow-hidden rounded-2xl border border-[#1e2937] bg-[#0f1425]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button overlaid top-right, above the map */}
@@ -89,7 +117,28 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
           </div>
           <div className="space-y-2">
             <MetaRow label="Date / Time" value={formatFireballDate(fireball.date)} />
-            <MetaRow label="Location" value={formatFireballLocation(fireball)} />
+
+            {/* Location row — inline JSX to support multi-line value with geocoded place name */}
+            <div className="flex justify-between text-sm border-b border-[#1e2937] pb-2 last:border-b-0 last:pb-0">
+              <span className="text-[#64748b]">Location</span>
+              <div className="ml-4 text-right">
+                {placeLoading ? (
+                  <span className="text-[#475569] text-[11px] animate-pulse">Looking up…</span>
+                ) : placeName != null ? (
+                  <>
+                    <div className="text-[#cbd5e1]">{placeName}</div>
+                    <div className="text-[10px] text-[#475569] tabular-nums">
+                      {formatFireballLocation(fireball)}
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-[#cbd5e1] tabular-nums">
+                    {formatFireballLocation(fireball)}
+                  </span>
+                )}
+              </div>
+            </div>
+
             {fireball.energy != null && (
               <MetaRow label="Energy" value={`${fireball.energy} kt`} />
             )}
