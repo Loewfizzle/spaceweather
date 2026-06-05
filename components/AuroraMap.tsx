@@ -123,10 +123,16 @@ export default function AuroraMap({ target, minProb = 3 }: AuroraMapProps) {
   const points = useMemo(() => {
     // ovationData may be undefined while loading; coordinates optional per schema.
     const raw = filterOvationCoordinates(ovationData?.coordinates, minProb);
-    return raw.map((p) => ({
-      position: [p.lat, p.lon] as [number, number], // Leaflet is [lat, lon]
-      prob: Math.round(p.prob),
-    }));
+    return raw
+      .map((p) => ({
+        position: [p.lat, p.lon] as [number, number], // Leaflet is [lat, lon]
+        prob: Math.round(p.prob),
+      }))
+      .filter((p) =>
+        isFinite(p.position[0]) && isFinite(p.position[1]) &&
+        p.position[0] >= -90 && p.position[0] <= 90 &&
+        p.position[1] >= -180 && p.position[1] <= 180
+      );
   }, [ovationData, minProb]);
 
   // High probability markers for precise interaction + visual pop on top of the heatmap field
