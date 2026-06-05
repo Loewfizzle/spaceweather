@@ -83,10 +83,26 @@ describe('getTonightOutlook', () => {
     expect(['Low', 'Quiet']).toContain(result.status)
   })
 
-  it('includes driver string with Kp and Bz', () => {
-    const result = getTonightOutlook(4.5, -7.2, 18, baseCme, baseFlare)
+  it('includes driver string with Kp, Bz, and speed when provided', () => {
+    const result = getTonightOutlook(4.5, -7.2, 18, baseCme, baseFlare, 650)
     expect(result.drivers).toContain('Kp 4.5')
     expect(result.drivers).toContain('Bz -7.2')
+    expect(result.drivers).toContain('650 km/s')
+  })
+
+  it('high solar wind speed alone pushes to at least Moderate', () => {
+    const result = getTonightOutlook(2, -2, 5, baseCme, baseFlare, 650)
+    expect(['Moderate', 'Good', 'Excellent']).toContain(result.status)
+  })
+
+  it('high speed + southward Bz at Kp3 reaches Good', () => {
+    const result = getTonightOutlook(3, -6, 5, baseCme, baseFlare, 650)
+    expect(result.status).toBe('Good')
+  })
+
+  it('very high speed + Bz + Kp5 reaches Excellent', () => {
+    const result = getTonightOutlook(5, -6, 5, baseCme, baseFlare, 750)
+    expect(result.status).toBe('Excellent')
   })
 })
 
@@ -152,23 +168,40 @@ describe('latest()', () => {
 })
 
 describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
+  // Real NOAA OVATION uses 0-360 longitude convention; normalizeLon converts to -180..180.
+  // 260 = -100°, 280 = -80°, 240 = -120°, 300 = -60° — all within North America bounds.
   const mockOvation: OvationResponse = {
     coordinates: [
-      [-100, 45, 35],
-      [-80, 50, 12],
-      [-120, 30, 8],
-      [-60, 70, 55],
+      [260, 45, 35],  // lon 260 → -100°, NA ✓
+      [280, 50, 12],  // lon 280 → -80°,  NA ✓
+      [240, 30, 8],   // lon 240 → -120°, NA ✓ but prob < 10 (filtered by minProb)
+      [300, 70, 55],  // lon 300 → -60°,  NA ✓
     ],
   }
 
-  it('filters to North America bounds and min probability', () => {
+  it('normalizes 0-360 longitudes and filters to North America bounds and min probability', () => {
     const filtered = filterOvationCoordinates(mockOvation.coordinates, 10)
     expect(filtered.length).toBe(3)
+    // Verify normalization produced correct -180..180 values
+    expect(filtered.map(p => p.lon).sort((a, b) => a - b)).toEqual([-100, -80, -60])
   })
 
-  it('computes max probability in North America', () => {
+  it('computes max probability in North America using 0-360 coordinates', () => {
     const max = maxOvationNorthAmerica(mockOvation)
     expect(max).toBe(55)
+  })
+
+  it('excludes coordinates outside North America bounds', () => {
+    const outsideNA: OvationResponse = {
+      coordinates: [
+        [0, 50, 40],    // lon 0 → 0° (Europe), out of bounds
+        [90, 45, 30],   // lon 90 → 90° (Asia), out of bounds
+        [260, 45, 20],  // lon 260 → -100° (NA) ✓
+      ],
+    }
+    const filtered = filterOvationCoordinates(outsideNA.coordinates, 0)
+    expect(filtered.length).toBe(1)
+    expect(filtered[0].lon).toBeCloseTo(-100)
   })
 })
 

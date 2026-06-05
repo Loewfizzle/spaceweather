@@ -231,7 +231,8 @@ export function getTonightOutlook(
   bz: number | null,
   maxAuroraProbNA: number | null,
   recentCmes: CmeSummary[] = [],
-  latestFlare: XrayFlare | null = null
+  latestFlare: XrayFlare | null = null,
+  solarWindSpeed: number | null = null
 ): TonightOutlook {
   if (kp === null) {
     return {
@@ -246,6 +247,9 @@ export function getTonightOutlook(
   const strongFavorableBz = bz !== null && bz <= -10;
   const highProb = maxAuroraProbNA !== null && maxAuroraProbNA >= 20;
   const moderateProb = maxAuroraProbNA !== null && maxAuroraProbNA >= 10;
+  // High-speed solar wind (CIR events) enhances geomagnetic coupling independently of Kp
+  const highSpeed = solarWindSpeed !== null && solarWindSpeed > 600;
+  const veryHighSpeed = solarWindSpeed !== null && solarWindSpeed > 700;
 
   const hasEarthCme = recentCmes.length > 0 && recentCmes.some(
     (c) => c.earthImpact?.includes('impact') || /Earth-directed/i.test(c.note || c.direction || '')
@@ -260,24 +264,27 @@ export function getTonightOutlook(
   let reasons: string[] = [];
   let accentColor: string;
 
-  if (kp >= 7 || (kp >= 6 && (strongFavorableBz || highProb))) {
+  if (kp >= 7 || (kp >= 6 && (strongFavorableBz || highProb)) || (kp >= 5 && veryHighSpeed && isFavorableBz)) {
     status = 'Excellent';
     message = 'Strong chance across much of the UP + possible in northern Lower Michigan.';
     accentColor = '#22c55e';
     if (strongFavorableBz) reasons.push('Strong southward Bz currently boosting chances');
-    if (highProb) reasons.push('Elevated OVATION probabilities across North America');
-  } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || highProb) {
+    if (veryHighSpeed && solarWindSpeed) reasons.push(`Very high solar wind speed (${Math.round(solarWindSpeed)} km/s) amplifying activity`);
+    if (highProb && !veryHighSpeed) reasons.push('Elevated OVATION probabilities across North America');
+  } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || (kp >= 4 && highSpeed) || (kp >= 3 && highSpeed && isFavorableBz) || highProb) {
     status = 'Good';
     message = 'Good chance in the Upper Peninsula.';
     accentColor = '#22c55e';
     if (isFavorableBz) reasons.push('Southward Bz currently favorable');
-    if (highProb) reasons.push('High aurora probabilities across NA');
-  } else if (kp >= 4 || (kp >= 3 && isFavorableBz) || moderateProb || hasEarthCme) {
+    if (highSpeed && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) enhancing coupling`);
+    if (highProb && !highSpeed) reasons.push('High aurora probabilities across NA');
+  } else if (kp >= 4 || (kp >= 3 && isFavorableBz) || moderateProb || hasEarthCme || highSpeed) {
     status = 'Moderate';
     message = 'Possible in the Upper Peninsula under dark skies.';
     accentColor = '#eab308';
     if (isFavorableBz) reasons.push('Favorable Bz may enhance activity');
     if (hasEarthCme) reasons.push('Recent Earth-directed CME may increase chances');
+    if (highSpeed && !isFavorableBz && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) — watch for Bz to turn south`);
   } else if (kp >= 3 || isFavorableBz || significantFlare) {
     status = 'Low';
     message = 'Low probability across Michigan.';
@@ -299,7 +306,8 @@ export function getTonightOutlook(
 
   reasons = reasons.slice(0, 2);
 
-  const drivers = `Kp ${kp.toFixed(1)} • Bz ${bz !== null ? bz.toFixed(1) : '—'} nT`;
+  const speedStr = solarWindSpeed !== null ? ` • ${Math.round(solarWindSpeed)} km/s` : '';
+  const drivers = `Kp ${kp.toFixed(1)} • Bz ${bz !== null ? bz.toFixed(1) : '—'} nT${speedStr}`;
 
   return { status, message, reasons, accentColor, drivers };
 }
