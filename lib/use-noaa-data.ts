@@ -36,6 +36,7 @@ import {
   formatFireballDate,
   formatFireballLocation,
   formatFireballEnergy,
+  approximateLocation,
   getCityAuroraProbabilities,
   getLocationAuroraProb,
 } from "./noaa";
@@ -361,6 +362,7 @@ export {
   formatFireballDate,
   formatFireballLocation,
   formatFireballEnergy,
+  approximateLocation,
   type MeteorShower,
   type TonightOutlook,
   type CityAuroraProb,

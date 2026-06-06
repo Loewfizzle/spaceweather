@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import type { Fireball } from "../lib/use-noaa-data";
-import { formatFireballDate, formatFireballLocation, formatFireballEnergy } from "../lib/use-noaa-data";
+import { formatFireballDate, formatFireballLocation, formatFireballEnergy, approximateLocation } from "../lib/use-noaa-data";
 
 const FireballMap = dynamic(() => import("./FireballMap"), {
   ssr: false,
@@ -82,7 +82,15 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
           </div>
           <div className="space-y-2">
             <MetaRow label="Date / Time" value={formatFireballDate(fireball.date)} />
-            <MetaRow label="Location"    value={formatFireballLocation(fireball)} />
+            <MetaRow
+              label="Location"
+              value={
+                fireball.lat != null && fireball.lon != null
+                  ? (approximateLocation(fireball.lat, fireball.lon) || "Unknown")
+                  : "Unknown"
+              }
+            />
+            <MetaRow label="Coordinates"   value={formatFireballLocation(fireball)} />
             <MetaRow label="Impact Energy" value={formatFireballEnergy(fireball.impactE)} />
             {fireball.vel  && <MetaRow label="Velocity" value={`${parseFloat(fireball.vel).toFixed(1)} km/s`} />}
             {fireball.alt  && <MetaRow label="Altitude" value={`${parseFloat(fireball.alt).toFixed(0)} km`} />}
