@@ -41,16 +41,32 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
         map.getPanes().overlayPane!.appendChild(canvas);
         canvasRef.current = canvas;
         this._map = map;
-        map.on('move zoom moveend zoomend', this._draw, this);
+        this._rafId = null;
+        // Full redraw once the gesture settles — no throttle needed (fires once)
+        map.on('moveend zoomend', this._draw, this);
+        // During continuous pan/zoom, coalesce redraws to one per animation frame
+        map.on('move zoom', this._scheduleDraw, this);
         this._draw();
         return this;
       },
       onRemove(map: L.Map) {
-        map.off('move zoom moveend zoomend', this._draw, this);
+        if (this._rafId != null) {
+          cancelAnimationFrame(this._rafId);
+          this._rafId = null;
+        }
+        map.off('moveend zoomend', this._draw, this);
+        map.off('move zoom', this._scheduleDraw, this);
         if (canvasRef.current?.parentNode) {
           canvasRef.current.parentNode.removeChild(canvasRef.current);
         }
         canvasRef.current = null;
+      },
+      _scheduleDraw() {
+        if (this._rafId != null) return;
+        this._rafId = requestAnimationFrame(() => {
+          this._rafId = null;
+          this._draw();
+        });
       },
       _draw() {
         const canvas = canvasRef.current;

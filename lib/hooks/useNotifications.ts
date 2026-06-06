@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // Alert threshold presets (module scope for stability + used by effect, handler, and render in AlertsPanel)
 export const ALERT_THRESHOLDS = {
@@ -60,6 +60,15 @@ export function useNotifications({
   // Track previous Kp to detect sudden surges that warrant immediate notification
   const prevKpRef = useRef<number | null>(null);
 
+  // Register the service worker once on mount (idempotent — safe to call every render cycle)
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+        // SW registration failure is non-fatal; in-tab alerts continue to work
+      });
+    }
+  }, []);
+
   // Load throttle from storage once on mount (client only)
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -86,6 +95,19 @@ export function useNotifications({
     return "balanced";
   });
 
+  // Writes the active Kp/prob thresholds into the SW cache so background checks
+  // use the same sensitivity the user has chosen in the UI.
+  const syncPrefsToSw = useCallback(async (sensitivity: AlertSensitivity) => {
+    if (!("caches" in window)) return;
+    try {
+      const { kp, prob } = ALERT_THRESHOLDS[sensitivity];
+      const cache = await caches.open("aurorawatch-sw-v1");
+      await cache.put("/__prefs", new Response(JSON.stringify({ kp, prob })));
+    } catch {
+      // Cache API unavailable (private browsing, etc.) — non-fatal
+    }
+  }, []);
+
   const setAlertsEnabled = (val: boolean) => {
     setAlertsEnabledState(val);
     if (typeof window !== "undefined") {
@@ -98,6 +120,7 @@ export function useNotifications({
     if (typeof window !== "undefined") {
       localStorage.setItem("aw_alert_sensitivity", val);
     }
+    syncPrefsToSw(val);
   };
 
   // Auto-trigger browser notification when conditions look good for Michigan.
@@ -180,9 +203,23 @@ export function useNotifications({
     setNotificationPermission(perm);
 
     if (perm === "granted") {
-      // Turn auto alerts on by default when user grants permission
       setAlertsEnabled(true);
-      // Confirmation notification
+      syncPrefsToSw(alertSensitivity);
+
+      // Register Periodic Background Sync so alerts fire even when the tab is closed.
+      // Only available in Chrome/Edge; fails silently on other browsers.
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        if ("periodicSync" in reg) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (reg as any).periodicSync.register("aurora-check", {
+            minInterval: 30 * 60 * 1000,
+          });
+        }
+      } catch {
+        // periodicSync not supported or permission denied — in-tab alerts still work
+      }
+
       try {
         new Notification("AuroraWatch", {
           body: "Alerts enabled. We'll notify you when aurora looks likely over Michigan.",

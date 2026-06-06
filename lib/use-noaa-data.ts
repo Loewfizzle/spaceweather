@@ -36,6 +36,7 @@ import {
   formatFireballLocation,
   formatFireballEnergy,
   getCityAuroraProbabilities,
+  getLocationAuroraProb,
 } from "./noaa";
 
 import type { MeteorShower, TonightOutlook, CityAuroraProb } from "./noaa";
@@ -323,7 +324,7 @@ export function useFireballs(limit = 10) {
 // Re-exports of pure business logic (sourced from lib/noaa.ts) for convenience
 // of current UI consumers (page.tsx, MeteorActivity, etc.). Prefer importing
 // hooks from here; business fns are composed inside the hooks.
-export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink, type TonightOutlook, getTonightOutlook, type CityAuroraProb };
+export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink, type TonightOutlook, getTonightOutlook, type CityAuroraProb, getLocationAuroraProb };
 
 // Re-export of the pure MI risk helper (defined in lib/noaa.ts)
 export { getMichiganRiskLevel };

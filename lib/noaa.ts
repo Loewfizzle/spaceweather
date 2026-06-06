@@ -157,17 +157,31 @@ export function getAuroraMarkerRadius(prob: number): number {
 
 // --- Solar Activity (pure functions only - fetchers moved to lib/api/fetchers.ts) ---
 
-/** Parse recent Earth-directed or relevant CMEs from alerts messages (lightweight extraction). */
+// NOAA geomagnetic storm watch product IDs — issued specifically when Earth-directed CMEs
+// are detected and projected to impact Earth. More reliable as a primary signal than
+// body-text regex alone, which can break if NOAA changes alert wording.
+// G1=WATA07, G2=WATA20, G3=WATA30, G4=WATA40, G5=WATA50
+const STORM_WATCH_IDS = new Set(['WATA07', 'WATA20', 'WATA30', 'WATA40', 'WATA50']);
+
+/** Parse recent Earth-directed or relevant CMEs from NOAA alerts. */
 export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
   if (!alerts || alerts.length === 0) return [];
-  const cmeAlerts = alerts.filter((a) =>
-    /CME|Coronal Mass Ejection/i.test(a.message)
+
+  // Primary: storm watches are structurally tied to Earth-directed CME detection
+  const stormWatches = alerts.filter((a) => STORM_WATCH_IDS.has(a.product_id));
+  // Secondary: body-text CME mentions not already captured above
+  const cmeBodyAlerts = alerts.filter(
+    (a) => !STORM_WATCH_IDS.has(a.product_id) && /CME|Coronal Mass Ejection/i.test(a.message)
   );
-  return cmeAlerts.slice(0, 2).map((a) => {
+
+  const candidates = [...stormWatches, ...cmeBodyAlerts].slice(0, 2);
+
+  return candidates.map((a) => {
     const msg = a.message;
-    const speedMatch = msg.match(/(\d{3,4})\s*km\/s/i);
-    const dirMatch = msg.match(/Earth-directed|full halo|partial halo|halo CME/i);
-    const impactNote = /Earth-directed|will reach Earth|geomagnetic storm/i.test(msg)
+    // Word-boundary prefix avoids matching partial numbers; range covers realistic CME speeds
+    const speedMatch = msg.match(/\b(\d{3,4})\s*km\/s/i);
+    const dirMatch = msg.match(/Earth-directed|Earth-facing|full halo|partial halo|halo CME/i);
+    const impactNote = /Earth-directed|Earth-facing|will reach Earth|geomagnetic storm/i.test(msg)
       ? "Likely Earth impact"
       : "Monitor for effects";
     const lines = msg.split("\n").filter(Boolean);
@@ -303,10 +317,18 @@ export function getTonightOutlook(
 // ── City-level aurora probability ──────────────────────────────────────────
 
 const AURORA_WATCH_CITIES = [
-  { name: "Fort Ripley", state: "MN", lat: 46.17, lon: -94.36 },
-  { name: "Cedar",       state: "MI", lat: 44.75, lon: -85.56 },
-  { name: "Spring Lake", state: "MI", lat: 43.08, lon: -86.20 },
-  { name: "Hudsonville", state: "MI", lat: 42.87, lon: -85.87 },
+  // Michigan UP — best aurora viewing in MI (ordered north→south)
+  { name: "Marquette",        state: "MI", lat: 46.54, lon: -87.40 },
+  { name: "Sault Ste. Marie", state: "MI", lat: 46.49, lon: -84.35 },
+  // Michigan LP northern tier
+  { name: "Petoskey",         state: "MI", lat: 45.37, lon: -84.96 },
+  { name: "Cedar",            state: "MI", lat: 44.75, lon: -85.56 },
+  // Michigan LP mid/south
+  { name: "Spring Lake",      state: "MI", lat: 43.08, lon: -86.20 },
+  { name: "Hudsonville",      state: "MI", lat: 42.87, lon: -85.87 },
+  // Regional neighbors for broader Great Lakes context
+  { name: "Duluth",           state: "MN", lat: 46.83, lon: -92.10 },
+  { name: "Green Bay",        state: "WI", lat: 44.52, lon: -88.02 },
 ] as const;
 
 // Rough equatorward aurora oval boundary by Kp (Holzworth & Meng 1975, simplified).
@@ -352,6 +374,38 @@ export function getCityAuroraProbabilities(
 
     return { name: city.name, state: city.state, prob: Math.round(Math.max(0, Math.min(99, prob))) };
   });
+}
+
+/**
+ * Compute aurora probability for an arbitrary user-provided lat/lon.
+ * Used for the geolocation "My location" feature in HeroOutlook.
+ * Same nearest-OVATION-cell logic as getCityAuroraProbabilities.
+ */
+export function getLocationAuroraProb(
+  lat: number,
+  lon: number,
+  ovationData: OvationResponse | null,
+  kp: number | null,
+  bz: number | null
+): number {
+  const points = ovationData ? filterOvationCoordinates(ovationData.coordinates, 0) : [];
+  let prob = 0;
+
+  if (points.length > 0) {
+    let nearestDist = Infinity;
+    for (const p of points) {
+      const d = (p.lat - lat) ** 2 + (p.lon - lon) ** 2;
+      if (d < nearestDist) { nearestDist = d; prob = p.prob; }
+    }
+  } else if (kp !== null) {
+    prob = estimateProbFromKp(kp, lat);
+  }
+
+  if (bz !== null && bz <= -5) {
+    prob = Math.min(99, prob + Math.round(Math.min(8, Math.abs(bz + 5) * 1.5)));
+  }
+
+  return Math.round(Math.max(0, Math.min(99, prob)));
 }
 
 // Meteor shower calendar helpers
