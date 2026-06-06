@@ -203,15 +203,18 @@ function FlareModal({
   ] as const;
 
   return (
+    // Overlay is the scroll container — avoids the mobile-Safari 100vh chrome bug
+    // where max-h-[90vh] overflows the visible area. Body scroll is locked via useEffect.
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Flare details"
     >
+      <div className="flex min-h-full items-center justify-center p-4">
       <div
-        className="bg-[#0d1425] border border-[#1e2937] rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto"
+        className="bg-[#0d1425] border border-[#1e2937] rounded-2xl w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
@@ -359,6 +362,7 @@ function FlareModal({
             <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
           </a>
         </div>
+      </div>
       </div>
     </div>
   );
