@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
 import { cloudCoverColor } from "../lib/noaa";
 import { ShareButton } from "./ShareButton";
+import { NotificationPrompt } from "./NotificationPrompt";
 
 interface HeroOutlookProps {
   outlook: TonightOutlook;
@@ -16,6 +17,7 @@ interface HeroOutlookProps {
   userLocationLabel?: string | null;
   onRequestLocation?: () => void;
   isLocating?: boolean;
+  locationTimedOut?: boolean;
   cloudCoverPct?: number | null;
   cloudCoverLabel?: string | null;
   kp?: number | null;
@@ -30,6 +32,7 @@ export function HeroOutlook({
   userLocationLabel,
   onRequestLocation,
   isLocating,
+  locationTimedOut,
   cloudCoverPct,
   cloudCoverLabel,
   kp,
@@ -135,22 +138,25 @@ export function HeroOutlook({
       )}
 
       {outlook.status !== "Loading" && (
-        <div className={`mt-4 pt-3 border-t border-[#1e2937] flex items-center ${userLocationProb == null && onRequestLocation ? "justify-between" : "justify-end"}`}>
-          {userLocationProb == null && onRequestLocation && (
-            <button
-              onClick={onRequestLocation}
-              disabled={isLocating}
-              className="flex items-center gap-1.5 text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors disabled:opacity-50"
-              title="Get aurora probability for your current location"
-            >
-              {isLocating ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <MapPin className="h-3.5 w-3.5" />
-              )}
-              {isLocating ? "Locating…" : "Use my location"}
-            </button>
-          )}
+        <div className="mt-4 pt-3 border-t border-[#1e2937] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {userLocationProb == null && onRequestLocation && (
+              <button
+                onClick={onRequestLocation}
+                disabled={isLocating}
+                className="flex items-center gap-1.5 text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors disabled:opacity-50"
+                title="Get aurora probability for your current location"
+              >
+                {isLocating ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <MapPin className="h-3.5 w-3.5" />
+                )}
+                {isLocating ? "Locating…" : locationTimedOut ? "Try again" : "Use my location"}
+              </button>
+            )}
+            <NotificationPrompt />
+          </div>
           <ShareButton
             status={outlook.status}
             kp={kp ?? null}

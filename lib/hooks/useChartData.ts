@@ -30,13 +30,27 @@ const CHART_OPTIONS = {
   },
 };
 
-// Michigan is Eastern Time: UTC-5 (EST, roughly Nov–Mar) or UTC-4 (EDT, roughly Mar–Nov).
-// "Tonight" for aurora watching = local 20:00 (8 pm) through 05:59 (5:59 am next morning).
+// "Tonight" for aurora watching = 20:00–05:59 Eastern Time.
+// Uses Intl.DateTimeFormat for exact DST offset — same pattern as viewingWindow.ts.
+function etOffsetHours(date: Date): number {
+  const utcH = date.getUTCHours();
+  const etH =
+    parseInt(
+      new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        hour12: false,
+      }).format(date),
+      10,
+    ) % 24;
+  const diff = ((etH - utcH) % 24 + 24) % 24;
+  return diff > 12 ? diff - 24 : diff;
+}
+
 function isTonightMichigan(utcDate: Date): boolean {
-  const month = utcDate.getUTCMonth(); // 0 = Jan
-  const isDst = month >= 2 && month <= 10; // approximate: Mar–Nov
-  const localHour = (utcDate.getUTCHours() - (isDst ? 4 : 5) + 24) % 24;
-  return localHour >= 20 || localHour < 6;
+  const offset = etOffsetHours(utcDate);
+  const etHour = ((utcDate.getUTCHours() + offset) % 24 + 24) % 24;
+  return etHour >= 20 || etHour < 6;
 }
 
 // Inline Chart.js plugin that shades contiguous "tonight" columns with a soft violet tint.

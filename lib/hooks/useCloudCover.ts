@@ -50,21 +50,31 @@ async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResu
     const times = data.hourly.time as string[];
     const covers = data.hourly.cloud_cover as number[];
     const nowMs = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
     // utc_offset_seconds: e.g. -14400 for EDT, -18000 for EST.
     // Treating the string as UTC then subtracting the offset gives true UTC ms.
     const utcOffsetMs = (typeof data.utc_offset_seconds === 'number' ? data.utc_offset_seconds : 0) * 1000;
 
+    // Collect only the *next* contiguous dark window (20:00–06:00 local).
+    // A naive 24-hour scan can mix tonight's and tomorrow night's hours when
+    // fetched in the early evening. Instead: scan forward, gather hours once
+    // the first dark window starts, and stop as soon as it ends.
     const tonightValues: number[] = [];
+    let inDarkWindow = false;
+    let windowEnded = false;
     for (let i = 0; i < times.length; i++) {
+      if (windowEnded) break;
       // Parse as UTC then shift by location offset → correct UTC ms regardless of browser TZ
       const t = new Date(times[i] + 'Z').getTime() - utcOffsetMs;
-      if (t <= nowMs || t > nowMs + dayMs) continue;
+      if (t <= nowMs) continue;
       // Extract local hour from "2026-06-05T22:00" — already in location's timezone
       const hourStr = (times[i].split('T')[1] ?? '').substring(0, 2);
       const hour = parseInt(hourStr, 10);
-      if (hour >= 20 || hour < 6) {
+      const isDark = hour >= 20 || hour < 6;
+      if (isDark) {
+        inDarkWindow = true;
         tonightValues.push(covers[i]);
+      } else if (inDarkWindow) {
+        windowEnded = true; // first daytime hour after entering the dark window — done
       }
     }
 

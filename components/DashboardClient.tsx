@@ -97,13 +97,6 @@ export function DashboardClient() {
   const cloudCoverQuery = useCloudCover(geoLat, geoLon);
   const kpForecastQuery = useKpForecast();
 
-  // Register service worker once on app startup
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
-    }
-  }, []);
-
   // Dynamic page title — shows live Kp so users can see conditions in the tab bar
   useEffect(() => {
     if (kp === null) return;
@@ -124,8 +117,9 @@ export function DashboardClient() {
             isFetching={isFetching}
             userLocationProb={userLocationProb}
             userLocationLabel={userLocationLabel}
-            onRequestLocation={requestLocation}
+            onRequestLocation={geoState.status !== "denied" ? requestLocation : undefined}
             isLocating={geoState.status === "loading"}
+            locationTimedOut={geoState.status === "timeout"}
             cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
             cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
             kp={kp}
