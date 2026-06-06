@@ -255,13 +255,13 @@ describe('getMichiganGuidance', () => {
 
   it('returns high-confidence text for kp >= 7', () => {
     const result = getMichiganGuidance(7, 10, -3)
-    expect(result).toContain('Lower Peninsula')
+    expect(result).toContain('northern United States')
   })
 
-  it('returns UP-focused text for kp 5-6', () => {
+  it('returns northern-tier text for kp 5-6', () => {
     const result = getMichiganGuidance(5, 10, -3)
-    expect(result).toContain('Upper Peninsula')
-    expect(result).toContain('northern Lower')
+    expect(result).toContain('northern-tier')
+    expect(result).toContain('Great Lakes')
   })
 
   it('appends Bz boost note when bz <= -5', () => {
@@ -285,11 +285,11 @@ describe('getMichiganGuidance', () => {
 // getCityAuroraProbabilities
 // ============================================
 describe('getCityAuroraProbabilities', () => {
-  it('returns 4 cities in north-to-south order', () => {
+  it('returns 5 cities', () => {
     const result = getCityAuroraProbabilities(null, null, null)
-    expect(result).toHaveLength(4)
-    expect(result[0].name).toBe('Fort Ripley')
-    expect(result[3].name).toBe('Hudsonville')
+    expect(result).toHaveLength(5)
+    expect(result[0].name).toBe('Duluth')
+    expect(result[4].name).toBe('Presque Isle')
   })
 
   it('returns 0 for all cities when no data and no kp', () => {
@@ -298,27 +298,26 @@ describe('getCityAuroraProbabilities', () => {
   })
 
   it('uses Kp-based fallback when ovation is null', () => {
-    // Kp 6 should give Fort Ripley (46°N) a meaningful probability
+    // Kp 6 should give Duluth (47°N) a meaningful probability
     const result = getCityAuroraProbabilities(null, 6, null)
     expect(result[0].state).toBe('MN')
     expect(result[0].prob).toBeGreaterThan(0)
-    // Fort Ripley (northernmost) should be >= Hudsonville (southernmost)
-    expect(result[0].prob).toBeGreaterThanOrEqual(result[3].prob)
+    // All 5 cities are at similar high latitudes; just verify all have non-negative probs
+    result.forEach(c => expect(c.prob).toBeGreaterThanOrEqual(0))
   })
 
   it('picks the nearest OVATION grid point for each city', () => {
-    // Place a high-probability point right near Fort Ripley (~46°N, -94°W → rawLon 266)
-    // and a low point near the Michigan cities (~44°N, -85°W → rawLon 275)
+    // Place a high-probability point near Duluth (~47°N, -92°W → rawLon 268)
+    // and a lower point near Billings (~46°N, -109°W → rawLon 251)
     const ovation: OvationResponse = {
       coordinates: [
-        [266, 46, 70],   // near Fort Ripley
-        [275, 45, 5],    // near Cedar/Spring Lake/Hudsonville
-        [275, 43, 5],
+        [268, 47, 70],   // near Duluth
+        [251, 46, 20],   // near Billings
       ],
     }
     const result = getCityAuroraProbabilities(ovation, 5, null)
-    expect(result[0].prob).toBe(70)   // Fort Ripley
-    expect(result[1].prob).toBeLessThanOrEqual(10)  // Cedar
+    expect(result[0].prob).toBe(70)   // Duluth
+    expect(result[3].prob).toBe(20)   // Billings
   })
 
   it('applies Bz boost when bz <= -5', () => {

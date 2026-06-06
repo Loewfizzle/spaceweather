@@ -89,7 +89,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-      <div className="section-title">KP OUTLOOK + MICHIGAN FORECAST</div>
+      <div className="section-title">KP OUTLOOK + REGIONAL FORECAST</div>
       <div className="card p-6">
         <div className="h-56">
           {kpQuery.isLoading ? (
@@ -114,7 +114,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
 
         <div className="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
           <div className="text-[#cbd5e1]">
-            <span className="font-medium text-white">Tonight (Michigan):</span>{" "}
+            <span className="font-medium text-white">Tonight (Northern US):</span>{" "}
             {michiganGuidance}
           </div>
           <div className="text-[#cbd5e1]">
@@ -133,7 +133,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
         <div className="mt-3 text-[10px] text-[#64748b]">
           Chart shows last ~36 hours of 3-hour Kp values
           {hasForecast && " plus 36-hour NOAA forecast (dashed)"}
-          {hasTonight && ". Shaded area = tonight (Michigan time, 8 pm–6 am ET)"}
+          {hasTonight && ". Shaded area = tonight (8 pm–6 am local time)"}
           {"."}
           {forecastQuery.error && !hasForecast && (
             <span className="ml-2 text-amber-400/70">Forecast temporarily unavailable.</span>

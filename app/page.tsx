@@ -32,7 +32,7 @@ export default function AuroraWatch() {
               </div>
               {/* Subtitle + live dot on one line */}
               <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#64748b] leading-none">
-                <span>NOAA SWPC<span className="hidden sm:inline"> • Michigan Focus</span></span>
+                <span>NOAA SWPC<span className="hidden sm:inline"> • Northern US</span></span>
                 <LiveIndicator />
               </div>
             </div>
@@ -54,7 +54,7 @@ export default function AuroraWatch() {
           </h1>
           <p className="text-2xl text-[#94a3b8] tracking-tight max-w-2xl">
             Real-time OVATION aurora forecasts and planetary K-index.
-            Special attention to Michigan and the Great Lakes.
+            Particularly strong coverage for the Great Lakes region and the northern United States.
           </p>
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function AuroraWatch() {
               . OVATION, planetary K-index, and real-time solar wind.
             </div>
             <div className="text-[#475569]">
-              Not for navigation • Updates every few minutes • Built for Michigan aurora chasers
+              Not for navigation • Updates every few minutes • Built for northern US aurora chasers
             </div>
           </div>
           <div className="mt-4 text-[#475569] text-[10px]">AuroraWatch v0.1.0</div>

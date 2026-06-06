@@ -70,7 +70,7 @@ async function checkAurora() {
     if (kpHit)   reasons.push(`Kp ${kp.toFixed(1)}`);
     if (probHit) reasons.push(`${Math.round(cachedMaxProb)}% probability`);
     if (bzHit)   reasons.push(`Bz ${cachedBz.toFixed(1)} nT`);
-    const body = `${reasons.join(' · ')} — Aurora may be visible in Michigan. Tap to check conditions.`;
+    const body = `${reasons.join(' · ')} — Aurora may be visible across the northern US. Tap to check conditions.`;
 
     await self.registration.showNotification('AuroraWatch Alert', {
       body,

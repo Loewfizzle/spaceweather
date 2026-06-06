@@ -204,7 +204,7 @@ export function useNotifications({
     if (likelyForMI) {
       const body = isSurge
         ? `Kp jumped to ${kp.toFixed(1)} (was ${prevKp!.toFixed(1)}). Conditions may be changing rapidly — check the aurora map now.`
-        : `Kp ${kp.toFixed(1)}. Aurora may be visible in parts of Michigan tonight. Check the map and current conditions.`;
+        : `Kp ${kp.toFixed(1)}. Aurora may be visible across the northern US tonight. Check the map and current conditions.`;
       try {
         new Notification("AuroraWatch Alert", {
           body,
@@ -238,7 +238,7 @@ export function useNotifications({
       try {
         const thresh = ALERT_THRESHOLDS[alertSensitivity];
         new Notification("AuroraWatch Test", {
-          body: `Test. You will receive real alerts when Kp ≥ ${thresh.kp} or OVATION ≥ ${thresh.prob}% (or strong −Bz) for Michigan.`,
+          body: `Test. You will receive real alerts when Kp ≥ ${thresh.kp} or OVATION ≥ ${thresh.prob}% (or strong −Bz) for the northern US.`,
           tag: "aurorawatch-test",
         });
       } catch (e) {
@@ -270,7 +270,7 @@ export function useNotifications({
 
       try {
         new Notification("AuroraWatch", {
-          body: "Alerts enabled. We'll notify you when aurora looks likely over Michigan.",
+          body: "Alerts enabled. We'll notify you when aurora looks likely across the northern US.",
         });
       } catch {}
     }

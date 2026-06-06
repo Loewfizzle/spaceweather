@@ -1,6 +1,6 @@
 // lib/noaa.ts
 // Pure business logic, derived calculations, and data-processing utilities
-// for AuroraWatch (Michigan-focused aurora + space weather).
+// for AuroraWatch (Northern US aurora + space weather).
 //
 // This module owns:
 // - Time-series helpers (latest)
@@ -33,7 +33,7 @@ export function latest<T extends { time_tag?: string | null }>(arr: T[]): T | nu
 }
 
 /**
- * Plain-English aurora guidance for Michigan, incorporating Kp + OVATION prob + Bz.
+ * Plain-English aurora guidance for the northern US, incorporating Kp + OVATION prob + Bz.
  * Pure function; lives here alongside getMichiganRiskLevel and getTonightOutlook.
  */
 export function getMichiganGuidance(
@@ -44,13 +44,13 @@ export function getMichiganGuidance(
   if (kp === null) return "Data loading...";
   let text: string;
   if (kp >= 7) {
-    text = "High probability of aurora visible across much of Michigan, including Lower Peninsula under dark skies.";
+    text = "High probability of aurora visible across the northern United States, including areas well south of the Great Lakes.";
   } else if (kp >= 5) {
-    text = "Good chance in the Upper Peninsula; possible in northern Lower Peninsula with clear dark skies.";
+    text = "Good chance across northern-tier states; possible in the Great Lakes region with clear dark skies.";
   } else if (kp >= 4) {
-    text = "Possible in the Upper Peninsula. Lower Peninsula unlikely unless skies are very dark and clear.";
+    text = "Possible across the northern states. Farther south unlikely unless skies are very dark and clear.";
   } else {
-    text = "Low probability across Michigan. Best chances remain in the far northern Upper Peninsula.";
+    text = "Low probability across the northern US. Best chances remain at the highest latitudes.";
   }
   if (bz !== null && bz <= -5) {
     text += " Strong southward Bz currently boosting chances.";
@@ -60,7 +60,7 @@ export function getMichiganGuidance(
   return text;
 }
 
-// Michigan-specific risk level for visibility (used by alerts UI + header badge).
+// Regional risk level for visibility (used by alerts UI + header badge).
 // Pure function; derived from Kp + OVATION prob + Bz. Lives here with other
 // business logic rather than inside a hook file.
 export function getMichiganRiskLevel(
@@ -300,28 +300,28 @@ export function getTonightOutlook(
 
   if (kp >= 7 || (kp >= 6 && (strongFavorableBz || highProb)) || (kp >= 5 && veryHighSpeed && isFavorableBz)) {
     status = 'Excellent';
-    message = 'Strong chance across much of the UP + possible in northern Lower Michigan.';
+    message = 'Strong chance across the northern tier, reaching well into the Great Lakes region.';
     accentColor = '#22c55e';
     if (strongFavorableBz) reasons.push('Strong southward Bz currently boosting chances');
     if (veryHighSpeed && solarWindSpeed) reasons.push(`Very high solar wind speed (${Math.round(solarWindSpeed)} km/s) amplifying activity`);
     if (highProb && !veryHighSpeed) reasons.push('Elevated OVATION probabilities across North America');
   } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || (kp >= 4 && highSpeed) || (kp >= 3 && highSpeed && isFavorableBz) || highProb) {
     status = 'Good';
-    message = 'Good chance in the Upper Peninsula.';
+    message = 'Good chance for northern-tier states and the Great Lakes region.';
     accentColor = '#22c55e';
     if (isFavorableBz) reasons.push('Southward Bz currently favorable');
     if (highSpeed && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) enhancing coupling`);
     if (highProb && !highSpeed) reasons.push('High aurora probabilities across NA');
   } else if (kp >= 4 || (kp >= 3 && isFavorableBz) || moderateProb || hasEarthCme || highSpeed) {
     status = 'Moderate';
-    message = 'Possible in the Upper Peninsula under dark skies.';
+    message = 'Possible across northern states under dark skies.';
     accentColor = '#eab308';
     if (isFavorableBz) reasons.push('Favorable Bz may enhance activity');
     if (hasEarthCme) reasons.push('Recent Earth-directed CME may increase chances');
     if (highSpeed && !isFavorableBz && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) — watch for Bz to turn south`);
   } else if (kp >= 3 || isFavorableBz || significantFlare) {
     status = 'Low';
-    message = 'Low probability across Michigan.';
+    message = 'Low probability across the northern US.';
     accentColor = '#f97316';
     if (isFavorableBz) reasons.push('Southward Bz provides some opportunity');
   } else {
@@ -349,10 +349,11 @@ export function getTonightOutlook(
 // ── City-level aurora probability ──────────────────────────────────────────
 
 const AURORA_WATCH_CITIES = [
-  { name: "Fort Ripley", state: "MN", lat: 46.17, lon: -94.36 },
-  { name: "Cedar",       state: "MI", lat: 44.75, lon: -85.56 },
-  { name: "Spring Lake", state: "MI", lat: 43.08, lon: -86.20 },
-  { name: "Hudsonville", state: "MI", lat: 42.87, lon: -85.87 },
+  { name: "Duluth",       state: "MN", lat: 46.79, lon: -92.10  },
+  { name: "Fargo",        state: "ND", lat: 46.88, lon: -96.79  },
+  { name: "Marquette",    state: "MI", lat: 46.54, lon: -87.40  },
+  { name: "Billings",     state: "MT", lat: 45.78, lon: -108.50 },
+  { name: "Presque Isle", state: "ME", lat: 46.68, lon: -68.02  },
 ] as const;
 
 // Rough equatorward aurora oval boundary by Kp (Holzworth & Meng 1975, simplified).
@@ -503,7 +504,7 @@ export function createGoogleCalendarLink(shower: MeteorShower, peakDate: Date): 
 
   const text = encodeURIComponent(`Meteor Shower Peak: ${shower.name}`);
   const details = encodeURIComponent(
-    `Peak night(s): ${formatMeteorPeak(peakDate, shower)}\n\n${shower.description}\n\nExpected activity: ${shower.activityLevel}\n\nBest viewed after midnight from dark skies (Michigan UP ideal).`
+    `Peak night(s): ${formatMeteorPeak(peakDate, shower)}\n\n${shower.description}\n\nExpected activity: ${shower.activityLevel}\n\nBest viewed after midnight from dark skies (northern latitudes ideal).`
   );
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}&sf=true&output=xml`;
 }
