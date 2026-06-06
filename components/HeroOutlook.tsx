@@ -84,8 +84,8 @@ export function HeroOutlook({
             {displayedCities.length > 0 && (
               <div className="flex items-center gap-1.5 border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
                 <span className="block h-1.5 w-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
-                  Live probabilities
+                <span className="text-[11px] text-[#64748b]">
+                  Current chances
                 </span>
               </div>
             )}
