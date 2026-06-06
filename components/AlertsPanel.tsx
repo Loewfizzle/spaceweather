@@ -1,7 +1,9 @@
 "use client";
 
 import { Bell } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { useNotifications, ALERT_THRESHOLDS } from "../lib/hooks/useNotifications";
+import type { Alert } from "../lib/api/schemas";
 
 interface AlertsPanelProps {
   riskLevel: "Quiet" | "Moderate" | "High" | null;
@@ -9,6 +11,30 @@ interface AlertsPanelProps {
   maxAuroraProbNA: number | null;
   bz: number | null;
   isLoading: boolean;
+  alerts?: Alert[];
+}
+
+function alertProductLabel(productId: string): { text: string; color: string } {
+  if (productId.startsWith('WATA')) {
+    const g = ({ WATA07: 'G1', WATA20: 'G2', WATA30: 'G3', WATA40: 'G4', WATA50: 'G5' } as Record<string, string>)[productId];
+    return { text: g ? `Storm Watch ${g}` : 'Storm Watch', color: '#22c55e' };
+  }
+  if (productId.startsWith('ALTK')) return { text: 'K-index Alert', color: '#eab308' };
+  if (productId.startsWith('ALTTP')) return { text: 'Geomagnetic Alert', color: '#eab308' };
+  if (productId.startsWith('WARPT') || productId.startsWith('ALTPX')) return { text: 'Radiation Storm', color: '#f97316' };
+  if (productId.startsWith('SUM')) return { text: 'NOAA Summary', color: '#64748b' };
+  if (productId.startsWith('WAR')) return { text: 'Warning', color: '#f97316' };
+  if (productId.startsWith('ALT')) return { text: 'Alert', color: '#eab308' };
+  return { text: 'Notice', color: '#64748b' };
+}
+
+function alertFirstLine(message: string): string {
+  // Skip NOAA header block (ends with blank line before the body)
+  const bodyStart = message.indexOf('\n\n');
+  const body = bodyStart >= 0 ? message.slice(bodyStart + 2).trim() : message.trim();
+  const match = body.match(/^(.{20,140}[.!?])/);
+  const raw = match ? match[1] : body.slice(0, 120);
+  return raw.length < body.length ? raw : raw + (body.length > 120 ? '…' : '');
 }
 
 /**
@@ -19,7 +45,8 @@ interface AlertsPanelProps {
  * Receives live condition values + riskLevel (for badge) from orchestration layer.
  * Exact original layout, conditional classes, disabled states, and messaging preserved.
  */
-export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading }: AlertsPanelProps) {
+export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, alerts }: AlertsPanelProps) {
+  const recentAlerts = (alerts ?? []).slice(0, 8);
   const {
     notificationPermission,
     alertsEnabled,
@@ -152,6 +179,34 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading }: A
             )}
           </div>
         </div>
+
+        {/* Recent NOAA alerts feed */}
+        {recentAlerts.length > 0 && (
+          <div className="mt-6 pt-5 border-t border-[#1e2937]">
+            <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
+              RECENT NOAA ALERTS
+            </div>
+            <div className="space-y-3">
+              {recentAlerts.map((alert, i) => {
+                const { text, color } = alertProductLabel(alert.product_id);
+                const firstLine = alertFirstLine(alert.message);
+                const ago = (() => {
+                  try { return formatDistanceToNow(new Date(alert.issue_datetime), { addSuffix: true }); }
+                  catch { return alert.issue_datetime; }
+                })();
+                return (
+                  <div key={i} className="text-[12px]">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-medium" style={{ color }}>{text}</span>
+                      <span className="text-[#475569] tabular-nums">{ago}</span>
+                    </div>
+                    <div className="text-[#64748b] leading-snug">{firstLine}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
