@@ -80,10 +80,10 @@ export function HeroOutlook({
 
         {outlook.status !== "Loading" && (
           <div className="space-y-1 mb-2">
-            {/* Clarifying label — anchors the percentages as current/live, not forecast */}
-            {(userLocationProb != null || (displayedCities.length > 0)) && (
-              <div className="uppercase tracking-[2px] text-[9px] text-[#475569] pb-0.5">
-                Current modeled probabilities
+            {/* Label — always visible once cities are loaded */}
+            {displayedCities.length > 0 && (
+              <div className="text-[10px] text-[#475569] mb-0.5">
+                Live probabilities
               </div>
             )}
             {/* User location row — shown first when granted */}
@@ -112,20 +112,6 @@ export function HeroOutlook({
                 </span>
               </div>
             ))}
-
-            {/* Cloud cover — only shown when geolocation is granted */}
-            {cloudCoverPct != null && (
-              <div className="flex items-center gap-1.5 text-[11px] mt-2 pt-2 border-t border-[#1e2937]">
-                <Cloud className="h-3 w-3 text-[#64748b] flex-shrink-0" />
-                <span className="text-[#64748b]">Skies tonight:</span>
-                <span
-                  className="font-medium"
-                  style={{ color: cloudCoverColor(cloudCoverPct) }}
-                >
-                  {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -159,6 +145,16 @@ export function HeroOutlook({
                 )}
                 {isLocating ? "Locating…" : locationTimedOut ? "Try again" : "Use my location"}
               </button>
+            )}
+            {/* Cloud cover lives in the footer so it shares a line with the Share button */}
+            {cloudCoverPct != null && (
+              <div className="flex items-center gap-1.5 text-xs text-[#64748b]">
+                <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>Skies tonight:</span>
+                <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>
+                  {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
+                </span>
+              </div>
             )}
             <NotificationPrompt />
             <InstallPrompt />
