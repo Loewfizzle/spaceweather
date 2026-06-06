@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarPlus } from "lucide-react";
 import {
   getNextMeteorShower,
   formatMeteorPeak,
@@ -15,6 +16,19 @@ import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
 import { FireballModal } from "./FireballModal";
+
+function activityColor(level: string): string {
+  const lc = level.toLowerCase();
+  if (lc.includes("high")) return "#22c55e";
+  if (lc.includes("moderate")) return "#eab308";
+  return "#94a3b8";
+}
+
+function daysUntilLabel(days: number): string {
+  if (days <= 0) return "Peaks tonight";
+  if (days === 1) return "Tomorrow";
+  return `In ${days} days`;
+}
 
 /**
  * MeteorActivity
@@ -32,28 +46,85 @@ export function MeteorActivity() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Next Meteor Shower */}
         <div className="card p-5">
-          <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-1">NEXT METEOR SHOWER</div>
-
           {nextMeteor ? (
             <>
-              <div className="text-2xl font-semibold tracking-tight mb-1">{nextMeteor.shower.name}</div>
-              <div className="text-sm text-[#94a3b8] mb-2 tabular-nums">
-                Peak: {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
-              </div>
-              <p className="text-sm text-[#cbd5e1] mb-3 leading-snug">
-                {nextMeteor.shower.description} <span className="text-[#64748b]">({nextMeteor.shower.activityLevel})</span>
-              </p>
-              <button
-                onClick={() => {
-                  const url = createGoogleCalendarLink(nextMeteor.shower, nextMeteor.peakDate);
-                  window.open(url, "_blank", "noopener");
-                }}
-                className="button w-full sm:w-auto justify-center text-xs px-4 py-1.5 min-h-0"
-              >
-                Add Peak Night to Calendar
-              </button>
+              {/* Header: label + countdown */}
+              {(() => {
+                const days = Math.ceil(
+                  (nextMeteor.peakDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                );
+                const color = activityColor(nextMeteor.shower.activityLevel);
+                return (
+                  <>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">
+                        NEXT METEOR SHOWER
+                      </div>
+                      <span className="text-[11px] text-[#64748b] tabular-nums">
+                        {daysUntilLabel(days)}
+                      </span>
+                    </div>
+
+                    {/* Name + date */}
+                    <div className="text-3xl font-semibold tracking-tight leading-none mb-1.5">
+                      {nextMeteor.shower.name}
+                    </div>
+                    <div className="text-[15px] text-[#94a3b8] tabular-nums mb-3">
+                      {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
+                    </div>
+
+                    {/* Activity badge */}
+                    <div className="mb-3">
+                      <span
+                        className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full"
+                        style={{
+                          color,
+                          backgroundColor: color + "1a",
+                          border: `1px solid ${color}33`,
+                        }}
+                      >
+                        <span
+                          className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: color }}
+                        />
+                        {nextMeteor.shower.activityLevel} activity
+                      </span>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-[#94a3b8] leading-relaxed mb-3">
+                      {nextMeteor.shower.description}
+                    </p>
+
+                    {/* Viewing tip */}
+                    <div className="text-[11px] text-[#475569] mb-4">
+                      Best after midnight &middot; Dark rural skies
+                    </div>
+
+                    {/* Calendar button */}
+                    <button
+                      onClick={() => {
+                        const url = createGoogleCalendarLink(
+                          nextMeteor.shower,
+                          nextMeteor.peakDate
+                        );
+                        window.open(url, "_blank", "noopener");
+                      }}
+                      className="button w-full justify-center gap-2 text-xs px-4 py-1.5 min-h-0"
+                    >
+                      <CalendarPlus className="h-3.5 w-3.5" />
+                      Add Peak Night to Calendar
+                    </button>
+                  </>
+                );
+              })()}
             </>
           ) : (
+            <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-3">
+              NEXT METEOR SHOWER
+            </div>
+          )}
+          {!nextMeteor && (
             <EmptyState
               title="No upcoming shower data"
               description="No major meteor shower peaks in the near future."
