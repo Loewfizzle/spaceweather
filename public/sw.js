@@ -55,7 +55,9 @@ async function checkAurora() {
 
     // NOAA returns string[][] (header row + data rows); find the Kp column index
     // from the header then read the last (most-recent) data row.
-    // Same logic as lib/utils/swKpParsing.ts — mirrored here because SW has no imports.
+    // MIRROR of lib/utils/swKpParsing.ts — SW has no module imports.
+    // KEEP IN SYNC: any change to parseKpFromTabular in swKpParsing.ts must be
+    // replicated here. Canonical signature: parseKpFromTabular(raw: unknown): number | null
     function parseKpFromTabular(data) {
       if (!Array.isArray(data) || data.length < 2) return null;
       const headers = data[0];
@@ -71,8 +73,12 @@ async function checkAurora() {
     const kp = parseKpFromTabular(raw);
     if (kp === null) return;
 
-    // Multi-factor trigger check — same logic as lib/utils/swNotifications.ts,
-    // inlined here because SW has no module imports.
+    // Multi-factor trigger check.
+    // MIRROR of lib/utils/swNotifications.ts — SW has no module imports.
+    // KEEP IN SYNC: any change to shouldTriggerNotification in swNotifications.ts must be
+    // replicated here. Canonical signature:
+    //   shouldTriggerNotification(kp: number|null, prefs: {kp:number,prob:number},
+    //                             cachedBz: number|null, cachedMaxProb: number|null): boolean
     function shouldTriggerNotification(kpVal, userPrefs, bz, maxProb) {
       if (kpVal === null) return false;
       const kpHit   = kpVal >= userPrefs.kp;

@@ -569,6 +569,7 @@ export function formatFireballDate(dateStr: string): string {
   if (!dateStr) return "—";
   try {
     const d = new Date(dateStr.replace(" ", "T") + "Z");
+    if (isNaN(d.getTime())) return dateStr;
     return (
       d.toLocaleString("en-US", {
         month: "short",
@@ -616,10 +617,12 @@ export function approximateLocation(lat: number, lon: number): string {
   // 4. Remaining land masses + open-ocean catch-alls
 
   // Enclosed / semi-enclosed seas
+  // Black Sea must precede Mediterranean — its bbox (41–47°N, 27–42°E) is entirely
+  // inside the Mediterranean bbox (30–47°N, -6–42°E), so it must be checked first.
+  if (lat >= 41 && lat <= 47 && lon >= 27   && lon <= 42)  return "Black Sea";
   if (lat >= 30 && lat <= 47 && lon >= -6   && lon <= 42)  return "Mediterranean Sea";
   if (lat >= 22 && lat <= 32 && lon >= 32   && lon <= 45)  return "Red Sea";
   if (lat >= 22 && lat <= 30 && lon >= 47   && lon <= 57)  return "Persian Gulf";
-  if (lat >= 41 && lat <= 47 && lon >= 27   && lon <= 42)  return "Black Sea";
   if (lat >= 50 && lat <= 65 && lon >= 155  && lon <= 192) return "Bering Sea";
   if (lat >= 18 && lat <= 31 && lon >= -98  && lon <= -80) return "Gulf of Mexico";
   if (lat >= 10 && lat <= 24 && lon >= -88  && lon <= -60) return "Caribbean Sea";

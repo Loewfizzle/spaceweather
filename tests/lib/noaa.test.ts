@@ -10,11 +10,14 @@ import {
   filterOvationCoordinates,
   maxOvationNorthAmerica,
   getAuroraColor,
+  getAuroraMarkerRadius,
   parseRecentCmes,
   getCityAuroraProbabilities,
   getLocationAuroraProb,
   getNearestCityName,
   formatFireballDate,
+  formatFireballEnergy,
+  formatFireballLocation,
   approximateLocation,
   assessEarthImpact,
 } from '../../lib/noaa'
@@ -170,12 +173,56 @@ describe('Meteor helpers', () => {
     expect(result!.peakDate.getTime()).toBeGreaterThan(Date.now())
   })
 
+  it('returns Perseids when called on July 1', () => {
+    const result = getNextMeteorShower(new Date(2026, 6, 1)) // July 1
+    expect(result?.shower.name).toBe('Perseids')
+    expect(result?.peakDate.getFullYear()).toBe(2026)
+  })
+
+  it('wraps to Quadrantids of next year after Dec 14 (Geminids end)', () => {
+    const result = getNextMeteorShower(new Date(2026, 11, 15)) // Dec 15
+    expect(result?.shower.name).toBe('Quadrantids')
+    expect(result?.peakDate.getFullYear()).toBe(2027)
+  })
+
+  it('includes a shower whose peak is exactly today at midnight (not yet past)', () => {
+    // Candidate is midnight; now is also midnight → candidate is NOT less than now → included
+    const result = getNextMeteorShower(new Date(2026, 7, 12, 0, 0, 0)) // Aug 12 00:00
+    expect(result?.shower.name).toBe('Perseids')
+  })
+
+  it('skips a shower whose midnight peak has already passed (now is later that day)', () => {
+    const result = getNextMeteorShower(new Date(2026, 7, 12, 12, 0, 0)) // Aug 12 noon
+    expect(result?.shower.name).not.toBe('Perseids')
+    expect(result?.shower.name).toBe('Orionids') // Oct 21 is next
+  })
+
   it('formatMeteorPeak formats date range correctly', () => {
     // This is a simplified test - adjust if your MAJOR_METEOR_SHOWERS data changes
     const mockShower: MeteorShower = { name: 'Perseids', peakMonth: 8, peakDay: 12, peakEndDay: 13, activityLevel: 'High', description: 'One of the best annual meteor showers.' }
     const date = new Date(2026, 7, 12)
     const formatted = formatMeteorPeak(date, mockShower)
     expect(formatted).toContain('August 12')
+  })
+
+  it('formatMeteorPeak includes the year', () => {
+    const shower: MeteorShower = { name: 'Geminids', peakMonth: 12, peakDay: 13, peakEndDay: 14, activityLevel: 'High', description: 'Best shower.' }
+    expect(formatMeteorPeak(new Date(2026, 11, 13), shower)).toContain('2026')
+  })
+
+  it('formatMeteorPeak handles cross-month range', () => {
+    // hypothetical shower Nov 29 – Dec 1
+    const shower: MeteorShower = { name: 'Test', peakMonth: 11, peakDay: 29, peakEndDay: 1, peakEndMonth: 12, activityLevel: 'Low', description: 'Test.' }
+    const result = formatMeteorPeak(new Date(2026, 10, 29), shower)
+    expect(result).toContain('November')
+    expect(result).toContain('December')
+  })
+
+  it('formatMeteorPeak renders same-month range with dash', () => {
+    const shower: MeteorShower = { name: 'Perseids', peakMonth: 8, peakDay: 12, peakEndDay: 13, activityLevel: 'High', description: '.' }
+    const result = formatMeteorPeak(new Date(2026, 7, 12), shower)
+    expect(result).toContain('12')
+    expect(result).toContain('13')
   })
 })
 
@@ -385,6 +432,14 @@ describe('getCityAuroraProbabilities', () => {
 })
 
 describe('parseRecentCmes', () => {
+  it('returns empty array for undefined', () => {
+    expect(parseRecentCmes(undefined)).toEqual([])
+  })
+
+  it('returns empty array for empty alerts array', () => {
+    expect(parseRecentCmes([])).toEqual([])
+  })
+
   it('extracts CMEs from alerts', () => {
     const alerts: Alert[] = [
       { message: 'CME alert: 1200 km/s Earth-directed halo', issue_datetime: '2026-06-05T08:00Z' } as Alert,
@@ -392,6 +447,109 @@ describe('parseRecentCmes', () => {
     const cmes = parseRecentCmes(alerts)
     expect(cmes.length).toBe(1)
     expect(cmes[0].speed).toBe(1200)
+  })
+
+  it('WATA storm watch IDs take priority and appear first', () => {
+    const alerts: Alert[] = [
+      { message: 'Body CME mention 750 km/s', issue_datetime: '2026-06-03T08:00Z', product_id: 'ALTXX' },
+      { message: 'G2 watch issued', issue_datetime: '2026-06-04T08:00Z', product_id: 'WATA20' },
+    ]
+    const cmes = parseRecentCmes(alerts)
+    expect(cmes.length).toBe(2)
+    expect(cmes[0].time).toBe('2026-06-04T08:00Z') // WATA first
+  })
+
+  it('includes non-storm-watch body CME mention when no WATA exists', () => {
+    const alerts: Alert[] = [
+      { message: 'Coronal Mass Ejection detected at 900 km/s', issue_datetime: '2026-06-05T06:00Z', product_id: 'ALTXX' },
+    ]
+    const cmes = parseRecentCmes(alerts)
+    expect(cmes.length).toBe(1)
+    expect(cmes[0].speed).toBe(900)
+  })
+
+  it('excludes alerts that are neither WATA nor body CME mentions', () => {
+    const alerts: Alert[] = [
+      { message: 'Solar flare detected — no relevant events', issue_datetime: '2026-06-05T06:00Z', product_id: 'K05A' },
+    ]
+    expect(parseRecentCmes(alerts)).toHaveLength(0)
+  })
+
+  it('caps candidates at 2 even when more than 2 match', () => {
+    const alerts: Alert[] = [
+      { message: 'CME 1', issue_datetime: '2026-06-05T08:00Z', product_id: 'WATA30' },
+      { message: 'CME 2', issue_datetime: '2026-06-05T07:00Z', product_id: 'WATA20' },
+      { message: 'CME body mention', issue_datetime: '2026-06-05T06:00Z', product_id: 'ALTXX' },
+    ]
+    expect(parseRecentCmes(alerts)).toHaveLength(2)
+  })
+
+  it('sets earthImpact to "Likely Earth impact" for Earth-directed messages', () => {
+    const alerts: Alert[] = [
+      { message: 'Earth-directed CME at 1500 km/s detected', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    expect(parseRecentCmes(alerts)[0].earthImpact).toBe('Likely Earth impact')
+  })
+
+  it('sets earthImpact to "Monitor for effects" for non-Earth-directed messages', () => {
+    const alerts: Alert[] = [
+      { message: 'CME detected moving southward, 800 km/s', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    expect(parseRecentCmes(alerts)[0].earthImpact).toBe('Monitor for effects')
+  })
+
+  it('extracts "geomagnetic storm" as Likely Earth impact trigger', () => {
+    const alerts: Alert[] = [
+      { message: 'CME expected. Geomagnetic storm watch issued.', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    expect(parseRecentCmes(alerts)[0].earthImpact).toBe('Likely Earth impact')
+  })
+
+  it('extracts direction for "full halo CME"', () => {
+    const alerts: Alert[] = [
+      { message: 'Full halo CME detected, Earth-directed, 1200 km/s', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    const direction = parseRecentCmes(alerts)[0].direction
+    expect(direction).toMatch(/halo/i)
+  })
+
+  it('extracts direction for "partial halo"', () => {
+    const alerts: Alert[] = [
+      { message: 'Partial halo CME at 600 km/s observed', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    expect(parseRecentCmes(alerts)[0].direction).toMatch(/halo/i)
+  })
+
+  it('leaves direction undefined when no direction pattern matches', () => {
+    const alerts: Alert[] = [
+      { message: 'CME detected, southward trajectory, 800 km/s', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    expect(parseRecentCmes(alerts)[0].direction).toBeUndefined()
+  })
+
+  it('leaves speed undefined when no speed pattern matches', () => {
+    const alerts: Alert[] = [
+      { message: 'CME detected, speed unknown', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    expect(parseRecentCmes(alerts)[0].speed).toBeUndefined()
+  })
+
+  it('does not match 2-digit "speeds" (word-boundary guard)', () => {
+    const alerts: Alert[] = [
+      { message: 'CME at 99 km/s observed', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    // \b(\d{3,4})\s*km\/s requires 3-4 digits
+    expect(parseRecentCmes(alerts)[0].speed).toBeUndefined()
+  })
+
+  it('truncates note to 140 chars with ellipsis for long messages', () => {
+    const line = 'CME detected. ' + 'A'.repeat(160) // must contain CME to pass body filter
+    const alerts: Alert[] = [
+      { message: line, issue_datetime: '2026-06-05T08:00Z' } as Alert,
+    ]
+    const note = parseRecentCmes(alerts)[0].note
+    expect(note.endsWith('…')).toBe(true)
+    expect(note.length).toBeLessThanOrEqual(143) // 140 chars + "…"
   })
 })
 
@@ -411,6 +569,94 @@ describe('formatFireballDate', () => {
     expect(result).not.toContain('Invalid Date')
     expect(result).toContain('2024')
     expect(result).toContain('UTC')
+  })
+
+  it('includes month, day, hour, minute, and UTC suffix', () => {
+    const result = formatFireballDate('2024-08-12 03:45:00')
+    expect(result).toContain('Aug')
+    expect(result).toContain('12')
+    expect(result).toContain('2024')
+    expect(result).toContain('UTC')
+  })
+
+  it('returns the raw string for an unparseable date', () => {
+    // isNaN(d.getTime()) guard ensures the raw input is returned rather than "Invalid Date UTC"
+    const bad = 'not-a-date-at-all'
+    expect(formatFireballDate(bad)).toBe(bad)
+  })
+})
+
+// ============================================
+// formatFireballEnergy
+// ============================================
+describe('formatFireballEnergy', () => {
+  it('returns — for null', () => {
+    expect(formatFireballEnergy(null)).toBe('—')
+  })
+
+  it('returns — for undefined', () => {
+    expect(formatFireballEnergy(undefined)).toBe('—')
+  })
+
+  it('returns — for empty string', () => {
+    expect(formatFireballEnergy('')).toBe('—')
+  })
+
+  it('returns — for non-numeric string', () => {
+    expect(formatFireballEnergy('n/a')).toBe('—')
+  })
+
+  it('formats values >= 1 with one decimal place', () => {
+    expect(formatFireballEnergy('1.0')).toBe('1.0 kt TNT')
+    expect(formatFireballEnergy('15.7')).toBe('15.7 kt TNT')
+    expect(formatFireballEnergy('100')).toBe('100.0 kt TNT')
+  })
+
+  it('formats values in [0.001, 1) with three decimal places', () => {
+    expect(formatFireballEnergy('0.5')).toBe('0.500 kt TNT')
+    expect(formatFireballEnergy('0.123')).toBe('0.123 kt TNT')
+  })
+
+  it('formats exact boundary 0.001 as three decimals (not < prefix)', () => {
+    expect(formatFireballEnergy('0.001')).toBe('0.001 kt TNT')
+  })
+
+  it('formats values < 0.001 as "< 0.001 kt TNT"', () => {
+    expect(formatFireballEnergy('0.0001')).toBe('< 0.001 kt TNT')
+    expect(formatFireballEnergy('0.000001')).toBe('< 0.001 kt TNT')
+  })
+})
+
+// ============================================
+// formatFireballLocation
+// ============================================
+describe('formatFireballLocation', () => {
+  it('returns "Location unavailable" when both lat and lon are null', () => {
+    expect(formatFireballLocation({ lat: null, lon: null })).toBe('Location unavailable')
+  })
+
+  it('returns "Location unavailable" when lat is null', () => {
+    expect(formatFireballLocation({ lat: null, lon: -80 })).toBe('Location unavailable')
+  })
+
+  it('returns "Location unavailable" when lon is null', () => {
+    expect(formatFireballLocation({ lat: 42, lon: null })).toBe('Location unavailable')
+  })
+
+  it('formats positive lat and negative lon as N/W', () => {
+    expect(formatFireballLocation({ lat: 42.5, lon: -83.1 })).toBe('42.5°N, 83.1°W')
+  })
+
+  it('formats negative lat and positive lon as S/E', () => {
+    expect(formatFireballLocation({ lat: -33.9, lon: 151.2 })).toBe('33.9°S, 151.2°E')
+  })
+
+  it('formats positive lat and positive lon as N/E', () => {
+    expect(formatFireballLocation({ lat: 51.5, lon: 0.1 })).toBe('51.5°N, 0.1°E')
+  })
+
+  it('formats negative lat and negative lon as S/W', () => {
+    expect(formatFireballLocation({ lat: -23.5, lon: -46.6 })).toBe('23.5°S, 46.6°W')
   })
 })
 
@@ -591,8 +837,28 @@ describe('approximateLocation', () => {
   })
 
   // Enclosed seas
+  it('returns Black Sea (must precede Mediterranean in evaluation order)', () => {
+    // Black Sea bbox is entirely inside Mediterranean bbox — ordering bug would return "Mediterranean Sea"
+    expect(approximateLocation(43, 34)).toBe('Black Sea')
+    expect(approximateLocation(41, 30)).toBe('Black Sea')
+  })
+
   it('returns Mediterranean Sea', () => {
     expect(approximateLocation(38, 15)).toBe('Mediterranean Sea')
+  })
+
+  it('returns Red Sea', () => {
+    expect(approximateLocation(27, 35)).toBe('Red Sea')
+    expect(approximateLocation(22, 38)).toBe('Red Sea')
+  })
+
+  it('returns Persian Gulf', () => {
+    expect(approximateLocation(26, 52)).toBe('Persian Gulf')
+  })
+
+  it('returns Bering Sea (western half, Russia side)', () => {
+    expect(approximateLocation(60, 170)).toBe('Bering Sea')
+    expect(approximateLocation(55, 160)).toBe('Bering Sea')
   })
 
   it('returns Gulf of Mexico', () => {
@@ -601,6 +867,11 @@ describe('approximateLocation', () => {
 
   it('returns Caribbean Sea', () => {
     expect(approximateLocation(15, -75)).toBe('Caribbean Sea')
+  })
+
+  it('returns Gulf of Guinea', () => {
+    expect(approximateLocation(3, 5)).toBe('Gulf of Guinea')
+    expect(approximateLocation(-3, 2)).toBe('Gulf of Guinea')
   })
 
   // Greenland
@@ -662,5 +933,47 @@ describe('approximateLocation', () => {
 
   it('returns Indian Ocean', () => {
     expect(approximateLocation(-10, 70)).toBe('Indian Ocean')
+  })
+})
+
+// ============================================
+// getAuroraColor + getAuroraMarkerRadius
+// ============================================
+describe('getAuroraColor', () => {
+  it('returns quiet color for prob < 10', () => {
+    expect(getAuroraColor(0)).toBe('#22c55e')
+    expect(getAuroraColor(9)).toBe('#22c55e')
+  })
+
+  it('returns moderate color for prob 10–29', () => {
+    expect(getAuroraColor(10)).toBe('#eab308')
+    expect(getAuroraColor(29)).toBe('#eab308')
+  })
+
+  it('returns active color for prob 30–59', () => {
+    expect(getAuroraColor(30)).toBe('#f97316')
+    expect(getAuroraColor(59)).toBe('#f97316')
+  })
+
+  it('returns storm color for prob >= 60', () => {
+    expect(getAuroraColor(60)).toBe('#a78bfa')
+    expect(getAuroraColor(99)).toBe('#a78bfa')
+  })
+})
+
+describe('getAuroraMarkerRadius', () => {
+  it('returns 3 for prob < 15', () => {
+    expect(getAuroraMarkerRadius(0)).toBe(3)
+    expect(getAuroraMarkerRadius(14)).toBe(3)
+  })
+
+  it('returns 3.5 for prob 15–39', () => {
+    expect(getAuroraMarkerRadius(15)).toBe(3.5)
+    expect(getAuroraMarkerRadius(39)).toBe(3.5)
+  })
+
+  it('returns 4.5 for prob >= 40', () => {
+    expect(getAuroraMarkerRadius(40)).toBe(4.5)
+    expect(getAuroraMarkerRadius(99)).toBe(4.5)
   })
 })

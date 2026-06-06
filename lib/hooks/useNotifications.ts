@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { shouldTriggerNotification } from "../utils/swNotifications";
 
 // Alert threshold presets (module scope for stability + used by effect, handler, and render in AlertsPanel)
 export const ALERT_THRESHOLDS = {
@@ -189,10 +190,7 @@ export function useNotifications({
     const now = Date.now();
     const thresh = ALERT_THRESHOLDS[alertSensitivity];
 
-    const likelyForMI =
-      kp >= thresh.kp ||
-      (maxAuroraProbNA !== null && maxAuroraProbNA >= thresh.prob) ||
-      (bz !== null && bz <= -5);
+    const likelyForMI = shouldTriggerNotification(kp, thresh, bz, maxAuroraProbNA);
 
     // Surge: Kp rose ≥2 points in one poll cycle and crossed into alert territory.
     // Use a tighter throttle so the user hears about rapid storm onset quickly.

@@ -112,4 +112,34 @@ describe('fetchFireballs', () => {
     expect(result[1].impactE).toBe('2.1e-02')
     expect(result[2].impactE).toBeNull()
   })
+
+  it('passes through alt and vel as strings', async () => {
+    stubFetch(NASA_FIXTURE)
+    const result = await fetchFireballs(4)
+    expect(result[0].alt).toBe('45.2')
+    expect(result[0].vel).toBe('12.3')
+    expect(result[1].alt).toBeNull() // null in fixture
+    expect(result[1].vel).toBe('8.7')
+  })
+
+  it('looks up fields by name, not position — reordered columns produce same output', async () => {
+    // Swap lat and lon columns to verify column-index lookup is by name
+    const reorderedFields = ['date', 'lon', 'lon-dir', 'lat', 'lat-dir', 'energy', 'impact-e', 'alt', 'vel']
+    const reorderedData = [
+      ['2024-01-15 21:30:45', '86.8', 'W', '36.1', 'N', '1.2e+00', '4.5e-01', '45.2', '12.3'],
+    ]
+    stubFetch({ fields: reorderedFields, data: reorderedData })
+    const result = await fetchFireballs(1)
+    expect(result[0].lat).toBeCloseTo(36.1)
+    expect(result[0].lon).toBeCloseTo(-86.8)
+  })
+
+  it('returns null for a field that is absent from the fields list', async () => {
+    // impact-e is missing from the fields array — impactE should be null
+    const sparseFields = ['date', 'lat', 'lat-dir', 'lon', 'lon-dir', 'energy', 'alt', 'vel']
+    const sparseData   = [['2024-01-15 21:30:45', '36.1', 'N', '86.8', 'W', '1.2e+00', '45.2', '12.3']]
+    stubFetch({ fields: sparseFields, data: sparseData })
+    const result = await fetchFireballs(1)
+    expect(result[0].impactE).toBeNull() // field not in fields list → col() returns null
+  })
 })
