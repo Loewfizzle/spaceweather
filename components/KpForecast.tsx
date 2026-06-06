@@ -38,10 +38,12 @@ interface StormDay {
 }
 
 // Colors match AURORA_TIERS: storm=#a78bfa, active=#f97316, moderate=#eab308
+// Labels omit the "Storm" suffix — G1/G2/G3+ are storm designations by definition,
+// and the suffix varying length ("G3+ Storm" vs "G2 Storm") breaks badge uniformity.
 function kpToStormLabel(kp: number): { label: string; color: string } {
-  if (kp >= 7) return { label: "G3+ Storm", color: "#a78bfa" };
-  if (kp >= 6) return { label: "G2 Storm",  color: "#a78bfa" };
-  if (kp >= 5) return { label: "G1 Storm",  color: "#f97316" };
+  if (kp >= 7) return { label: "G3+",       color: "#a78bfa" };
+  if (kp >= 6) return { label: "G2",        color: "#a78bfa" };
+  if (kp >= 5) return { label: "G1",        color: "#f97316" };
   if (kp >= 4) return { label: "Active",    color: "#eab308" };
   if (kp >= 3) return { label: "Unsettled", color: "#94a3b8" };
   return       { label: "Quiet",            color: "#475569" };
