@@ -29,9 +29,9 @@ function alertProductLabel(productId: string): { text: string; color: string } {
 }
 
 function alertFirstLine(message: string): string {
-  // Skip NOAA header block (ends with blank line before the body)
-  const bodyStart = message.indexOf('\n\n');
-  const body = bodyStart >= 0 ? message.slice(bodyStart + 2).trim() : message.trim();
+  // NOAA messages use \r\n\r\n as header/body separator
+  const bodyStart = message.indexOf('\r\n\r\n');
+  const body = bodyStart >= 0 ? message.slice(bodyStart + 4).trim() : message.trim();
   const match = body.match(/^(.{20,140}[.!?])/);
   const raw = match ? match[1] : body.slice(0, 120);
   return raw.length < body.length ? raw : raw + (body.length > 120 ? '…' : '');

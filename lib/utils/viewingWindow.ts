@@ -1,4 +1,4 @@
-import type { KpForecastEntry } from '../api/schemas';
+import type { KpEntry, KpForecastEntry } from '../api/schemas';
 
 // Michigan Eastern Time: UTC-4 (EDT, Mar–Nov) / UTC-5 (EST, Nov–Mar).
 // Aurora viewing window = local 8 pm (20:00) through 5:59 am.
@@ -15,6 +15,24 @@ export interface ViewingWindowData {
   windowStart: Date | null;
   windowEnd: Date | null;
   allBlocks: { time: Date; kp: number }[];
+}
+
+/**
+ * From the Kp history array, find the peak Kp value that occurred in last night's
+ * Michigan darkness window (8 pm – 6 am ET). Returns null if no overnight entries exist.
+ */
+export function computeLastNightPeak(
+  kpHistory: KpEntry[]
+): { peakKp: number; peakTime: Date } | null {
+  const now = new Date();
+  const entries = kpHistory
+    .filter((e) => e.time_tag && e.Kp != null)
+    .map((e) => ({ time: new Date(e.time_tag!), kp: e.Kp! }))
+    .filter((e) => e.time < now && inMichiganAuroraWindow(e.time));
+
+  if (entries.length === 0) return null;
+  const peak = entries.reduce((best, e) => (e.kp > best.kp ? e : best), entries[0]);
+  return { peakKp: peak.kp, peakTime: peak.time };
 }
 
 /**

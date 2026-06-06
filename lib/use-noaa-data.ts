@@ -192,6 +192,7 @@ export function useCurrentConditions() {
   return {
     kp: latestKp?.Kp ?? null,
     kpTime: latestKp?.time_tag ?? null,
+    kpHistory: kpQuery.data ?? [],
     maxAuroraProbNA: maxProbNA,
     ovationProcessed,  // true if we got non-empty coordinates from OVATION (for distinguishing real 0% vs processing failure)
     cityProbs,
@@ -299,6 +300,7 @@ export function useSolarActivity() {
   };
 
   return {
+    alerts: alertsQuery.data,
     latestFlare,
     recentCmes,
     sunspotNumber,

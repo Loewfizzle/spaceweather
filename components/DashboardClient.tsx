@@ -44,6 +44,7 @@ export function DashboardClient() {
   const {
     kp,
     kpTime,
+    kpHistory,
     maxAuroraProbNA,
     ovationProcessed,
     solarWindSpeed,
@@ -103,6 +104,14 @@ export function DashboardClient() {
     }
   }, []);
 
+  // Dynamic page title — shows live Kp so users can see conditions in the tab bar
+  useEffect(() => {
+    if (kp === null) return;
+    const prev = document.title;
+    document.title = `AuroraWatch | Kp ${kp.toFixed(1)} — ${riskLevel ?? "Quiet"}`;
+    return () => { document.title = prev; };
+  }, [kp, riskLevel]);
+
   return (
     <>
       {/* Hero outlook card — lives below the server-rendered h1 */}
@@ -126,6 +135,7 @@ export function DashboardClient() {
 
       <ViewingWindow
         kpForecast={kpForecastQuery.data ?? []}
+        kpHistory={kpHistory}
         cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
         cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
       />
@@ -209,6 +219,7 @@ export function DashboardClient() {
           maxAuroraProbNA={maxAuroraProbNA}
           bz={bz}
           isLoading={isLoading}
+          alerts={solarActivity.alerts}
         />
       </ErrorBoundary>
     </>

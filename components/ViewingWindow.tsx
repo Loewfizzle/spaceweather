@@ -2,11 +2,12 @@
 
 import { useMemo } from "react";
 import { Clock } from "lucide-react";
-import { computeViewingWindow } from "../lib/utils/viewingWindow";
-import type { KpForecastEntry } from "../lib/api/schemas";
+import { computeViewingWindow, computeLastNightPeak } from "../lib/utils/viewingWindow";
+import type { KpEntry, KpForecastEntry } from "../lib/api/schemas";
 
 interface ViewingWindowProps {
   kpForecast: KpForecastEntry[];
+  kpHistory: KpEntry[];
   cloudCoverPct?: number | null;
   cloudCoverLabel?: string | null;
 }
@@ -32,14 +33,16 @@ function peakToLabel(kp: number): { label: string; color: string; guidance: stri
   return { label: "Quiet", color: "#475569", guidance: "Calm conditions expected." };
 }
 
-export function ViewingWindow({ kpForecast, cloudCoverPct, cloudCoverLabel }: ViewingWindowProps) {
+export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel }: ViewingWindowProps) {
   const windowData = useMemo(() => computeViewingWindow(kpForecast), [kpForecast]);
+  const lastNight = useMemo(() => computeLastNightPeak(kpHistory), [kpHistory]);
 
-  if (!windowData.hasData) return null;
+  if (!windowData.hasData && !lastNight) return null;
 
-  const { label, color, guidance } = peakToLabel(windowData.peakKp);
+  const tonight = windowData.hasData ? peakToLabel(windowData.peakKp) : null;
   const hasClear = cloudCoverPct != null;
   const cloudColor = cloudCoverPct == null ? '' : cloudCoverPct < 30 ? '#22c55e' : cloudCoverPct < 60 ? '#eab308' : '#94a3b8';
+  const lastNightLabel = lastNight ? peakToLabel(lastNight.peakKp) : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
@@ -51,42 +54,63 @@ export function ViewingWindow({ kpForecast, cloudCoverPct, cloudCoverLabel }: Vi
           </span>
         </div>
 
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            {windowData.windowStart && windowData.windowEnd ? (
-              <div className="text-xl font-semibold text-white tracking-tight mb-1">
-                {formatET(windowData.windowStart)}
-                {" – "}
-                {formatET(windowData.windowEnd)}
-                <span className="text-[#64748b] text-sm font-normal ml-1.5">ET</span>
-              </div>
-            ) : null}
+        {tonight && (
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              {windowData.windowStart && windowData.windowEnd ? (
+                <div className="text-xl font-semibold text-white tracking-tight mb-1">
+                  {formatET(windowData.windowStart)}
+                  {" – "}
+                  {formatET(windowData.windowEnd)}
+                  <span className="text-[#64748b] text-sm font-normal ml-1.5">ET</span>
+                </div>
+              ) : null}
 
-            <div className="text-[13px] text-[#94a3b8]">{guidance}</div>
+              <div className="text-[13px] text-[#94a3b8]">{tonight.guidance}</div>
 
-            {hasClear && (
-              <div className="mt-2 text-[11px]">
-                <span className="text-[#64748b]">Skies: </span>
-                <span className="font-medium" style={{ color: cloudColor }}>
-                  {cloudCoverLabel} ({cloudCoverPct}%)
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="text-right flex-shrink-0">
-            <div className="text-[10px] text-[#64748b] mb-0.5">Peak Kp</div>
-            <div
-              className="text-3xl font-bold tabular-nums leading-none"
-              style={{ color }}
-            >
-              {windowData.peakKp.toFixed(1)}
+              {hasClear && (
+                <div className="mt-2 text-[11px]">
+                  <span className="text-[#64748b]">Skies: </span>
+                  <span className="font-medium" style={{ color: cloudColor }}>
+                    {cloudCoverLabel} ({cloudCoverPct}%)
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="text-[11px] font-medium mt-0.5" style={{ color }}>
-              {label}
+
+            <div className="text-right flex-shrink-0">
+              <div className="text-[10px] text-[#64748b] mb-0.5">Peak Kp</div>
+              <div
+                className="text-3xl font-bold tabular-nums leading-none"
+                style={{ color: tonight.color }}
+              >
+                {windowData.peakKp.toFixed(1)}
+              </div>
+              <div className="text-[11px] font-medium mt-0.5" style={{ color: tonight.color }}>
+                {tonight.label}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {lastNight && lastNightLabel && (
+          <div className={`flex items-center justify-between text-[12px] ${tonight ? 'mt-4 pt-4 border-t border-[#1e2937]' : ''}`}>
+            <div>
+              <span className="text-[#64748b]">Last night — </span>
+              <span className="text-[#94a3b8]">
+                peaked at {formatET(lastNight.peakTime)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 tabular-nums">
+              <span className="font-semibold" style={{ color: lastNightLabel.color }}>
+                Kp {lastNight.peakKp.toFixed(1)}
+              </span>
+              <span style={{ color: lastNightLabel.color }} className="text-[11px]">
+                — {lastNightLabel.label}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
