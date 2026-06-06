@@ -9,7 +9,6 @@ import { NotificationPrompt } from "./NotificationPrompt";
 
 interface HeroOutlookProps {
   outlook: TonightOutlook;
-  isLoading?: boolean;
   latestUpdate?: Date | null;
   error?: Error | null;
   isFetching?: boolean;
@@ -25,7 +24,6 @@ interface HeroOutlookProps {
 
 export function HeroOutlook({
   outlook,
-  isLoading,
   error,
   isFetching,
   userLocationProb,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2, Check, Copy } from "lucide-react";
+import { Share2, Check } from "lucide-react";
 import type { CityAuroraProb } from "../lib/noaa";
 
 interface ShareButtonProps {

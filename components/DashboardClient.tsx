@@ -56,7 +56,6 @@ export function DashboardClient() {
     error,
     solarWindError,
     isFetching,
-    refetchAll,
     cityProbs,
   } = conditions;
 
@@ -112,7 +111,6 @@ export function DashboardClient() {
         <ErrorBoundary fallback={<ErrorState message="Outlook unavailable — check back shortly." />}>
           <HeroOutlook
             outlook={tonightOutlook}
-            isLoading={isLoading || solarActivity.isLoading}
             error={error}
             isFetching={isFetching}
             userLocationProb={userLocationProb}

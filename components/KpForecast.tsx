@@ -15,7 +15,6 @@ import {
   Legend,
   type Plugin,
 } from "chart.js";
-import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
 import type { KpEntry, KpForecastEntry } from "../lib/api/schemas";
 
