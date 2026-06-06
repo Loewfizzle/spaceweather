@@ -38,6 +38,7 @@ function energyColor(impactE: string | null | undefined): string {
 function dateShort(dateStr: string): string {
   try {
     const d = new Date(dateStr.replace(" ", "T") + "Z");
+    if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleString("en-US", {
       month: "short", day: "numeric", year: "numeric", timeZone: "UTC",
     });
@@ -56,6 +57,7 @@ function activityColor(level: string): string {
 function daysUntilLabel(days: number): string {
   if (days <= 0) return "Peaks tonight";
   if (days === 1) return "Tomorrow";
+  if (days <= 7)  return `In ${days} days`;
   return `In ${days} days`;
 }
 
@@ -88,7 +90,15 @@ export function MeteorActivity() {
                 <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">
                   NEXT METEOR SHOWER
                 </div>
-                <span className="text-[11px] text-[#64748b] tabular-nums">
+                {/* Tinted countdown badge — matches energy/activity badge pattern */}
+                <span
+                  className="text-[10px] font-medium tabular-nums px-2 py-0.5 rounded-full"
+                  style={{
+                    color: showerColor,
+                    backgroundColor: showerColor + "1a",
+                    border: `1px solid ${showerColor}33`,
+                  }}
+                >
                   {daysUntilLabel(showerDays)}
                 </span>
               </div>
@@ -117,13 +127,28 @@ export function MeteorActivity() {
                 </span>
               </div>
 
-              <p className="text-sm text-[#94a3b8] leading-relaxed mb-3">
+              <p className="text-sm text-[#94a3b8] leading-relaxed mb-4">
                 {nextMeteor.shower.description}
               </p>
 
-              <div className="border-t border-[#1e2937] pt-3">
-                <div className="text-[10px] text-[#475569] mb-3">
-                  Best after midnight &middot; Dark rural skies
+              <div className="border-t border-[#1e2937] pt-3 space-y-3">
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="flex items-center gap-1.5 text-[#64748b]">
+                    <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
+                    Best after midnight
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[#64748b]">
+                    <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
+                    Dark rural skies
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[#64748b]">
+                    <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
+                    No equipment needed
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[#64748b]">
+                    <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
+                    Allow 20 min dark adaption
+                  </div>
                 </div>
                 <button
                   onClick={() => {
@@ -157,14 +182,14 @@ export function MeteorActivity() {
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
-              <span className="text-[11px] text-[#64748b] tabular-nums">
-                {fireballsQuery.fireballs.length} recent
+              <span className="text-[10px] text-[#475569] tabular-nums">
+                NASA JPL · {fireballsQuery.fireballs.length} events
               </span>
             )}
           </div>
 
           {fireballsQuery.isLoading ? (
-            <LoadingSkeleton variant="list" count={4} />
+            <LoadingSkeleton variant="list" count={5} />
           ) : fireballsQuery.error ? (
             <ErrorState
               message="Unable to load recent fireball reports right now."
@@ -178,7 +203,7 @@ export function MeteorActivity() {
           ) : (
             <>
               <div className="space-y-0.5">
-                {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball) => {
+                {fireballsQuery.fireballs.slice(0, 5).map((fb: Fireball) => {
                   const color = energyColor(fb.impactE);
                   return (
                     <button
@@ -231,7 +256,7 @@ export function MeteorActivity() {
                       </span>
                     ))}
                   </div>
-                  <span className="text-[10px] text-[#475569] flex-shrink-0">NASA JPL CNEOS</span>
+                  <span className="text-[10px] text-[#475569] flex-shrink-0">Impact energy (kt TNT)</span>
                 </div>
                 <p className="text-[10px] text-[#475569] leading-relaxed">
                   Fireballs are exceptionally bright meteors that explode in Earth&apos;s atmosphere.
