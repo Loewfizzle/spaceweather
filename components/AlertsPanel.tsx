@@ -12,9 +12,12 @@ interface AlertsPanelProps {
   bz: number | null;
   isLoading: boolean;
   alerts?: Alert[];
+  alertsLoading?: boolean;
 }
 
 function alertProductLabel(productId: string): { text: string; color: string } {
+  // NOAA live format: K05A, K04A, K07A (Kp threshold alerts)
+  if (/^K\d+[A-Z]$/.test(productId)) return { text: 'K-index Alert', color: '#eab308' };
   if (productId.startsWith('WATA')) {
     const g = ({ WATA07: 'G1', WATA20: 'G2', WATA30: 'G3', WATA40: 'G4', WATA50: 'G5' } as Record<string, string>)[productId];
     return { text: g ? `Storm Watch ${g}` : 'Storm Watch', color: '#22c55e' };
@@ -45,7 +48,7 @@ function alertFirstLine(message: string): string {
  * Receives live condition values + riskLevel (for badge) from orchestration layer.
  * Exact original layout, conditional classes, disabled states, and messaging preserved.
  */
-export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, alerts }: AlertsPanelProps) {
+export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, alerts, alertsLoading }: AlertsPanelProps) {
   const recentAlerts = (alerts ?? []).slice(0, 8);
   const {
     notificationPermission,
@@ -181,7 +184,24 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
         </div>
 
         {/* Recent NOAA alerts feed */}
-        {recentAlerts.length > 0 && (
+        {(alertsLoading && recentAlerts.length === 0) ? (
+          <div className="mt-6 pt-5 border-t border-[#1e2937]">
+            <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
+              RECENT NOAA ALERTS
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-3 w-24 rounded bg-[#1e2937]" />
+                    <div className="h-3 w-16 rounded bg-[#1e2937]" />
+                  </div>
+                  <div className="h-3 w-4/5 rounded bg-[#1e2937]" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : recentAlerts.length > 0 ? (
           <div className="mt-6 pt-5 border-t border-[#1e2937]">
             <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
               RECENT NOAA ALERTS
@@ -190,9 +210,14 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
               {recentAlerts.map((alert, i) => {
                 const { text, color } = alertProductLabel(alert.product_id);
                 const firstLine = alertFirstLine(alert.message);
+                // NOAA issue_datetime uses space instead of T ("2026-06-05 23:25:16")
                 const ago = (() => {
-                  try { return formatDistanceToNow(new Date(alert.issue_datetime), { addSuffix: true }); }
-                  catch { return alert.issue_datetime; }
+                  try {
+                    return formatDistanceToNow(
+                      new Date(alert.issue_datetime.replace(' ', 'T')),
+                      { addSuffix: true }
+                    );
+                  } catch { return alert.issue_datetime; }
                 })();
                 return (
                   <div key={i} className="text-[12px]">
@@ -206,7 +231,7 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
               })}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

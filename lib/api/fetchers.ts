@@ -23,11 +23,13 @@ import type {
 } from './schemas';
 import { logDataError } from '../utils/retry';
 
-// Base fetch helper (shared, server + client safe)
+// Base fetch helper (shared, server + client safe).
+// 30-second timeout guards against hung NOAA/NASA endpoints.
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   try {
     const res = await fetch(url, {
       cache: 'no-store',
+      signal: AbortSignal.timeout(30_000),
       ...options,
     });
     if (!res.ok) {
@@ -37,7 +39,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
     }
     return res.json() as Promise<T>;
   } catch (error) {
-    // Network errors, CORS, etc.
+    // Network errors, timeouts, CORS, etc.
     logDataError('Network/Parse', error, { url }, false);
     throw error;
   }
@@ -124,7 +126,12 @@ export async function fetchXrayFlaresLatest(): Promise<XrayFlare[]> {
   const raw = await fetchJson<unknown>(
     'https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json'
   );
-  return z.array(XrayFlareSchema).parse(raw);
+  const result = z.array(XrayFlareSchema).safeParse(raw);
+  if (!result.success) {
+    logDataError('XrayFlares parse', result.error, { url: 'xray-flares-latest.json' }, false);
+    return [];
+  }
+  return result.data;
 }
 
 // Alerts
@@ -132,7 +139,12 @@ export async function fetchAlerts(): Promise<Alert[]> {
   const raw = await fetchJson<unknown>(
     'https://services.swpc.noaa.gov/products/alerts.json'
   );
-  return z.array(AlertSchema).parse(raw);
+  const result = z.array(AlertSchema).safeParse(raw);
+  if (!result.success) {
+    logDataError('Alerts parse', result.error, { url: 'alerts.json' }, false);
+    return [];
+  }
+  return result.data;
 }
 
 // Solar regions
@@ -140,7 +152,12 @@ export async function fetchSolarRegions(): Promise<SolarRegion[]> {
   const raw = await fetchJson<unknown>(
     'https://services.swpc.noaa.gov/json/solar_regions.json'
   );
-  return z.array(SolarRegionSchema).parse(raw);
+  const result = z.array(SolarRegionSchema).safeParse(raw);
+  if (!result.success) {
+    logDataError('SolarRegions parse', result.error, { url: 'solar_regions.json' }, false);
+    return [];
+  }
+  return result.data;
 }
 
 // Fireballs - proxied via /api/fireballs (CORS-safe + cached), sourced from NASA JPL CNEOS.

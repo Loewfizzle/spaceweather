@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 export interface CloudCoverResult {
-  currentPct: number;
+  currentPct: number | null;
   tonightAvg: number | null;
   label: string;
 }
@@ -17,13 +17,15 @@ function cloudLabel(pct: number): string {
 }
 
 async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResult> {
-  const res = await fetch(`/api/cloud-cover?lat=${lat}&lon=${lon}`);
+  const res = await fetch(`/api/cloud-cover?lat=${lat}&lon=${lon}`, {
+    signal: AbortSignal.timeout(15_000),
+  });
   if (!res.ok) throw new Error(`Cloud cover fetch failed: ${res.status}`);
   const data = await res.json();
 
-  const currentPct: number = typeof data?.current?.cloud_cover === 'number'
+  const currentPct: number | null = typeof data?.current?.cloud_cover === 'number'
     ? data.current.cloud_cover
-    : 0;
+    : null;
 
   // Compute tonight's average over hours 20–06 local time.
   // Open-Meteo returns local-time ISO strings when timezone=auto, so we parse
@@ -56,6 +58,7 @@ async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResu
   }
 
   const displayPct = tonightAvg ?? currentPct;
+  if (displayPct === null) return { currentPct: null, tonightAvg: null, label: 'Unknown' };
   return { currentPct, tonightAvg, label: cloudLabel(displayPct) };
 }
 

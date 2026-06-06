@@ -136,6 +136,9 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
           {hasForecast && " plus 36-hour NOAA forecast (dashed)"}
           {hasTonight && ". Shaded area = tonight (Michigan time, 8 pm–6 am ET)"}
           {"."}
+          {forecastQuery.error && !hasForecast && (
+            <span className="ml-2 text-amber-400/70">Forecast temporarily unavailable.</span>
+          )}
         </div>
 
         {/* 3-Day Storm Outlook derived from NOAA Kp forecast */}

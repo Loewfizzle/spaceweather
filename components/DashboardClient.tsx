@@ -138,6 +138,7 @@ export function DashboardClient() {
         kpHistory={kpHistory}
         cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
         cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
+        isLoading={isLoading || kpForecastQuery.isLoading}
       />
 
       <CurrentConditions
@@ -220,6 +221,7 @@ export function DashboardClient() {
           bz={bz}
           isLoading={isLoading}
           alerts={solarActivity.alerts}
+          alertsLoading={solarActivity.isLoading}
         />
       </ErrorBoundary>
     </>

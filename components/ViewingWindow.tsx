@@ -10,6 +10,7 @@ interface ViewingWindowProps {
   kpHistory: KpEntry[];
   cloudCoverPct?: number | null;
   cloudCoverLabel?: string | null;
+  isLoading?: boolean;
 }
 
 function formatET(date: Date): string {
@@ -33,11 +34,30 @@ function peakToLabel(kp: number): { label: string; color: string; guidance: stri
   return { label: "Quiet", color: "#475569", guidance: "Calm conditions expected." };
 }
 
-export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel }: ViewingWindowProps) {
+export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, isLoading }: ViewingWindowProps) {
   const windowData = useMemo(() => computeViewingWindow(kpForecast), [kpForecast]);
   const lastNight = useMemo(() => computeLastNightPeak(kpHistory), [kpHistory]);
 
-  if (!windowData.hasData && !lastNight) return null;
+  if (!windowData.hasData && !lastNight) {
+    if (!isLoading) return null;
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+        <div className="card p-5 max-w-3xl animate-pulse">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="h-3 w-3 rounded bg-[#1e2937]" />
+            <div className="h-2.5 w-40 rounded bg-[#1e2937]" />
+          </div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 space-y-2">
+              <div className="h-6 w-48 rounded bg-[#1e2937]" />
+              <div className="h-3 w-56 rounded bg-[#1e2937]" />
+            </div>
+            <div className="h-10 w-12 rounded bg-[#1e2937]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const tonight = windowData.hasData ? peakToLabel(windowData.peakKp) : null;
   const hasClear = cloudCoverPct != null;
