@@ -89,14 +89,17 @@ export function HeroOutlook({
                 </span>
               </div>
             )}
-            {/* User location row — shown first when granted */}
+            {/* User location row — prominent highlight when granted */}
             {userLocationProb != null && (
-              <div className="text-sm text-[#94a3b8] flex items-center gap-2">
-                <MapPin className="h-2.5 w-2.5 flex-shrink-0" style={{ color: outlook.accentColor }} />
-                <span className="flex-1 text-[#cbd5e1] font-medium">
+              <div className="flex items-center gap-2 bg-[#0d1f2d] rounded-md px-2.5 py-1.5 -mx-0.5">
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-cyan-400" />
+                <span className="flex-1 text-[15px] font-semibold text-white leading-tight">
                   {userLocationLabel ?? "Your location"}
                 </span>
-                <span className="tabular-nums font-medium text-[#cbd5e1]">
+                <span className="text-[10px] font-medium text-cyan-400 bg-cyan-400/10 rounded px-1.5 py-0.5 leading-none">
+                  YOU
+                </span>
+                <span className="tabular-nums font-semibold text-white text-[15px]">
                   {userLocationProb > 0 ? `${userLocationProb}%` : "< 1%"}
                 </span>
               </div>
@@ -104,11 +107,8 @@ export function HeroOutlook({
 
             {/* Pre-defined city rows */}
             {displayedCities.map((city, idx) => (
-              <div key={idx} className="text-sm text-[#94a3b8] flex items-center gap-2">
-                <span
-                  className="block h-1 w-1 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: outlook.accentColor }}
-                />
+              <div key={idx} className="text-sm text-[#94a3b8] flex items-center gap-2 px-0.5">
+                <span className="block h-1.5 w-1.5 rounded-full bg-slate-600 flex-shrink-0" />
                 <span className="flex-1">{city.name}, {city.state}</span>
                 <span className="tabular-nums font-medium text-[#cbd5e1]">
                   {city.prob > 0 ? `${city.prob}%` : "< 1%"}
