@@ -92,7 +92,7 @@ export function HeroOutlook({
             {/* User location row — prominent highlight when granted */}
             {userLocationProb != null && (
               <div className="flex items-center gap-2 bg-[#0d1f2d] rounded-md px-2.5 py-1.5 -mx-0.5">
-                <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-cyan-400" />
+                <span className="block h-1.5 w-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
                 <span className="flex-1 text-[15px] font-semibold text-white leading-tight">
                   {userLocationLabel ?? "Your location"}
                 </span>
