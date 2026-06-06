@@ -566,6 +566,7 @@ export function SolarActivity() {
             <div className="flex items-center gap-2 text-[#64748b] text-xs">
               <TrendingUp className="w-4 h-4" /> CORONAL HOLES
             </div>
+            <span className="text-[10px] text-[#475569]">AIA 193Å · EUV</span>
           </div>
 
           <SdoImage
