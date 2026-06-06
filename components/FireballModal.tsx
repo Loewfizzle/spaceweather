@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Fireball } from "../lib/use-noaa-data";
 import { formatFireballDate, formatFireballLocation, formatFireballEnergy, approximateLocation } from "../lib/use-noaa-data";
@@ -26,26 +26,44 @@ function MetaRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function resolveLocationFallback(fireball: Fireball): string {
+  if (fireball.lat == null || fireball.lon == null) return "Unknown";
+  return (
+    approximateLocation(fireball.lat, fireball.lon) ||
+    formatFireballLocation(fireball)
+  );
+}
+
 export function FireballModal({ fireball, onClose }: FireballModalProps) {
+  const [location, setLocation] = useState<string | null>(null);
+
   // Lock body scroll while modal is open
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    return () => { document.body.style.overflow = prev; };
   }, []);
 
   // Close on Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Geocode on open
+  useEffect(() => {
+    if (fireball.lat == null || fireball.lon == null) return;
+    let cancelled = false;
+    fetch(`/api/geocode?lat=${fireball.lat}&lon=${fireball.lon}`)
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setLocation(data.location ?? null); })
+      .catch(() => { if (!cancelled) setLocation(null); });
+    return () => { cancelled = true; };
+  }, [fireball.lat, fireball.lon]);
+
   const hasMap = fireball.lat != null && fireball.lon != null;
+  const locationDisplay = location ?? resolveLocationFallback(fireball);
 
   return (
     <div
@@ -59,7 +77,7 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
         className="relative w-full sm:max-w-lg overflow-hidden rounded-2xl border border-[#1e2937] bg-[#0f1425]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button overlaid top-right */}
+        {/* Close button */}
         <button
           onClick={onClose}
           aria-label="Close"
@@ -68,32 +86,23 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
           ×
         </button>
 
-        {/* Map — only when coordinates are available */}
         {hasMap && (
           <div className="h-[250px] sm:h-[300px] overflow-hidden">
             <FireballMap lat={fireball.lat!} lon={fireball.lon!} />
           </div>
         )}
 
-        {/* Metadata panel */}
         <div className="px-5 py-4">
           <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-3">
             FIREBALL IMPACT
           </div>
           <div className="space-y-2">
-            <MetaRow label="Date / Time" value={formatFireballDate(fireball.date)} />
-            <MetaRow
-              label="Location"
-              value={
-                fireball.lat != null && fireball.lon != null
-                  ? (approximateLocation(fireball.lat, fireball.lon) || "Unknown")
-                  : "Unknown"
-              }
-            />
+            <MetaRow label="Date / Time"   value={formatFireballDate(fireball.date)} />
+            <MetaRow label="Location"      value={locationDisplay} />
             <MetaRow label="Coordinates"   value={formatFireballLocation(fireball)} />
             <MetaRow label="Impact Energy" value={formatFireballEnergy(fireball.impactE)} />
-            {fireball.vel  && <MetaRow label="Velocity" value={`${parseFloat(fireball.vel).toFixed(1)} km/s`} />}
-            {fireball.alt  && <MetaRow label="Altitude" value={`${parseFloat(fireball.alt).toFixed(0)} km`} />}
+            {fireball.vel && <MetaRow label="Velocity" value={`${parseFloat(fireball.vel).toFixed(1)} km/s`} />}
+            {fireball.alt && <MetaRow label="Altitude" value={`${parseFloat(fireball.alt).toFixed(0)} km`} />}
           </div>
         </div>
       </div>
