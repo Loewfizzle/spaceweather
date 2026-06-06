@@ -47,7 +47,7 @@ export function HeroOutlook({
     >
       <div>
         <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-2">
-          TONIGHT&apos;S OUTLOOK
+          CURRENT CONDITIONS
         </div>
 
         {outlook.status === "Loading" ? (
@@ -150,7 +150,7 @@ export function HeroOutlook({
             {cloudCoverPct != null && (
               <div className="flex items-center gap-1.5 text-xs text-[#64748b]">
                 <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
-                <span>Skies tonight:</span>
+                <span>Cloud cover:</span>
                 <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>
                   {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
                 </span>
