@@ -213,6 +213,16 @@ export function useCurrentConditions() {
     // Only propagate errors from Kp and OVATION as fatal for the hero/outlook.
     // Solar wind glitches (plasma/mag) are non-fatal; values gracefully fall back to null.
     // This prevents spurious "Error loading outlook" when supporting data sources are flaky.
+    // Epoch ms of the last successful network response for any query in this hook.
+    // Use this (not kpTime/NOAA data timestamps) to decide whether the app just
+    // successfully contacted NOAA — it updates to Date.now() on every fetch, even
+    // when NOAA returns the same data.
+    lastFetchedAt: Math.max(
+      kpQuery.dataUpdatedAt,
+      ovationQuery.dataUpdatedAt,
+      solarWind.plasma.dataUpdatedAt,
+      solarWind.mag.dataUpdatedAt,
+    ),
     refetchAll: () => {
       kpQuery.refetch();
       ovationQuery.refetch();
@@ -308,6 +318,11 @@ export function useSolarActivity() {
     error,
     regionsError,
     isFetching: flaresQuery.isFetching || alertsQuery.isFetching || regionsQuery.isFetching,
+    lastFetchedAt: Math.max(
+      flaresQuery.dataUpdatedAt,
+      alertsQuery.dataUpdatedAt,
+      regionsQuery.dataUpdatedAt,
+    ),
     refetchAll,
     flareTime: latestFlare?.max_time || latestFlare?.time_tag || null,
     alertsTime: alertsQuery.data && alertsQuery.data.length > 0 ? alertsQuery.data[0].issue_datetime : null,

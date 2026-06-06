@@ -5,10 +5,11 @@ import { formatDistanceToNow } from "date-fns";
 import { useCurrentConditions, useSolarActivity } from "../lib/use-noaa-data";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
 
+// "LIVE" = the app successfully reached NOAA within this window.
+// Intentionally separate from NOAA data age: pressing Refresh always turns
+// the dot green once the fetch completes, even if NOAA's data hasn't changed.
 const LIVE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
-// Compact age string for the narrow mobile viewport: "5m", "2h".
-// Avoids date-fns prose ("about 2 hours ago") which wraps badly at tiny sizes.
 function compactAge(nowMs: number, date: Date): string {
   const mins = Math.floor((nowMs - date.getTime()) / 60_000);
   if (mins < 60) return `${mins}m`;
@@ -16,27 +17,38 @@ function compactAge(nowMs: number, date: Date): string {
 }
 
 export function LiveIndicator() {
-  const { kpTime } = useCurrentConditions();
+  const conditions = useCurrentConditions();
   const solarActivity = useSolarActivity();
 
-  const latestGlobalUpdate = useGlobalFreshness(
-    kpTime,
-    solarActivity.flareTime,
-    solarActivity.alertsTime,
-    solarActivity.regionsTime
+  // lastFetchedAt: epoch ms of the most recent successful network response.
+  // TanStack Query sets dataUpdatedAt = Date.now() on every successful fetch,
+  // so this updates immediately when Refresh is pressed and the call lands.
+  const lastFetchedAt = Math.max(
+    conditions.lastFetchedAt,
+    solarActivity.lastFetchedAt,
   );
 
-  // Current timestamp, updated every minute so the freshness label stays accurate.
-  // Stored in state (not called directly in render) to satisfy react-hooks/purity.
+  // latestGlobalUpdate: the most recent timestamp embedded in NOAA's data.
+  // Used only for the prose "updated X ago" label — reflects actual data age,
+  // not when the app last contacted the server.
+  const latestGlobalUpdate = useGlobalFreshness(
+    conditions.kpTime,
+    solarActivity.flareTime,
+    solarActivity.alertsTime,
+    solarActivity.regionsTime,
+  );
+
+  // Current time stored in state so Date.now() isn't called in the render body.
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 60_000);
     return () => clearInterval(id);
   }, []);
 
-  if (!latestGlobalUpdate) return null;
+  // Hide the indicator entirely until we have both a fetch result and a data timestamp.
+  if (!latestGlobalUpdate || lastFetchedAt === 0) return null;
 
-  const isLive = now - latestGlobalUpdate.getTime() < LIVE_THRESHOLD_MS;
+  const isLive = now - lastFetchedAt < LIVE_THRESHOLD_MS;
   const dotColor = isLive ? "#22c55e" : "#64748b";
 
   return (
@@ -44,7 +56,6 @@ export function LiveIndicator() {
       className="flex items-center gap-1 tabular-nums"
       title="Most recent data across all sources"
     >
-      {/* Dot: pulsing green when live, static slate when stale */}
       <span className="relative flex h-1.5 w-1.5 shrink-0">
         {isLive && (
           <span
@@ -58,12 +69,12 @@ export function LiveIndicator() {
         />
       </span>
 
-      {/* Desktop: full prose timestamp */}
+      {/* Desktop: prose age of the NOAA data itself */}
       <span className="hidden sm:inline">
         {formatDistanceToNow(latestGlobalUpdate, { addSuffix: true })}
       </span>
 
-      {/* Mobile: "LIVE" only when fresh; compact age string ("5m", "2h") otherwise */}
+      {/* Mobile: "LIVE" when recently fetched; compact data age otherwise */}
       {isLive ? (
         <span className="sm:hidden text-[9px] font-medium tracking-wider text-[#22c55e]">
           LIVE
