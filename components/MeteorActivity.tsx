@@ -214,21 +214,27 @@ export function MeteorActivity() {
                 })}
               </div>
 
-              {/* Footer: dot legend + source */}
-              <div className="border-t border-[#1e2937] pt-3 mt-3 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  {([
-                    { color: "#f97316", label: "≥1 kt" },
-                    { color: "#eab308", label: "≥0.1 kt" },
-                    { color: "#64748b", label: "minor" },
-                  ] as const).map(({ color, label }) => (
-                    <span key={label} className="flex items-center gap-1 text-[10px] text-[#475569]">
-                      <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                      {label}
-                    </span>
-                  ))}
+              {/* Footer: dot legend + source + definition */}
+              <div className="border-t border-[#1e2937] pt-3 mt-3 space-y-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    {([
+                      { color: "#f97316", label: "≥1 kt" },
+                      { color: "#eab308", label: "≥0.1 kt" },
+                      { color: "#64748b", label: "minor" },
+                    ] as const).map(({ color, label }) => (
+                      <span key={label} className="flex items-center gap-1 text-[10px] text-[#475569]">
+                        <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-[#475569] flex-shrink-0">NASA JPL CNEOS</span>
                 </div>
-                <span className="text-[10px] text-[#475569] flex-shrink-0">NASA JPL CNEOS</span>
+                <p className="text-[10px] text-[#475569] leading-relaxed">
+                  Fireballs are exceptionally bright meteors that explode in Earth&apos;s atmosphere.
+                  This tracker shows events energetic enough to be detected by US government sensors.
+                </p>
               </div>
             </>
           )}
