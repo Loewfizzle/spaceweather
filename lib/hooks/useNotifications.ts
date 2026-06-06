@@ -32,6 +32,29 @@ export async function saveSensitivity(val: AlertSensitivity): Promise<void> {
   }
 }
 
+// Writes the latest live conditions (Bz, max OVATION probability) to the SW cache
+// so background Periodic Background Sync checks can apply the same multi-factor
+// conditions as in-tab alerts without fetching the large OVATION grid themselves.
+// Called on every data refresh while the tab is open; the SW treats values older
+// than 2 hours as stale and falls back to Kp-only.
+export async function syncLiveStateToSw(
+  bz: number | null,
+  maxAuroraProbNA: number | null,
+): Promise<void> {
+  if (typeof window === "undefined" || !("caches" in window)) return;
+  try {
+    const cache = await caches.open("aurorawatch-sw-v1");
+    await cache.put(
+      "/__state",
+      new Response(
+        JSON.stringify({ bz, maxProb: maxAuroraProbNA, updatedAt: Date.now() }),
+      ),
+    );
+  } catch {
+    // Cache API unavailable — non-fatal, SW falls back to Kp-only check
+  }
+}
+
 interface UseNotificationsParams {
   kp: number | null;
   maxAuroraProbNA: number | null;
@@ -127,6 +150,14 @@ export function useNotifications({
     window.addEventListener("aurorawatch:sensitivity-changed", onSensitivityChanged);
     return () => window.removeEventListener("aurorawatch:sensitivity-changed", onSensitivityChanged);
   }, []);
+
+  // Keep the SW cache fresh with the latest Bz and OVATION probability so background
+  // checks can apply multi-factor conditions without fetching the large OVATION grid.
+  useEffect(() => {
+    if (kp !== null && !isLoading) {
+      syncLiveStateToSw(bz, maxAuroraProbNA);
+    }
+  }, [kp, bz, maxAuroraProbNA, isLoading]);
 
   const setAlertsEnabled = (val: boolean) => {
     setAlertsEnabledState(val);

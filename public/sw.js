@@ -4,7 +4,8 @@
 
 const CACHE_NAME = 'aurorawatch-sw-v1';
 const KP_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json';
-const THROTTLE_MS = 30 * 60 * 1000; // 30 min between background alerts
+const THROTTLE_MS = 30 * 60 * 1000;      // 30 min between background alerts
+const STATE_MAX_AGE_MS = 2 * 60 * 60 * 1000; // cached Bz / maxProb valid for 2 hours
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
@@ -26,11 +27,25 @@ async function checkAurora() {
     const last = lastResponse ? parseInt(await lastResponse.text(), 10) : 0;
     if (Date.now() - last < THROTTLE_MS) return;
 
-    // Load user threshold (written by useNotifications when sensitivity changes)
+    // Load user thresholds (written by saveSensitivity when user changes sensitivity)
     const prefsResponse = await cache.match('/__prefs');
     const prefs = prefsResponse
       ? JSON.parse(await prefsResponse.text())
       : { kp: 4, prob: 15 };
+
+    // Load cached live state written by syncLiveStateToSw() on every in-tab data refresh.
+    // Treat as stale if written more than 2 hours ago; fall back to Kp-only in that case.
+    const stateResponse = await cache.match('/__state');
+    let cachedBz = null;
+    let cachedMaxProb = null;
+    if (stateResponse) {
+      const state = JSON.parse(await stateResponse.text());
+      const age = Date.now() - (state.updatedAt ?? 0);
+      if (age < STATE_MAX_AGE_MS) {
+        cachedBz = typeof state.bz === 'number' ? state.bz : null;
+        cachedMaxProb = typeof state.maxProb === 'number' ? state.maxProb : null;
+      }
+    }
 
     // Fetch live Kp — CSP does not apply to SW fetches
     const res = await fetch(KP_URL, { cache: 'no-store' });
@@ -42,10 +57,23 @@ async function checkAurora() {
     // Latest entry is the last element (same convention as lib/noaa.ts `latest()`)
     const entry = raw[raw.length - 1];
     const kp = typeof entry.Kp === 'number' ? entry.Kp : null;
-    if (kp === null || kp < prefs.kp) return;
+    if (kp === null) return;
+
+    // Multi-factor condition — mirrors the likelyForMI logic in useNotifications.ts
+    const kpHit   = kp >= prefs.kp;
+    const probHit  = cachedMaxProb !== null && cachedMaxProb >= prefs.prob;
+    const bzHit    = cachedBz !== null && cachedBz <= -5;
+    if (!kpHit && !probHit && !bzHit) return;
+
+    // Build a descriptive body listing every factor that triggered
+    const reasons = [];
+    if (kpHit)   reasons.push(`Kp ${kp.toFixed(1)}`);
+    if (probHit) reasons.push(`${Math.round(cachedMaxProb)}% probability`);
+    if (bzHit)   reasons.push(`Bz ${cachedBz.toFixed(1)} nT`);
+    const body = `${reasons.join(' · ')} — Aurora may be visible in Michigan. Tap to check conditions.`;
 
     await self.registration.showNotification('AuroraWatch Alert', {
-      body: `Kp ${kp.toFixed(1)} — Aurora may be visible in Michigan. Tap to check conditions.`,
+      body,
       tag: 'aurorawatch-bg',
       icon: '/api/pwa-icon?size=192',
       badge: '/api/pwa-icon?size=192',
