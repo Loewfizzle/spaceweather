@@ -621,7 +621,10 @@ export function approximateLocation(lat: number, lon: number): string {
   if (lat >= 60 && lon >= -58 && lon <= -12) return "Greenland";
 
   // Land masses
-  if (lat >= 15  && lat <= 72  && lon >= -168 && lon <= -52) return "North America";
+  // Alaska / NW Canada: extends into the -168→-130 range not covered by the main NA check below
+  if (lat >= 54  && lon >= -168 && lon <= -130) return "North America";
+  // Contiguous US / Canada / Mexico (western edge ~-130 avoids open Pacific misclassification)
+  if (lat >= 15  && lat <= 72  && lon >= -130 && lon <= -52) return "North America";
   if (lat >= 7   && lat <  15  && lon >= -93  && lon <= -77) return "Central America";
   if (lat >= -56 && lat <  13  && lon >= -82  && lon <= -34) return "South America";
   if (lat >= 35  && lat <= 72  && lon >= -12  && lon <= 40)  return "Europe";

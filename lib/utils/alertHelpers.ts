@@ -26,10 +26,13 @@ export function alertFirstLine(message: string): string {
 }
 
 // NOAA issue_datetime is UTC with a space separator ("2026-06-05 23:25:16").
-// Normalize to ISO and append Z so JavaScript parses it as UTC, not local time.
+// Normalize to ISO and append Z only when no timezone indicator is already present,
+// so strings already ending in Z or a +/-offset don't get a double suffix.
 export function formatAlertAge(issueDatetime: string): string {
   try {
-    return formatDistanceToNow(new Date(issueDatetime.replace(' ', 'T') + 'Z'), { addSuffix: true });
+    const normalized = issueDatetime.replace(' ', 'T');
+    const withTz = /[Z+-]\d*$/.test(normalized) ? normalized : normalized + 'Z';
+    return formatDistanceToNow(new Date(withTz), { addSuffix: true });
   } catch {
     return issueDatetime;
   }
