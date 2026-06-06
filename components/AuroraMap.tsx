@@ -19,17 +19,12 @@ interface AuroraMapProps {
 
 // ─── Aurora overlay ───────────────────────────────────────────────────────────
 
-// RGB extracts from the canonical AURORA_TIERS hex palette (lib/noaa.ts).
-// Kept inline to avoid a hex→rgb parse at render time on every map draw.
-//   quiet    #22c55e →  34, 197,  94
-//   moderate #eab308 → 234, 179,   8
-//   active   #f97316 → 249, 115,  22
-//   storm    #a78bfa → 167, 139, 250
 function probToRGB(prob: number): [number, number, number] {
-  if (prob >= 60) return [167, 139, 250]; // storm
-  if (prob >= 30) return [249, 115,  22]; // active
-  if (prob >= 10) return [234, 179,   8]; // moderate
-  return                 [ 34, 197,  94]; // quiet
+  if (prob < 10)  return [ 22, 101,  52];
+  if (prob < 25)  return [ 34, 197,  94];
+  if (prob < 45)  return [234, 179,   8];
+  if (prob < 65)  return [249, 115,  22];
+  return                 [167, 139, 250];
 }
 
 function OvationCanvasLayer({ points }: { points: { position: [number, number]; prob: number }[] }) {
@@ -427,7 +422,7 @@ export default function AuroraMap({
           className="h-2 w-32 rounded-full mb-1 border border-[#1e2937]/50"
           style={{
             background:
-              "linear-gradient(to right, #22c55e, #eab308, #f97316, #a78bfa)",
+              "linear-gradient(to right, #166534, #22c55e, #eab308, #f97316, #a78bfa, #c084fc)",
           }}
         />
         <div className="flex justify-between text-[9px] text-[#64748b] w-32 mb-1 tabular-nums">
