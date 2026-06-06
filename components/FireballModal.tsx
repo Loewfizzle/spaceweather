@@ -57,7 +57,7 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
     let cancelled = false;
     fetch(`/api/geocode?lat=${fireball.lat}&lon=${fireball.lon}`)
       .then((r) => r.json())
-      .then((data) => { if (!cancelled) setLocation(data.location ?? null); })
+      .then((data) => { if (!cancelled) setLocation(data.location || null); })
       .catch(() => { if (!cancelled) setLocation(null); });
     return () => { cancelled = true; };
   }, [fireball.lat, fireball.lon]);

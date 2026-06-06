@@ -11,6 +11,9 @@ import {
   maxOvationNorthAmerica,
   getAuroraColor,
   getAuroraMarkerRadius,
+  getKpTier,
+  getProbTier,
+  cloudCoverColor,
   parseRecentCmes,
   getCityAuroraProbabilities,
   getLocationAuroraProb,
@@ -975,5 +978,222 @@ describe('getAuroraMarkerRadius', () => {
   it('returns 4.5 for prob >= 40', () => {
     expect(getAuroraMarkerRadius(40)).toBe(4.5)
     expect(getAuroraMarkerRadius(99)).toBe(4.5)
+  })
+})
+
+// ============================================
+// getKpTier
+// ============================================
+describe('getKpTier', () => {
+  it('returns quiet for kp < 4', () => {
+    expect(getKpTier(0)).toBe('quiet')
+    expect(getKpTier(3.9)).toBe('quiet')
+  })
+
+  it('returns moderate for kp 4–4.9', () => {
+    expect(getKpTier(4)).toBe('moderate')
+    expect(getKpTier(4.9)).toBe('moderate')
+  })
+
+  it('returns active for kp 5–5.9', () => {
+    expect(getKpTier(5)).toBe('active')
+    expect(getKpTier(5.9)).toBe('active')
+  })
+
+  it('returns storm for kp >= 6', () => {
+    expect(getKpTier(6)).toBe('storm')
+    expect(getKpTier(9)).toBe('storm')
+  })
+})
+
+// ============================================
+// getProbTier
+// ============================================
+describe('getProbTier', () => {
+  it('returns quiet for prob < 10', () => {
+    expect(getProbTier(0)).toBe('quiet')
+    expect(getProbTier(9)).toBe('quiet')
+  })
+
+  it('returns moderate for prob 10–29', () => {
+    expect(getProbTier(10)).toBe('moderate')
+    expect(getProbTier(29)).toBe('moderate')
+  })
+
+  it('returns active for prob 30–59', () => {
+    expect(getProbTier(30)).toBe('active')
+    expect(getProbTier(59)).toBe('active')
+  })
+
+  it('returns storm for prob >= 60', () => {
+    expect(getProbTier(60)).toBe('storm')
+    expect(getProbTier(100)).toBe('storm')
+  })
+})
+
+// ============================================
+// cloudCoverColor
+// ============================================
+describe('cloudCoverColor', () => {
+  it('returns green for pct < 30', () => {
+    expect(cloudCoverColor(0)).toBe('#22c55e')
+    expect(cloudCoverColor(29)).toBe('#22c55e')
+  })
+
+  it('returns amber for pct 30–59', () => {
+    expect(cloudCoverColor(30)).toBe('#eab308')
+    expect(cloudCoverColor(59)).toBe('#eab308')
+  })
+
+  it('returns slate for pct >= 60', () => {
+    expect(cloudCoverColor(60)).toBe('#94a3b8')
+    expect(cloudCoverColor(100)).toBe('#94a3b8')
+  })
+})
+
+// ============================================
+// getTonightOutlook — additional tier paths
+// ============================================
+describe('getTonightOutlook — additional tier paths', () => {
+  const noCmes: CmeSummary[] = []
+  const noFlare: XrayFlare | null = null
+
+  // Excellent — three distinct sub-conditions
+  it('Excellent via kp=6 + strong southward Bz (bz <= -10)', () => {
+    const result = getTonightOutlook(6, -11, 5, noCmes, noFlare)
+    expect(result.status).toBe('Excellent')
+  })
+
+  it('Excellent via kp=6 + high OVATION prob (>= 20)', () => {
+    const result = getTonightOutlook(6, -3, 22, noCmes, noFlare)
+    expect(result.status).toBe('Excellent')
+  })
+
+  it('Excellent via kp=5 + very high speed (> 700) + southward Bz', () => {
+    const result = getTonightOutlook(5, -6, 5, noCmes, noFlare, 750)
+    expect(result.status).toBe('Excellent')
+  })
+
+  it('Good via kp=4 + southward Bz alone (no high speed, no high prob)', () => {
+    const result = getTonightOutlook(4, -6, 5, noCmes, noFlare)
+    expect(result.status).toBe('Good')
+  })
+
+  it('Good via high OVATION prob alone (kp=2, bz neutral)', () => {
+    // highProb (>= 20) triggers Good even without elevated Kp
+    const result = getTonightOutlook(2, -3, 22, noCmes, noFlare)
+    expect(result.status).toBe('Good')
+  })
+
+  it('Low via significant M-class flare with no other activity', () => {
+    const mFlare: XrayFlare = { max_class: 'M2.5', begin_time: '2026-06-05T08:00Z' } as XrayFlare
+    const result = getTonightOutlook(2, -3, 5, noCmes, mFlare)
+    expect(result.status).toBe('Low')
+  })
+
+  it('Quiet for truly calm conditions (kp=1, bz neutral, low prob)', () => {
+    const result = getTonightOutlook(1, -2, 5, noCmes, noFlare)
+    expect(result.status).toBe('Quiet')
+    expect(result.accentColor).toBe('#64748b')
+  })
+
+  it('reasons array is always capped at 2 entries', () => {
+    // Conditions that would produce 3+ reasons: strong Bz + high prob + high speed
+    const result = getTonightOutlook(6, -12, 25, noCmes, noFlare, 750)
+    expect(result.reasons.length).toBeLessThanOrEqual(2)
+  })
+
+  it('adds Kp reason when kp >= 4 and reasons has room', () => {
+    // kp=4, no bz, no prob boost — only the Kp reason fires
+    const result = getTonightOutlook(4, -3, 5, noCmes, noFlare)
+    expect(result.reasons.some(r => r.includes('Kp'))).toBe(true)
+  })
+
+  it('adds flare reason when kp < 4 and conditions allow room', () => {
+    const xFlare: XrayFlare = { max_class: 'X1.0', begin_time: '2026-06-05T08:00Z' } as XrayFlare
+    // kp=2.5 → Low tier; flare should contribute a reason
+    const result = getTonightOutlook(2.5, -2, 5, noCmes, xFlare)
+    expect(result.status).toBe('Low')
+    expect(result.reasons.some(r => r.toLowerCase().includes('flare'))).toBe(true)
+  })
+})
+
+// ============================================
+// getMichiganRiskLevel — boundary conditions
+// ============================================
+describe('getMichiganRiskLevel — boundary conditions', () => {
+  it('returns High when prob >= 25 regardless of kp', () => {
+    expect(getMichiganRiskLevel(3, 25, -3)).toBe('High')
+    expect(getMichiganRiskLevel(2, 30, -2)).toBe('High')
+  })
+
+  it('returns High when bz is exactly -8 (b <= -8 boundary)', () => {
+    expect(getMichiganRiskLevel(3, 5, -8)).toBe('High')
+  })
+
+  it('returns Moderate when bz is exactly -5 (b <= -5, not <= -8)', () => {
+    expect(getMichiganRiskLevel(3, 5, -5)).toBe('Moderate')
+  })
+
+  it('returns Moderate when prob is exactly 15 (>= 15 threshold)', () => {
+    expect(getMichiganRiskLevel(2, 15, -2)).toBe('Moderate')
+  })
+
+  it('returns Quiet when bz and prob are null and kp < 4', () => {
+    expect(getMichiganRiskLevel(3, null, null)).toBe('Quiet')
+    expect(getMichiganRiskLevel(2, null, null)).toBe('Quiet')
+  })
+})
+
+// ============================================
+// approximateLocation — additional regions
+// ============================================
+describe('approximateLocation — additional land masses', () => {
+  it('returns South America', () => {
+    expect(approximateLocation(-20, -60)).toBe('South America') // Brazil interior
+    expect(approximateLocation(0, -55)).toBe('South America')  // Amazonia
+  })
+
+  it('returns Central America', () => {
+    // Must use lon < -88 or lat < 10 to avoid the Caribbean Sea bbox (lat≥10, lon≥-88)
+    expect(approximateLocation(13, -90)).toBe('Central America') // Guatemala
+    expect(approximateLocation(8, -80)).toBe('Central America')  // Panama lat < 10
+  })
+
+  it('returns Russia / N. Asia', () => {
+    expect(approximateLocation(60, 80)).toBe('Russia / N. Asia')  // W. Siberia
+    expect(approximateLocation(55, 60)).toBe('Russia / N. Asia')  // Urals
+  })
+
+  it('returns East Asia', () => {
+    expect(approximateLocation(35, 120)).toBe('East Asia') // Eastern China
+    expect(approximateLocation(37, 140)).toBe('East Asia') // Japan area
+  })
+
+  it('returns SE Asia', () => {
+    expect(approximateLocation(10, 110)).toBe('SE Asia') // Vietnam/Cambodia
+    expect(approximateLocation(3, 103)).toBe('SE Asia')  // Singapore area
+  })
+
+  it('returns Middle East', () => {
+    // lon must be > 52 to escape Africa's bbox (lon -18..52); also avoid Persian Gulf (lat 22-30, lon 47-57)
+    expect(approximateLocation(35, 55)).toBe('Middle East') // Iran/central Arabia, lat > 30 avoids Persian Gulf
+  })
+
+  it('returns South Asia', () => {
+    expect(approximateLocation(25, 75)).toBe('South Asia') // India
+    expect(approximateLocation(12, 80)).toBe('South Asia') // SE India
+  })
+
+  it('returns South Atlantic Ocean', () => {
+    // lon=-20 is between -75 and 25, lat < 0 → South Atlantic
+    expect(approximateLocation(-15, -20)).toBe('South Atlantic Ocean')
+  })
+
+  it('returns empty string only for truly unmapped coordinates', () => {
+    // The open-ocean catch-alls cover everything, so "" should never occur
+    // in practice. Verify a few extreme points resolve to something.
+    expect(approximateLocation(0, 180)).not.toBe('')
+    expect(approximateLocation(-45, 0)).not.toBe('')
   })
 })

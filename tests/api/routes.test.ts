@@ -112,6 +112,47 @@ describe('GET /api/geocode', () => {
     const body = await res.json();
     expect(body.location).toBeNull();
   });
+
+  it('uses "City, Province" format for Canadian addresses', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ address: { city: 'Toronto', state: 'Ontario', country_code: 'ca' } }),
+    });
+    const res = await geocode({ lat: '43.7', lon: '-79.4' });
+    const body = await res.json();
+    expect(body.location).toBe('Toronto, Ontario');
+  });
+
+  it('falls back to suburb when city/town/village/hamlet are absent', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ address: { suburb: 'Midtown', state: 'New York', country_code: 'us' } }),
+    });
+    const res = await geocode({ lat: '40.76', lon: '-73.98' });
+    const body = await res.json();
+    expect(body.location).toBe('Midtown, New York');
+  });
+
+  it('returns null location when address has no city and no water body', async () => {
+    // Only non-city, non-water fields — buildLocationString returns null
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ address: { country: 'United States', postcode: '48101', country_code: 'us' } }),
+    });
+    const res = await geocode({ lat: '42', lon: '-83' });
+    const body = await res.json();
+    expect(body.location).toBeNull();
+  });
+
+  it('water body takes priority over a city in the same address', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ address: { bay: 'Chesapeake Bay', city: 'Annapolis', country_code: 'us' } }),
+    });
+    const res = await geocode({ lat: '38.9', lon: '-76.5' });
+    const body = await res.json();
+    expect(body.location).toBe('Chesapeake Bay');
+  });
 });
 
 // ============================================
