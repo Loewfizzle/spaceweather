@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
         "Accept-Language": "en",
       },
       signal: AbortSignal.timeout(6_000),
+      next: { revalidate: 86400 }, // coordinates are permanent — cache 24 h server-side
     });
 
     if (!res.ok) return NextResponse.json({ location: null });

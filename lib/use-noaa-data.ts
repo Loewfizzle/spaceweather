@@ -195,13 +195,13 @@ export function useCurrentConditions() {
     kpTime: latestKp?.time_tag ?? null,
     kpHistory: kpQuery.data ?? [],
     maxAuroraProbNA: maxProbNA,
-    ovationProcessed,  // true if we got non-empty coordinates from OVATION (for distinguishing real 0% vs processing failure)
+    ovationProcessed,  // true when the NOAA fetch succeeded — empty coordinates are a valid quiet-sun result, not a failure
     cityProbs,
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
     michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
-    riskLevel: getMichiganRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz),
+    riskLevel: getMichiganRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
     isLoading:
       kpQuery.isLoading ||
       ovationQuery.isLoading ||

@@ -42,6 +42,25 @@ describe('getMichiganRiskLevel', () => {
     expect(getMichiganRiskLevel(2, 5, -2)).toBe('Quiet')
     expect(getMichiganRiskLevel(3, 5, -3)).toBe('Quiet')
   })
+
+  it('returns Moderate when kp >= 3 and solar wind speed > 600 km/s', () => {
+    expect(getMichiganRiskLevel(3, 5, -3, 650)).toBe('Moderate')
+    expect(getMichiganRiskLevel(3, 5, -3, 601)).toBe('Moderate')
+  })
+
+  it('returns High when kp >= 4 and solar wind speed > 600 km/s', () => {
+    expect(getMichiganRiskLevel(4, 5, -3, 650)).toBe('High')
+  })
+
+  it('does not elevate risk for speed <= 600 km/s', () => {
+    expect(getMichiganRiskLevel(3, 5, -3, 600)).toBe('Quiet')
+    expect(getMichiganRiskLevel(3, 5, -3, 500)).toBe('Quiet')
+  })
+
+  it('returns Quiet when solarWindSpeed is null (no elevation)', () => {
+    expect(getMichiganRiskLevel(3, 5, -3, null)).toBe('Quiet')
+    expect(getMichiganRiskLevel(3, 5, -3, undefined)).toBe('Quiet')
+  })
 })
 
 // ============================================
@@ -278,6 +297,32 @@ describe('getMichiganGuidance', () => {
     const result = getMichiganGuidance(3, 25, -8)
     expect(result).toContain('southward Bz')
     expect(result).not.toContain('probabilities across North America')
+  })
+
+  it('elevates to northern-tier text when kp >= 3 and speed > 600', () => {
+    const result = getMichiganGuidance(3, 5, -2, 650)
+    expect(result).toContain('northern-tier')
+  })
+
+  it('appends solar wind note when speed > 600 and Bz not favorable', () => {
+    const result = getMichiganGuidance(2, 5, -2, 650)
+    expect(result).toContain('solar wind speed')
+  })
+
+  it('Bz note takes priority over solar wind note', () => {
+    const result = getMichiganGuidance(2, 5, -6, 650)
+    expect(result).toContain('southward Bz')
+    expect(result).not.toContain('solar wind speed')
+  })
+
+  it('does not append solar wind note when speed <= 600', () => {
+    const result = getMichiganGuidance(2, 5, -2, 600)
+    expect(result).not.toContain('solar wind speed')
+  })
+
+  it('does not append solar wind note when solarWindSpeed is null', () => {
+    const result = getMichiganGuidance(2, 5, -2, null)
+    expect(result).not.toContain('solar wind speed')
   })
 })
 

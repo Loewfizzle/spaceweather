@@ -70,15 +70,17 @@ export function getMichiganGuidance(
 export function getMichiganRiskLevel(
   kp: number | null,
   maxAuroraProbNA: number | null,
-  bz: number | null
+  bz: number | null,
+  solarWindSpeed?: number | null
 ): "Quiet" | "Moderate" | "High" {
   if (kp === null) return "Quiet";
   const prob = maxAuroraProbNA ?? 0;
   const b = bz ?? 0;
-  if (kp >= 5 || prob >= 25 || b <= -8) {
+  const highSpeed = solarWindSpeed != null && solarWindSpeed > 600;
+  if (kp >= 5 || prob >= 25 || b <= -8 || (kp >= 4 && highSpeed)) {
     return "High";
   }
-  if (kp >= 4 || prob >= 15 || b <= -5) {
+  if (kp >= 4 || prob >= 15 || b <= -5 || (kp >= 3 && highSpeed)) {
     return "Moderate";
   }
   return "Quiet";

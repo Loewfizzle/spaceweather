@@ -71,11 +71,20 @@ async function checkAurora() {
     const kp = parseKpFromTabular(raw);
     if (kp === null) return;
 
-    // Multi-factor condition — mirrors the likelyForMI logic in useNotifications.ts
+    // Multi-factor trigger check — same logic as lib/utils/swNotifications.ts,
+    // inlined here because SW has no module imports.
+    function shouldTriggerNotification(kpVal, userPrefs, bz, maxProb) {
+      if (kpVal === null) return false;
+      const kpHit   = kpVal >= userPrefs.kp;
+      const probHit = maxProb !== null && maxProb >= userPrefs.prob;
+      const bzHit   = bz !== null && bz <= -5;
+      return kpHit || probHit || bzHit;
+    }
+    if (!shouldTriggerNotification(kp, prefs, cachedBz, cachedMaxProb)) return;
+
     const kpHit   = kp >= prefs.kp;
-    const probHit  = cachedMaxProb !== null && cachedMaxProb >= prefs.prob;
-    const bzHit    = cachedBz !== null && cachedBz <= -5;
-    if (!kpHit && !probHit && !bzHit) return;
+    const probHit = cachedMaxProb !== null && cachedMaxProb >= prefs.prob;
+    const bzHit   = cachedBz !== null && cachedBz <= -5;
 
     // Build a descriptive body listing every factor that triggered
     const reasons = [];
