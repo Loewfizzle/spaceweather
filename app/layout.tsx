@@ -37,21 +37,12 @@ export const metadata: Metadata = {
     siteName: "AuroraWatch",
     title: "AuroraWatch | Real-time Aurora & Space Weather",
     description: "Premium real-time aurora visibility and space weather dashboard for the United States, with focused coverage for Michigan and the Great Lakes. Live NOAA SWPC data.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "AuroraWatch - Real-time Aurora & Space Weather Dashboard",
-      },
-    ],
+    // opengraph-image.tsx in this directory generates the OG image dynamically with live Kp data.
   },
   twitter: {
     card: "summary_large_image",
-    site: "@aurorawatch", // optional: add if you have a Twitter handle
     title: "AuroraWatch | Real-time Aurora & Space Weather",
     description: "Premium real-time aurora visibility and space weather dashboard for the United States, with focused coverage for Michigan and the Great Lakes. Live NOAA SWPC data.",
-    images: ["/og-image.jpg"],
   },
   keywords: ["aurora", "space weather", "Michigan", "Great Lakes", "NOAA", "Kp index", "fireball", "meteor shower"],
   authors: [{ name: "AuroraWatch" }],

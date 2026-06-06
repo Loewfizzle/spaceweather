@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { KpEntry } from "../api/schemas";
+import type { KpEntry, KpForecastEntry } from "../api/schemas";
 
 const CHART_OPTIONS = {
   responsive: true,
@@ -81,65 +81,104 @@ function makeTonightPlugin(tonightMask: boolean[]): Record<string, any> {
   };
 }
 
-export function useChartData(kpHistory: KpEntry[]) {
+function formatTimeLabel(timeTag: string, referenceUtcDate: string): string {
+  const d = new Date(timeTag);
+  const time = d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  });
+  const entryDate = d.toLocaleDateString("en-US", { timeZone: "UTC" });
+  if (entryDate !== referenceUtcDate) {
+    const day = d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+    return `${day} ${time}`;
+  }
+  return time;
+}
+
+export function useChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[] = []) {
   return useMemo(() => {
     // Last ~12 entries (~36 hours of 3h Kp data); drop entries with no valid timestamp
     const recent = kpHistory
       .filter((entry) => !!entry.time_tag && !isNaN(new Date(entry.time_tag).getTime()))
       .slice(-12);
 
-    // Entries from an earlier UTC date get a "Mon 14:00" prefix so the 36h window
-    // doesn't look like a single-day chart when it spans midnight.
+    // Reference UTC date for label formatting (prevents "Mon 14:00" prefix on same-day entries)
     const todayUtc =
       recent.length > 0
         ? new Date(recent[recent.length - 1].time_tag!).toLocaleDateString("en-US", {
             timeZone: "UTC",
           })
         : "";
-    const labels = recent.map((entry) => {
-      const d = new Date(entry.time_tag!);
-      const time = d.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        timeZone: "UTC",
-      });
-      const entryDate = d.toLocaleDateString("en-US", { timeZone: "UTC" });
-      if (entryDate !== todayUtc) {
-        const day = d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
-        return `${day} ${time}`;
-      }
-      return time;
-    });
 
-    const values = recent.map((entry) => entry.Kp ?? 0);
+    const historicalLabels = recent.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
+    const historicalValues = recent.map((entry) => entry.Kp ?? 0);
+    const historicalTonightMask = recent.map((e) => isTonightMichigan(new Date(e.time_tag!)));
 
-    // Which entries fall in Michigan's overnight aurora window (8 pm – 6 am ET)?
-    const tonightMask = recent.map((entry) => isTonightMichigan(new Date(entry.time_tag!)));
-    const hasTonight = tonightMask.some((v) => v);
+    // Filter forecast to only entries AFTER the last historical point
+    const lastHistoricalTime =
+      recent.length > 0 ? new Date(recent[recent.length - 1].time_tag!).getTime() : 0;
+
+    const futureForecast = kpForecast
+      .filter(
+        (e) => !!e.time_tag && !isNaN(new Date(e.time_tag).getTime()) &&
+          new Date(e.time_tag).getTime() > lastHistoricalTime
+      )
+      .slice(0, 12); // next 36 hours
+
+    const forecastLabels = futureForecast.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
+    const forecastValues = futureForecast.map((e) => e.kp ?? 0);
+    const forecastTonightMask = futureForecast.map((e) => isTonightMichigan(new Date(e.time_tag!)));
+
+    const fullMask = [...historicalTonightMask, ...forecastTonightMask];
+    const hasTonight = fullMask.some((v) => v);
+
+    // Pad datasets so both span the full label array
+    const histPad = Array<null>(futureForecast.length).fill(null);
+    const fcstPad = Array<null>(recent.length).fill(null);
+
+    const histDataset = {
+      label: "Kp Index",
+      data: [...historicalValues, ...histPad] as (number | null)[],
+      borderColor: "#22c55e",
+      backgroundColor: "rgba(34, 197, 94, 0.15)",
+      borderWidth: 2,
+      tension: 0.4,
+      pointRadius: 2.5,
+      pointHoverRadius: 4,
+      pointBackgroundColor: "#22c55e",
+      spanGaps: false,
+    };
+
+    const fcstDataset =
+      futureForecast.length > 0
+        ? {
+            label: "Forecast",
+            data: [...fcstPad, ...forecastValues] as (number | null)[],
+            borderColor: "#475569",
+            backgroundColor: "rgba(71, 85, 105, 0.06)",
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 3,
+            pointBackgroundColor: "#475569",
+            spanGaps: false,
+          }
+        : null;
 
     const chartData = {
-      labels,
-      datasets: [
-        {
-          label: "Kp Index",
-          data: values,
-          borderColor: "#22c55e",
-          backgroundColor: "rgba(34, 197, 94, 0.15)",
-          borderWidth: 2,
-          tension: 0.4,
-          pointRadius: 2.5,
-          pointHoverRadius: 4,
-          pointBackgroundColor: "#22c55e",
-        },
-      ],
+      labels: [...historicalLabels, ...forecastLabels],
+      datasets: fcstDataset ? [histDataset, fcstDataset] : [histDataset],
     };
 
     return {
       chartData,
       chartOptions: CHART_OPTIONS,
-      tonightPlugin: makeTonightPlugin(tonightMask),
+      tonightPlugin: makeTonightPlugin(fullMask),
       hasTonight,
+      hasForecast: futureForecast.length > 0,
     };
-  }, [kpHistory]);
+  }, [kpHistory, kpForecast]);
 }

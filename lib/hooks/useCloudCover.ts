@@ -1,0 +1,73 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+
+export interface CloudCoverResult {
+  currentPct: number;
+  tonightAvg: number | null;
+  label: string;
+}
+
+function cloudLabel(pct: number): string {
+  if (pct < 20) return 'Clear';
+  if (pct < 40) return 'Mostly clear';
+  if (pct < 60) return 'Partly cloudy';
+  if (pct < 80) return 'Mostly cloudy';
+  return 'Overcast';
+}
+
+async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResult> {
+  const res = await fetch(`/api/cloud-cover?lat=${lat}&lon=${lon}`);
+  if (!res.ok) throw new Error(`Cloud cover fetch failed: ${res.status}`);
+  const data = await res.json();
+
+  const currentPct: number = typeof data?.current?.cloud_cover === 'number'
+    ? data.current.cloud_cover
+    : 0;
+
+  // Compute tonight's average over hours 20–06 local time.
+  // Open-Meteo returns local-time ISO strings when timezone=auto, so we parse
+  // the hour directly from the string rather than relying on Date().getHours().
+  let tonightAvg: number | null = null;
+  if (
+    Array.isArray(data?.hourly?.time) &&
+    Array.isArray(data?.hourly?.cloud_cover)
+  ) {
+    const times = data.hourly.time as string[];
+    const covers = data.hourly.cloud_cover as number[];
+    const nowMs = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    const tonightValues: number[] = [];
+    for (let i = 0; i < times.length; i++) {
+      const t = new Date(times[i]).getTime();
+      if (t <= nowMs || t > nowMs + dayMs) continue;
+      // Extract hour from "2026-06-05T22:00" — safe regardless of tz suffix
+      const hourStr = (times[i].split('T')[1] ?? '').substring(0, 2);
+      const hour = parseInt(hourStr, 10);
+      if (hour >= 20 || hour < 6) {
+        tonightValues.push(covers[i]);
+      }
+    }
+
+    if (tonightValues.length > 0) {
+      tonightAvg = Math.round(tonightValues.reduce((s, v) => s + v, 0) / tonightValues.length);
+    }
+  }
+
+  const displayPct = tonightAvg ?? currentPct;
+  return { currentPct, tonightAvg, label: cloudLabel(displayPct) };
+}
+
+export function useCloudCover(lat: number | null, lon: number | null) {
+  return useQuery<CloudCoverResult>({
+    queryKey: ['cloud-cover', lat, lon],
+    queryFn: () => fetchCloudCover(lat!, lon!),
+    enabled: lat !== null && lon !== null,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
+    refetchInterval: 1000 * 60 * 15,
+    retry: 1,
+    retryDelay: 5000,
+  });
+}

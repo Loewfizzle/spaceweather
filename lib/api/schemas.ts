@@ -109,6 +109,17 @@ export const CmeSummarySchema = z.object({
 });
 export type CmeSummary = z.infer<typeof CmeSummarySchema>;
 
+// --- NOAA Planetary K-index Forecast ---
+// Uses lowercase `kp` field (unlike historical KpEntry which uses uppercase `Kp`)
+export const KpForecastEntrySchema = z.object({
+  time_tag: z.string().nullable().optional(),
+  kp: z.number().nullable().optional(),
+  observed: z.string().nullable().optional(), // "observed", "estimated", "predicted"
+  noaa_scale: z.string().nullable().optional(),
+});
+export const KpForecastResponseSchema = z.array(KpForecastEntrySchema);
+export type KpForecastEntry = z.infer<typeof KpForecastEntrySchema>;
+
 // Meteor shower (static data, not from external API but for type safety)
 export const MeteorShowerSchema = z.object({
   name: z.string(),

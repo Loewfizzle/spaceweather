@@ -12,6 +12,7 @@ import {
   // Fetchers are the single source for network + validation (lib/api/fetchers)
   fetchOvation,
   fetchKpIndex,
+  fetchKpForecast,
   fetchPlasma,
   fetchMag,
   fetchXrayFlaresLatest,
@@ -45,6 +46,7 @@ import type {
   // Types from the Zod schemas (single source of truth for shapes)
   OvationResponse,
   KpEntry,
+  KpForecastEntry,
   PlasmaEntry,
   MagEntry,
   XrayFlare,
@@ -217,6 +219,19 @@ export function useCurrentConditions() {
       solarWind.mag.refetch();
     },
   };
+}
+
+export function useKpForecast() {
+  return useQuery<KpForecastEntry[]>({
+    queryKey: ['kp-forecast'],
+    queryFn: fetchKpForecast,
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
+    refetchInterval: 1000 * 60 * 30,
+    refetchIntervalInBackground: false,
+    retry: shouldRetryNonCritical,
+    retryDelay: exponentialBackoff,
+  });
 }
 
 // --- Solar Activity hook for the new SOLAR ACTIVITY section ---

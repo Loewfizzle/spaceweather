@@ -149,7 +149,7 @@ describe('Meteor helpers', () => {
 
   it('formatMeteorPeak formats date range correctly', () => {
     // This is a simplified test - adjust if your MAJOR_METEOR_SHOWERS data changes
-    const mockShower: MeteorShower = { name: 'Perseids', peakMonth: 8, peakDay: 12, peakEndDay: 13, activityLevel: 'High' }
+    const mockShower: MeteorShower = { name: 'Perseids', peakMonth: 8, peakDay: 12, peakEndDay: 13, activityLevel: 'High', description: 'One of the best annual meteor showers.' }
     const date = new Date(2026, 7, 12)
     const formatted = formatMeteorPeak(date, mockShower)
     expect(formatted).toContain('August 12')

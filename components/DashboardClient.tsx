@@ -10,6 +10,7 @@ import {
 import { getLocationAuroraProb, getNearestCityName } from "../lib/noaa";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
 import { useGeolocation } from "../lib/hooks/useGeolocation";
+import { useCloudCover } from "../lib/hooks/useCloudCover";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { HeroOutlook } from "./HeroOutlook";
 import { CurrentConditions } from "./CurrentConditions";
@@ -88,6 +89,10 @@ export function DashboardClient() {
     return getNearestCityName(geoState.lat, geoState.lon);
   }, [geoState]);
 
+  const geoLat = geoState.status === "granted" ? geoState.lat : null;
+  const geoLon = geoState.status === "granted" ? geoState.lon : null;
+  const cloudCoverQuery = useCloudCover(geoLat, geoLon);
+
   // Register service worker once on app startup
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -109,6 +114,8 @@ export function DashboardClient() {
             userLocationLabel={userLocationLabel}
             onRequestLocation={requestLocation}
             isLocating={geoState.status === "loading"}
+            cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
+            cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
           />
         </ErrorBoundary>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Loader2 } from "lucide-react";
+import { MapPin, Loader2, Cloud } from "lucide-react";
 import type { TonightOutlook } from "../lib/use-noaa-data";
 
 interface HeroOutlookProps {
@@ -12,6 +12,8 @@ interface HeroOutlookProps {
   userLocationLabel?: string | null;
   onRequestLocation?: () => void;
   isLocating?: boolean;
+  cloudCoverPct?: number | null;
+  cloudCoverLabel?: string | null;
 }
 
 export function HeroOutlook({
@@ -23,6 +25,8 @@ export function HeroOutlook({
   userLocationLabel,
   onRequestLocation,
   isLocating,
+  cloudCoverPct,
+  cloudCoverLabel,
 }: HeroOutlookProps) {
   // Show at most 4 pre-defined cities — enough for the north→south gradient without crowding
   const displayedCities = outlook.cityProbs?.slice(0, 4) ?? [];
@@ -99,6 +103,27 @@ export function HeroOutlook({
                 )}
                 {isLocating ? "Locating…" : "Use my location"}
               </button>
+            )}
+
+            {/* Cloud cover — only shown when geolocation is granted */}
+            {cloudCoverPct != null && (
+              <div className="flex items-center gap-1.5 text-[11px] mt-2 pt-2 border-t border-[#1e2937]">
+                <Cloud className="h-3 w-3 text-[#64748b] flex-shrink-0" />
+                <span className="text-[#64748b]">Skies tonight:</span>
+                <span
+                  className="font-medium"
+                  style={{
+                    color:
+                      cloudCoverPct < 30
+                        ? "#22c55e"
+                        : cloudCoverPct < 60
+                        ? "#eab308"
+                        : "#94a3b8",
+                  }}
+                >
+                  {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
+                </span>
+              </div>
             )}
           </div>
         )}

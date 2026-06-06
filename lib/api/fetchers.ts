@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   KpResponseSchema,
+  KpForecastEntrySchema,
   OvationResponseSchema,
   PlasmaEntrySchema,
   MagEntrySchema,
@@ -11,6 +12,7 @@ import {
 } from './schemas';
 import type {
   KpEntry,
+  KpForecastEntry,
   OvationResponse,
   PlasmaEntry,
   MagEntry,
@@ -86,6 +88,19 @@ export async function fetchKpIndex(): Promise<KpEntry[]> {
     'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json'
   );
   return KpResponseSchema.parse(raw);
+}
+
+// 3-day Kp forecast (lowercase `kp` field, unlike historical)
+export async function fetchKpForecast(): Promise<KpForecastEntry[]> {
+  const raw = await fetchJson<unknown>(
+    'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json'
+  );
+  const result = z.array(KpForecastEntrySchema).safeParse(raw);
+  if (!result.success) {
+    logDataError('KpForecast parse', result.error, { url: 'noaa-planetary-k-index-forecast.json' }, false);
+    return [];
+  }
+  return result.data;
 }
 
 // Solar wind plasma (parsed from string[][])

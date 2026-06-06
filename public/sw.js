@@ -47,8 +47,8 @@ async function checkAurora() {
     await self.registration.showNotification('AuroraWatch Alert', {
       body: `Kp ${kp.toFixed(1)} — Aurora may be visible in Michigan. Tap to check conditions.`,
       tag: 'aurorawatch-bg',
-      icon: '/icon.svg',
-      badge: '/icon.svg',
+      icon: '/api/pwa-icon?size=192',
+      badge: '/api/pwa-icon?size=192',
       data: { url: '/' },
     });
 
