@@ -9,6 +9,7 @@ interface HeroOutlookProps {
   error?: Error | null;
   isFetching?: boolean;
   userLocationProb?: number | null;
+  userLocationLabel?: string | null;
   onRequestLocation?: () => void;
   isLocating?: boolean;
 }
@@ -19,6 +20,7 @@ export function HeroOutlook({
   error,
   isFetching,
   userLocationProb,
+  userLocationLabel,
   onRequestLocation,
   isLocating,
 }: HeroOutlookProps) {
@@ -59,7 +61,9 @@ export function HeroOutlook({
             {userLocationProb != null && (
               <div className="text-sm text-[#94a3b8] flex items-center gap-2">
                 <MapPin className="h-2.5 w-2.5 flex-shrink-0" style={{ color: outlook.accentColor }} />
-                <span className="flex-1 text-[#cbd5e1] font-medium">Your location</span>
+                <span className="flex-1 text-[#cbd5e1] font-medium">
+                  {userLocationLabel ?? "Your location"}
+                </span>
                 <span className="tabular-nums font-medium text-[#cbd5e1]">
                   {userLocationProb > 0 ? `${userLocationProb}%` : "< 1%"}
                 </span>

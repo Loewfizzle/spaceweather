@@ -274,11 +274,11 @@ describe('getMichiganGuidance', () => {
 // getCityAuroraProbabilities
 // ============================================
 describe('getCityAuroraProbabilities', () => {
-  it('returns 8 cities anchored at Marquette (first) and Green Bay (last)', () => {
+  it('returns 4 cities in north-to-south order', () => {
     const result = getCityAuroraProbabilities(null, null, null)
-    expect(result).toHaveLength(8)
-    expect(result[0].name).toBe('Marquette')
-    expect(result[result.length - 1].name).toBe('Green Bay')
+    expect(result).toHaveLength(4)
+    expect(result[0].name).toBe('Fort Ripley')
+    expect(result[3].name).toBe('Hudsonville')
   })
 
   it('returns 0 for all cities when no data and no kp', () => {
@@ -287,28 +287,27 @@ describe('getCityAuroraProbabilities', () => {
   })
 
   it('uses Kp-based fallback when ovation is null', () => {
-    // Kp 6 should give Marquette (MI UP, ~46.5°N) a meaningful probability
+    // Kp 6 should give Fort Ripley (46°N) a meaningful probability
     const result = getCityAuroraProbabilities(null, 6, null)
-    expect(result[0].name).toBe('Marquette')
-    expect(result[0].state).toBe('MI')
+    expect(result[0].state).toBe('MN')
     expect(result[0].prob).toBeGreaterThan(0)
-    // Northernmost city should be >= southernmost (Hudsonville at index 5)
-    expect(result[0].prob).toBeGreaterThanOrEqual(result[5].prob)
+    // Fort Ripley (northernmost) should be >= Hudsonville (southernmost)
+    expect(result[0].prob).toBeGreaterThanOrEqual(result[3].prob)
   })
 
   it('picks the nearest OVATION grid point for each city', () => {
-    // High-prob point near Marquette (lat=46.54, rawLon=360-87.4=272.6)
-    // Low-prob point near Cedar (lat=44.75, rawLon=360-85.56=274.44)
+    // Place a high-probability point right near Fort Ripley (~46°N, -94°W → rawLon 266)
+    // and a low point near the Michigan cities (~44°N, -85°W → rawLon 275)
     const ovation: OvationResponse = {
       coordinates: [
-        [272, 47, 70],   // near Marquette / Sault Ste. Marie
-        [274, 45, 5],    // near Cedar / Petoskey
-        [274, 43, 5],    // near Spring Lake / Hudsonville
+        [266, 46, 70],   // near Fort Ripley
+        [275, 45, 5],    // near Cedar/Spring Lake/Hudsonville
+        [275, 43, 5],
       ],
     }
     const result = getCityAuroraProbabilities(ovation, 5, null)
-    expect(result[0].prob).toBe(70)   // Marquette — closest to [272, 47]
-    expect(result[2].prob).toBeLessThanOrEqual(10)  // Petoskey — closer to [274, 45]
+    expect(result[0].prob).toBe(70)   // Fort Ripley
+    expect(result[1].prob).toBeLessThanOrEqual(10)  // Cedar
   })
 
   it('applies Bz boost when bz <= -5', () => {

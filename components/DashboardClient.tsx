@@ -7,7 +7,7 @@ import {
   useOvationData,
   getTonightOutlook,
 } from "../lib/use-noaa-data";
-import { getLocationAuroraProb } from "../lib/noaa";
+import { getLocationAuroraProb, getNearestCityName } from "../lib/noaa";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
 import { useGeolocation } from "../lib/hooks/useGeolocation";
 import { LoadingSkeleton } from "./LoadingSkeleton";
@@ -83,6 +83,11 @@ export function DashboardClient() {
     return getLocationAuroraProb(geoState.lat, geoState.lon, ovationData ?? null, kp, bz);
   }, [geoState, ovationData, kp, bz]);
 
+  const userLocationLabel = useMemo(() => {
+    if (geoState.status !== "granted") return null;
+    return getNearestCityName(geoState.lat, geoState.lon);
+  }, [geoState]);
+
   // Register service worker once on app startup
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -101,6 +106,7 @@ export function DashboardClient() {
             error={error}
             isFetching={isFetching}
             userLocationProb={userLocationProb}
+            userLocationLabel={userLocationLabel}
             onRequestLocation={requestLocation}
             isLocating={geoState.status === "loading"}
           />

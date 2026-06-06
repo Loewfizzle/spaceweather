@@ -24,6 +24,7 @@ import type {
 } from "./api/schemas";
 import type { MeteorShower } from "./api/schemas";
 import { MAJOR_METEOR_SHOWERS } from "./constants/meteors";
+import { US_CITIES } from "./constants/usCities";
 
 // Helper: get most recent value from time series (tolerant of optional time_tag after defensive schemas)
 export function latest<T extends { time_tag?: string | null }>(arr: T[]): T | null {
@@ -317,18 +318,10 @@ export function getTonightOutlook(
 // ── City-level aurora probability ──────────────────────────────────────────
 
 const AURORA_WATCH_CITIES = [
-  // Michigan UP — best aurora viewing in MI (ordered north→south)
-  { name: "Marquette",        state: "MI", lat: 46.54, lon: -87.40 },
-  { name: "Sault Ste. Marie", state: "MI", lat: 46.49, lon: -84.35 },
-  // Michigan LP northern tier
-  { name: "Petoskey",         state: "MI", lat: 45.37, lon: -84.96 },
-  { name: "Cedar",            state: "MI", lat: 44.75, lon: -85.56 },
-  // Michigan LP mid/south
-  { name: "Spring Lake",      state: "MI", lat: 43.08, lon: -86.20 },
-  { name: "Hudsonville",      state: "MI", lat: 42.87, lon: -85.87 },
-  // Regional neighbors for broader Great Lakes context
-  { name: "Duluth",           state: "MN", lat: 46.83, lon: -92.10 },
-  { name: "Green Bay",        state: "WI", lat: 44.52, lon: -88.02 },
+  { name: "Fort Ripley", state: "MN", lat: 46.17, lon: -94.36 },
+  { name: "Cedar",       state: "MI", lat: 44.75, lon: -85.56 },
+  { name: "Spring Lake", state: "MI", lat: 43.08, lon: -86.20 },
+  { name: "Hudsonville", state: "MI", lat: 42.87, lon: -85.87 },
 ] as const;
 
 // Rough equatorward aurora oval boundary by Kp (Holzworth & Meng 1975, simplified).
@@ -374,6 +367,20 @@ export function getCityAuroraProbabilities(
 
     return { name: city.name, state: city.state, prob: Math.round(Math.max(0, Math.min(99, prob))) };
   });
+}
+
+/**
+ * Returns the name of the nearest US city to a given lat/lon.
+ * Used to label the geolocation result in HeroOutlook instead of showing raw coordinates.
+ */
+export function getNearestCityName(lat: number, lon: number): string {
+  let best: (typeof US_CITIES)[number] = US_CITIES[0];
+  let bestDist = Infinity;
+  for (const city of US_CITIES) {
+    const d = (city.lat - lat) ** 2 + (city.lon - lon) ** 2;
+    if (d < bestDist) { bestDist = d; best = city; }
+  }
+  return `${best.name}, ${best.state}`;
 }
 
 /**
