@@ -45,11 +45,9 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   }
 }
 
-/**
- * Centralized, schema-validated fetchers for AuroraWatch.
- * All external data goes through Zod (parse or safeParse+filter for resilience).
- * Consumers should import types from './schemas', not rely on re-exports.
- */
+// Centralized, schema-validated fetchers for AuroraWatch.
+// All external data goes through Zod (parse or safeParse+filter for resilience).
+// Consumers should import types from './schemas', not rely on re-exports.
 
 // Shared helper: convert NOAA's string[][] format (header row + data rows) to typed objects.
 export function parseStringArrayRows(raw: string[][]): Record<string, string | number | null>[] {

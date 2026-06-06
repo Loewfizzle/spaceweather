@@ -38,7 +38,6 @@ interface UseNotificationsReturn {
  *  - Manual "Enable / Send test" handler with permission flow + confirmation test notification
  *
  * The auto effect depends on live kp / prob / bz values (passed in) so it reacts to data refreshes.
- * All original behavior, storage keys, messages, and throttling preserved exactly.
  */
 export function useNotifications({
   kp,

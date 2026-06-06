@@ -40,14 +40,15 @@ function alertFirstLine(message: string): string {
   return raw.length < body.length ? raw : raw + (body.length > 120 ? '…' : '');
 }
 
-/**
- * AlertsPanel
- * Notifications v2 card: description, live MI risk badge, On/Off toggle (gated by permission),
- * sensitivity preset buttons, current threshold readout, throttle note, and primary action button (Enable / Send test).
- * Uses the useNotifications hook for all state, persistence, effects, and the enable handler.
- * Receives live condition values + riskLevel (for badge) from orchestration layer.
- * Exact original layout, conditional classes, disabled states, and messaging preserved.
- */
+// NOAA issue_datetime uses space instead of T ("2026-06-05 23:25:16") — normalize before parsing.
+function formatAlertAge(issueDatetime: string): string {
+  try {
+    return formatDistanceToNow(new Date(issueDatetime.replace(' ', 'T')), { addSuffix: true });
+  } catch {
+    return issueDatetime;
+  }
+}
+
 export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, alerts, alertsLoading }: AlertsPanelProps) {
   const recentAlerts = (alerts ?? []).slice(0, 8);
   const {
@@ -183,55 +184,42 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
           </div>
         </div>
 
-        {/* Recent NOAA alerts feed */}
-        {(alertsLoading && recentAlerts.length === 0) ? (
+        {/* Recent NOAA alerts feed — skeleton while loading, populated list once data arrives */}
+        {(recentAlerts.length > 0 || !!alertsLoading) && (
           <div className="mt-6 pt-5 border-t border-[#1e2937]">
             <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
               RECENT NOAA ALERTS
             </div>
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="h-3 w-24 rounded bg-[#1e2937]" />
-                    <div className="h-3 w-16 rounded bg-[#1e2937]" />
-                  </div>
-                  <div className="h-3 w-4/5 rounded bg-[#1e2937]" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : recentAlerts.length > 0 ? (
-          <div className="mt-6 pt-5 border-t border-[#1e2937]">
-            <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
-              RECENT NOAA ALERTS
-            </div>
-            <div className="space-y-3">
-              {recentAlerts.map((alert, i) => {
-                const { text, color } = alertProductLabel(alert.product_id);
-                const firstLine = alertFirstLine(alert.message);
-                // NOAA issue_datetime uses space instead of T ("2026-06-05 23:25:16")
-                const ago = (() => {
-                  try {
-                    return formatDistanceToNow(
-                      new Date(alert.issue_datetime.replace(' ', 'T')),
-                      { addSuffix: true }
-                    );
-                  } catch { return alert.issue_datetime; }
-                })();
-                return (
-                  <div key={i} className="text-[12px]">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-medium" style={{ color }}>{text}</span>
-                      <span className="text-[#475569] tabular-nums">{ago}</span>
+              {recentAlerts.length === 0 ? (
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="h-3 w-24 rounded bg-[#1e2937]" />
+                      <div className="h-3 w-16 rounded bg-[#1e2937]" />
                     </div>
-                    <div className="text-[#64748b] leading-snug">{firstLine}</div>
+                    <div className="h-3 w-4/5 rounded bg-[#1e2937]" />
                   </div>
-                );
-              })}
+                ))
+              ) : (
+                recentAlerts.map((alert, i) => {
+                  const { text, color } = alertProductLabel(alert.product_id);
+                  const firstLine = alertFirstLine(alert.message);
+                  const ago = formatAlertAge(alert.issue_datetime);
+                  return (
+                    <div key={i} className="text-[12px]">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-medium" style={{ color }}>{text}</span>
+                        <span className="text-[#475569] tabular-nums">{ago}</span>
+                      </div>
+                      <div className="text-[#64748b] leading-snug">{firstLine}</div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );

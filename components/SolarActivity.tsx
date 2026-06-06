@@ -6,6 +6,13 @@ import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 
+// Live NASA SDO imagery — updates every ~15 minutes.
+// Using plain <img> (not next/image) so the browser always fetches the
+// freshest frame directly from NASA rather than a cached optimised copy.
+const SDO_SUNSPOT_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg";
+const SDO_CORONAL_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0193.jpg";
+const SDO_DATA_URL = "https://sdo.gsfc.nasa.gov/data/";
+
 function SdoImage({ src, alt }: { src: string; alt: string }) {
   const [imgState, setImgState] = useState<'loading' | 'loaded' | 'failed'>('loading');
   const [attempt, setAttempt] = useState(0);
@@ -77,13 +84,6 @@ function SdoImage({ src, alt }: { src: string; alt: string }) {
     </div>
   );
 }
-
-// Live NASA SDO imagery — updates every ~15 minutes.
-// Using plain <img> (not next/image) so the browser always fetches the
-// freshest frame directly from NASA rather than a cached optimised copy.
-const SDO_SUNSPOT_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg";
-const SDO_CORONAL_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0193.jpg";
-const SDO_DATA_URL = "https://sdo.gsfc.nasa.gov/data/";
 
 export function SolarActivity() {
   const solarActivity = useSolarActivity();

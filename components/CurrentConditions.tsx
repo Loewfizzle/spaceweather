@@ -17,12 +17,6 @@ interface CurrentConditionsProps {
   ovationProcessed?: boolean;
 }
 
-/**
- * CurrentConditions
- * The 4 metric cards row (Solar Wind, IMF Bz, Planetary Kp, OVATION NA).
- * Preserves exact card markup, icons, tabular-nums, fallback "—", loading skeleton,
- * and the "updated X min ago • auto" freshness line (uses latestGlobalUpdate when available).
- */
 export function CurrentConditions({
   solarWindSpeed,
   solarWindDensity,
@@ -49,7 +43,6 @@ export function CurrentConditions({
         <LoadingSkeleton variant="metrics" count={4} />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <>
             <div className="metric">
               <div className="flex items-center gap-2 text-[#64748b] text-xs mb-2.5">
                 <Wind className="w-4 h-4" /> SOLAR WIND
@@ -105,7 +98,6 @@ export function CurrentConditions({
                   : "Max probability (North America)"}
               </div>
             </div>
-          </>
         </div>
       )}
     </div>
