@@ -49,7 +49,7 @@ function dateShort(dateStr: string): string {
 
 function activityColor(level: string): string {
   const lc = level.toLowerCase();
-  if (lc.includes("high")) return "#22c55e";
+  if (lc.includes("high")) return "#a78bfa";
   if (lc.includes("moderate")) return "#eab308";
   return "#94a3b8";
 }
