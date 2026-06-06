@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Clock } from "lucide-react";
 import { computeViewingWindow, computeLastNightPeak } from "../lib/utils/viewingWindow";
-import { cloudCoverColor } from "../lib/noaa";
+import { cloudCoverColor, getKpTier, AURORA_TIERS } from "../lib/noaa";
 import type { KpEntry, KpForecastEntry } from "../lib/api/schemas";
 
 interface ViewingWindowProps {
@@ -26,13 +26,14 @@ function formatET(date: Date): string {
 }
 
 function peakToLabel(kp: number): { label: string; color: string; guidance: string } {
-  if (kp >= 5)
-    return { label: "Aurora likely", color: "#22c55e", guidance: "Get outside and look north." };
-  if (kp >= 4)
-    return { label: "Active", color: "#86efac", guidance: "Worth watching from dark skies." };
-  if (kp >= 3)
-    return { label: "Low activity", color: "#eab308", guidance: "Best chance from rural areas." };
-  return { label: "Quiet", color: "#475569", guidance: "Calm conditions expected." };
+  const tier = getKpTier(kp);
+  const { color, label } = AURORA_TIERS[tier];
+  const guidance =
+    tier === "storm"    ? "Get outside and look north." :
+    tier === "active"   ? "Worth watching from dark skies." :
+    tier === "moderate" ? "Best chance from rural areas." :
+                          "Calm conditions expected.";
+  return { label, color, guidance };
 }
 
 export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, isLoading }: ViewingWindowProps) {

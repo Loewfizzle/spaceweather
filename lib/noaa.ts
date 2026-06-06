@@ -137,16 +137,40 @@ export function maxOvationNorthAmerica(data: OvationResponse | null): number {
   return relevant.reduce((max, p) => Math.max(max, p.prob), 0);
 }
 
-/**
- * Premium calm aurora color scale for markers (and reference for heatmap).
- * Subtle for low probs (so heat field provides context), stronger for high.
- */
+// ── Canonical 4-tier aurora color palette ─────────────────────────────────
+// Single source of truth used by the header Kp pill, viewing window, and map.
+// Tier names mirror geomagnetic storm scale language so they're self-documenting.
+//
+// Kp  cutoffs: quiet <4 · moderate 4–4.9 · active 5–5.9 · storm ≥6
+// Prob cutoffs: quiet <10% · moderate 10–29% · active 30–59% · storm ≥60%
+export const AURORA_TIERS = {
+  quiet:    { color: '#22c55e', label: 'Quiet'    },
+  moderate: { color: '#eab308', label: 'Moderate' },
+  active:   { color: '#f97316', label: 'Active'   },
+  storm:    { color: '#a78bfa', label: 'Storm'    },
+} as const;
+
+export type AuroraTier = keyof typeof AURORA_TIERS;
+
+/** Map a Kp index (0–9) to the canonical activity tier. */
+export function getKpTier(kp: number): AuroraTier {
+  if (kp >= 6) return 'storm';
+  if (kp >= 5) return 'active';
+  if (kp >= 4) return 'moderate';
+  return 'quiet';
+}
+
+/** Map an aurora probability (0–100%) to the canonical activity tier. */
+export function getProbTier(prob: number): AuroraTier {
+  if (prob >= 60) return 'storm';
+  if (prob >= 30) return 'active';
+  if (prob >= 10) return 'moderate';
+  return 'quiet';
+}
+
+/** Aurora color for a given probability. Internals use the unified tier system. */
 export function getAuroraColor(prob: number): string {
-  if (prob < 5) return "#166534"; // very low / subtle dark green
-  if (prob < 15) return "#22c55e"; // low - green
-  if (prob < 30) return "#eab308"; // moderate - yellow
-  if (prob < 50) return "#f97316"; // elevated - orange
-  return "#a78bfa"; // high - violet (stands out on dark)
+  return AURORA_TIERS[getProbTier(prob)].color;
 }
 
 /** Radius for high-prob marker peaks (scaled for visual weight). */

@@ -12,6 +12,7 @@
 
 import { Activity, RefreshCw } from "lucide-react";
 import { useCurrentConditions, useSolarActivity } from "../lib/use-noaa-data";
+import { getKpTier } from "../lib/noaa";
 import { DataStatus } from "./DataStatus";
 
 export function LiveHeader() {
@@ -20,8 +21,7 @@ export function LiveHeader() {
 
   const { kp, isLoading, isFetching, refetchAll } = conditions;
 
-  const kpClass =
-    kp === null ? "kp-low" : kp >= 5 ? "kp-high" : kp >= 4 ? "kp-moderate" : "kp-low";
+  const kpClass = `kp-${kp !== null ? getKpTier(kp) : "quiet"}`;
 
   return (
     <div className="flex items-center gap-1.5 sm:gap-3">

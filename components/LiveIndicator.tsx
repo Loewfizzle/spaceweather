@@ -1,18 +1,19 @@
 "use client";
 
-/**
- * LiveIndicator — pulsing dot + data freshness timestamp for the header branding area.
- *
- * Designed to sit directly below the AuroraWatch subtitle so the live-data signal
- * feels part of the brand identity rather than a separate control.
- *
- * Shares the same TanStack Query cache as DashboardClient (no extra network requests).
- * Returns null during initial load so the branding has no layout shift before data arrives.
- */
-
+import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { useCurrentConditions, useSolarActivity } from "../lib/use-noaa-data";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
+
+const LIVE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+
+// Compact age string for the narrow mobile viewport: "5m", "2h".
+// Avoids date-fns prose ("about 2 hours ago") which wraps badly at tiny sizes.
+function compactAge(nowMs: number, date: Date): string {
+  const mins = Math.floor((nowMs - date.getTime()) / 60_000);
+  if (mins < 60) return `${mins}m`;
+  return `${Math.floor(mins / 60)}h`;
+}
 
 export function LiveIndicator() {
   const { kpTime } = useCurrentConditions();
@@ -25,28 +26,53 @@ export function LiveIndicator() {
     solarActivity.regionsTime
   );
 
-  // Stay invisible until we have at least one timestamp so there's no "hole"
-  // in the branding layout during the brief initial-fetch window.
+  // Current timestamp, updated every minute so the freshness label stays accurate.
+  // Stored in state (not called directly in render) to satisfy react-hooks/purity.
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   if (!latestGlobalUpdate) return null;
+
+  const isLive = now - latestGlobalUpdate.getTime() < LIVE_THRESHOLD_MS;
+  const dotColor = isLive ? "#22c55e" : "#64748b";
 
   return (
     <span
       className="flex items-center gap-1 tabular-nums"
       title="Most recent data across all sources"
     >
-      {/* Pulsing green live dot */}
+      {/* Dot: pulsing green when live, static slate when stale */}
       <span className="relative flex h-1.5 w-1.5 shrink-0">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75" />
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
+        {isLive && (
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ backgroundColor: dotColor }}
+          />
+        )}
+        <span
+          className="relative inline-flex h-1.5 w-1.5 rounded-full"
+          style={{ backgroundColor: dotColor }}
+        />
       </span>
 
-      {/* Full relative timestamp on sm+; compact chip on mobile */}
+      {/* Desktop: full prose timestamp */}
       <span className="hidden sm:inline">
         {formatDistanceToNow(latestGlobalUpdate, { addSuffix: true })}
       </span>
-      <span className="sm:hidden text-[9px] font-medium tracking-wider text-[#22c55e]">
-        LIVE
-      </span>
+
+      {/* Mobile: "LIVE" only when fresh; compact age string ("5m", "2h") otherwise */}
+      {isLive ? (
+        <span className="sm:hidden text-[9px] font-medium tracking-wider text-[#22c55e]">
+          LIVE
+        </span>
+      ) : (
+        <span className="sm:hidden text-[9px] tabular-nums text-[#64748b]">
+          {compactAge(now, latestGlobalUpdate)}
+        </span>
+      )}
     </span>
   );
 }

@@ -11,7 +11,7 @@
  * logDataError() and recordDataSuccess() — no polling required.
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   getDataHealth,
@@ -93,22 +93,23 @@ export function DataStatus() {
   const panelRef   = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const refresh = useCallback(() => {
-    setStatus(getOverallHealthStatus());
-    const map = getDataHealth();
-    setRecords(
-      SOURCE_ORDER
-        .map((s) => map.get(s))
-        .filter((r): r is DataHealthRecord => r !== undefined)
-    );
-  }, []);
-
-  // Subscribe to health-change events emitted by logDataError / recordDataSuccess
+  // Subscribe to health-change events emitted by logDataError / recordDataSuccess.
+  // Function is defined inside the effect so setState calls happen only from
+  // event handlers, satisfying the react-hooks/purity constraint.
   useEffect(() => {
+    function refresh() {
+      setStatus(getOverallHealthStatus());
+      const map = getDataHealth();
+      setRecords(
+        SOURCE_ORDER
+          .map((s) => map.get(s))
+          .filter((r): r is DataHealthRecord => r !== undefined)
+      );
+    }
     refresh();
     window.addEventListener('aurorawatch:health', refresh);
     return () => window.removeEventListener('aurorawatch:health', refresh);
-  }, [refresh]);
+  }, []);
 
   // Close on outside click
   useEffect(() => {

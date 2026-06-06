@@ -229,10 +229,19 @@ describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
 })
 
 describe('getAuroraColor', () => {
-  it('returns correct color scale', () => {
-    expect(getAuroraColor(3)).toBe('#166534')
+  it('returns unified 4-tier palette (quiet/moderate/active/storm)', () => {
+    // quiet  (<10%)    → green
+    expect(getAuroraColor(3)).toBe('#22c55e')
+    expect(getAuroraColor(9)).toBe('#22c55e')
+    // moderate (10–29%) → amber
+    expect(getAuroraColor(10)).toBe('#eab308')
     expect(getAuroraColor(20)).toBe('#eab308')
+    // active (30–59%)  → orange
+    expect(getAuroraColor(30)).toBe('#f97316')
+    expect(getAuroraColor(50)).toBe('#f97316')
+    // storm  (≥60%)    → violet
     expect(getAuroraColor(60)).toBe('#a78bfa')
+    expect(getAuroraColor(100)).toBe('#a78bfa')
   })
 })
 

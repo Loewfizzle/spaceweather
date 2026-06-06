@@ -45,7 +45,7 @@ export function HeroOutlook({
     >
       <div>
         <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-2">
-          TONIGHT'S OUTLOOK
+          TONIGHT&apos;S OUTLOOK
         </div>
 
         {outlook.status === "Loading" ? (

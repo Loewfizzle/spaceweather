@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { getKpTier, AURORA_TIERS } from '../lib/noaa';
 
 export const alt = 'AuroraWatch — Real-time Aurora & Space Weather';
 export const size = { width: 1200, height: 630 };
@@ -32,11 +33,7 @@ export default async function OGImage() {
     : kp >= 3 ? 'Low'
     : 'Quiet';
 
-  const accentColor =
-    kp === null ? '#64748b'
-    : kp >= 5 ? '#22c55e'
-    : kp >= 4 ? '#eab308'
-    : '#64748b';
+  const accentColor = kp !== null ? AURORA_TIERS[getKpTier(kp)].color : '#64748b';
 
   return new ImageResponse(
     (
