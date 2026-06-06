@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https://*.basemaps.cartocdn.com https://sdo.gsfc.nasa.gov",
               "connect-src 'self' https://services.swpc.noaa.gov",
               "font-src 'self'",
-              "worker-src 'none'",
+              "worker-src 'self'",
               "frame-ancestors 'none'",
             ].join("; "),
           },

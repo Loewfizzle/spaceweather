@@ -2,6 +2,7 @@
 
 import { MapPin, Loader2, Cloud } from "lucide-react";
 import type { TonightOutlook } from "../lib/use-noaa-data";
+import { ShareButton } from "./ShareButton";
 
 interface HeroOutlookProps {
   outlook: TonightOutlook;
@@ -14,6 +15,7 @@ interface HeroOutlookProps {
   isLocating?: boolean;
   cloudCoverPct?: number | null;
   cloudCoverLabel?: string | null;
+  kp?: number | null;
 }
 
 export function HeroOutlook({
@@ -27,6 +29,7 @@ export function HeroOutlook({
   isLocating,
   cloudCoverPct,
   cloudCoverLabel,
+  kp,
 }: HeroOutlookProps) {
   // Show at most 4 pre-defined cities — enough for the north→south gradient without crowding
   const displayedCities = outlook.cityProbs?.slice(0, 4) ?? [];
@@ -136,6 +139,16 @@ export function HeroOutlook({
         <div className="mt-2 text-xs text-amber-400">
           Some data sources unavailable — displaying last known values.
           {isFetching && " (retrying…)"}
+        </div>
+      )}
+
+      {outlook.status !== "Loading" && (
+        <div className="mt-4 pt-3 border-t border-[#1e2937] flex justify-end">
+          <ShareButton
+            status={outlook.status}
+            kp={kp ?? null}
+            cityProbs={outlook.cityProbs ?? []}
+          />
         </div>
       )}
     </div>

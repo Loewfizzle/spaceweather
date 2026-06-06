@@ -5,6 +5,7 @@ import {
   useCurrentConditions,
   useSolarActivity,
   useOvationData,
+  useKpForecast,
   getTonightOutlook,
 } from "../lib/use-noaa-data";
 import { getLocationAuroraProb, getNearestCityName } from "../lib/noaa";
@@ -20,6 +21,7 @@ import { SolarActivity } from "./SolarActivity";
 import { MeteorActivity } from "./MeteorActivity";
 import { DataUnderstanding } from "./DataUnderstanding";
 import { AlertsPanel } from "./AlertsPanel";
+import { ViewingWindow } from "./ViewingWindow";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ErrorState } from "./ErrorState";
 
@@ -92,6 +94,7 @@ export function DashboardClient() {
   const geoLat = geoState.status === "granted" ? geoState.lat : null;
   const geoLon = geoState.status === "granted" ? geoState.lon : null;
   const cloudCoverQuery = useCloudCover(geoLat, geoLon);
+  const kpForecastQuery = useKpForecast();
 
   // Register service worker once on app startup
   useEffect(() => {
@@ -116,9 +119,16 @@ export function DashboardClient() {
             isLocating={geoState.status === "loading"}
             cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
             cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
+            kp={kp}
           />
         </ErrorBoundary>
       </div>
+
+      <ViewingWindow
+        kpForecast={kpForecastQuery.data ?? []}
+        cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
+        cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
+      />
 
       <CurrentConditions
         solarWindSpeed={solarWindSpeed}
