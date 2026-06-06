@@ -3,32 +3,15 @@
 import { useMemo } from "react";
 import type { KpEntry, KpForecastEntry } from "../api/schemas";
 
-const CHART_OPTIONS = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    y: {
-      min: 0,
-      max: 9,
-      ticks: { color: "#64748b", stepSize: 1, font: { size: 11 } },
-      grid: { color: "#1e2937" },
-    },
-    x: {
-      ticks: { color: "#64748b", font: { size: 10 } },
-      grid: { color: "#1e2937" },
-    },
-  },
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: "#0f1425",
-      borderColor: "#1e2937",
-      borderWidth: 1,
-      titleColor: "#f1f5f9",
-      bodyColor: "#cbd5e1",
-    },
-  },
-};
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function kpTierLabel(kp: number): string {
+  if (kp >= 7) return 'Storm';
+  if (kp >= 5) return 'Active';
+  if (kp >= 4) return 'Moderate';
+  if (kp >= 3) return 'Unsettled';
+  return 'Quiet';
+}
 
 // "Tonight" for aurora watching = 20:00–05:59 Eastern Time.
 // Uses Intl.DateTimeFormat for exact DST offset — same pattern as viewingWindow.ts.
@@ -53,8 +36,69 @@ function isTonightMichigan(utcDate: Date): boolean {
   return etHour >= 20 || etHour < 6;
 }
 
-// Inline Chart.js plugin that shades contiguous "tonight" columns with a soft violet tint.
-// Uses beforeDraw so the shading sits behind the line and points.
+// ── Chart options (function so callbacks capture nothing from outer scope) ────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeChartOptions(): Record<string, any> {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        min: 0,
+        max: 9,
+        ticks: {
+          color: "#64748b",
+          font: { size: 11 },
+          // Only label values that map to meaningful activity thresholds
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          callback: (value: any) =>
+            [0, 2, 4, 5, 7].includes(Number(value)) ? String(value) : '',
+        },
+        grid: {
+          // Subtle color accent at the two key aurora onset thresholds
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          color: (context: any) => {
+            const v = context.tick?.value;
+            if (v === 5) return "rgba(249, 115, 22, 0.22)"; // orange — active onset
+            if (v === 4) return "rgba(234, 179, 8, 0.18)";  // yellow — moderate onset
+            return "#171f2e";
+          },
+        },
+      },
+      x: {
+        ticks: { color: "#64748b", font: { size: 10 }, maxRotation: 0 },
+        grid: { color: "#171f2e" },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "#0d1425",
+        borderColor: "#1e2937",
+        borderWidth: 1,
+        titleColor: "#94a3b8",
+        bodyColor: "#f1f5f9",
+        padding: 10,
+        callbacks: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          label: (context: any) => {
+            const val = context.parsed?.y;
+            if (val === null || val === undefined) return '';
+            const isForecast = context.dataset.label === 'Forecast';
+            const prefix = isForecast ? '◌ Forecast' : '● Kp';
+            return ` ${prefix} ${(val as number).toFixed(1)} — ${kpTierLabel(val as number)}`;
+          },
+        },
+      },
+    },
+  };
+}
+
+// ── Plugins ───────────────────────────────────────────────────────────────────
+
+// Shades contiguous "tonight" columns with a soft violet tint.
+// Runs beforeDraw so the shading sits behind the line and points.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeTonightPlugin(tonightMask: boolean[]): Record<string, any> {
   return {
@@ -67,16 +111,14 @@ function makeTonightPlugin(tonightMask: boolean[]): Record<string, any> {
       const n = tonightMask.length;
       if (n < 2 || tonightMask.every((v) => !v)) return;
 
-      // Half-tick width: used to extend shading to the edges of the first/last tonight point.
       const spacing = Math.abs(
         scales.x.getPixelForValue(1) - scales.x.getPixelForValue(0)
       );
       const half = spacing / 2;
 
       ctx.save();
-      ctx.fillStyle = "rgba(139, 92, 246, 0.08)"; // subtle violet — matches aurora violet accent
+      ctx.fillStyle = "rgba(139, 92, 246, 0.07)";
 
-      // Walk the mask and draw one filled rect per contiguous tonight block.
       let blockStart: number | null = null;
       for (let i = 0; i <= n; i++) {
         const tonight = i < n && tonightMask[i];
@@ -95,6 +137,44 @@ function makeTonightPlugin(tonightMask: boolean[]): Record<string, any> {
   };
 }
 
+// Draws a subtle vertical boundary line + "FORECAST →" label at the point
+// where historical data ends and NOAA forecast begins.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeForecastBoundaryPlugin(splitIdx: number): Record<string, any> {
+  return {
+    id: "forecastBoundary",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterDraw(chart: any) {
+      if (splitIdx <= 0) return;
+      const { ctx, chartArea, scales } = chart;
+      if (!chartArea || !scales.x) return;
+
+      // Place the line midway between last historical point and first forecast point
+      const xL = scales.x.getPixelForValue(splitIdx - 1);
+      const xR = scales.x.getPixelForValue(splitIdx);
+      const x = (xL + xR) / 2;
+
+      ctx.save();
+      ctx.strokeStyle = "#293548";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath();
+      ctx.moveTo(x, chartArea.top);
+      ctx.lineTo(x, chartArea.bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font = "9px system-ui, sans-serif";
+      ctx.fillStyle = "#3d5068";
+      ctx.textAlign = "left";
+      ctx.fillText("FORECAST →", x + 5, chartArea.top + 13);
+      ctx.restore();
+    },
+  };
+}
+
+// ── Label formatter ───────────────────────────────────────────────────────────
+
 function formatTimeLabel(timeTag: string, referenceUtcDate: string): string {
   const d = new Date(timeTag);
   const time = d.toLocaleTimeString("en-US", {
@@ -111,14 +191,15 @@ function formatTimeLabel(timeTag: string, referenceUtcDate: string): string {
   return time;
 }
 
+// ── Hook ──────────────────────────────────────────────────────────────────────
+
 export function useChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[] = []) {
   return useMemo(() => {
-    // Last ~12 entries (~36 hours of 3h Kp data); drop entries with no valid timestamp
+    // Last ~12 entries (~36 hours of 3h Kp data)
     const recent = kpHistory
       .filter((entry) => !!entry.time_tag && !isNaN(new Date(entry.time_tag).getTime()))
       .slice(-12);
 
-    // Reference UTC date for label formatting (prevents "Mon 14:00" prefix on same-day entries)
     const todayUtc =
       recent.length > 0
         ? new Date(recent[recent.length - 1].time_tag!).toLocaleDateString("en-US", {
@@ -130,14 +211,15 @@ export function useChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[]
     const historicalValues = recent.map((entry) => entry.Kp ?? 0);
     const historicalTonightMask = recent.map((e) => isTonightMichigan(new Date(e.time_tag!)));
 
-    // Filter forecast to only entries AFTER the last historical point
     const lastHistoricalTime =
       recent.length > 0 ? new Date(recent[recent.length - 1].time_tag!).getTime() : 0;
 
     const futureForecast = kpForecast
       .filter(
-        (e) => !!e.time_tag && !isNaN(new Date(e.time_tag).getTime()) &&
-          new Date(e.time_tag).getTime() > lastHistoricalTime
+        (e) =>
+          !!e.time_tag &&
+          !isNaN(new Date(e.time_tag).getTime()) &&
+          new Date(e.time_tag).getTime() > lastHistoricalTime,
       )
       .slice(0, 12); // next 36 hours
 
@@ -156,11 +238,11 @@ export function useChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[]
       label: "Kp Index",
       data: [...historicalValues, ...histPad] as (number | null)[],
       borderColor: "#22c55e",
-      backgroundColor: "rgba(34, 197, 94, 0.15)",
-      borderWidth: 2,
+      backgroundColor: "rgba(34, 197, 94, 0.10)",
+      borderWidth: 2.5,
       tension: 0.4,
-      pointRadius: 2.5,
-      pointHoverRadius: 4,
+      pointRadius: 3,
+      pointHoverRadius: 5,
       pointBackgroundColor: "#22c55e",
       spanGaps: false,
     };
@@ -170,14 +252,14 @@ export function useChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[]
         ? {
             label: "Forecast",
             data: [...fcstPad, ...forecastValues] as (number | null)[],
-            borderColor: "#475569",
-            backgroundColor: "rgba(71, 85, 105, 0.06)",
-            borderWidth: 1.5,
+            borderColor: "#94a3b8",
+            backgroundColor: "rgba(148, 163, 184, 0.04)",
+            borderWidth: 2,
             borderDash: [5, 4],
             tension: 0.4,
             pointRadius: 2,
-            pointHoverRadius: 3,
-            pointBackgroundColor: "#475569",
+            pointHoverRadius: 4,
+            pointBackgroundColor: "#94a3b8",
             spanGaps: false,
           }
         : null;
@@ -187,10 +269,16 @@ export function useChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[]
       datasets: fcstDataset ? [histDataset, fcstDataset] : [histDataset],
     };
 
+    // Build plugin list: tonight shading + forecast boundary marker (when forecast exists)
+    const chartPlugins = [
+      makeTonightPlugin(fullMask),
+      ...(futureForecast.length > 0 ? [makeForecastBoundaryPlugin(recent.length)] : []),
+    ];
+
     return {
       chartData,
-      chartOptions: CHART_OPTIONS,
-      tonightPlugin: makeTonightPlugin(fullMask),
+      chartOptions: makeChartOptions(),
+      chartPlugins,
       hasTonight,
       hasForecast: futureForecast.length > 0,
     };

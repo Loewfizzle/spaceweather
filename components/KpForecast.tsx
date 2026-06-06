@@ -82,14 +82,14 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
   const kpHistory = (kpQuery.data || []) as KpEntry[];
   const kpForecastData = (forecastQuery.data || []) as KpForecastEntry[];
 
-  const { chartData, chartOptions, tonightPlugin, hasTonight, hasForecast } =
+  const { chartData, chartOptions, chartPlugins, hasTonight, hasForecast } =
     useChartData(kpHistory, kpForecastData);
 
   const stormDays = useStormDays(kpForecastData);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-      <div className="section-title">KP OUTLOOK + REGIONAL FORECAST</div>
+      <div className="section-title">KP ACTIVITY &amp; FORECAST</div>
       <div className="card p-6">
         <div className="h-56">
           {kpQuery.isLoading ? (
@@ -103,7 +103,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
             <Line
               data={chartData}
               options={chartOptions}
-              plugins={[tonightPlugin as Plugin<"line">]}
+              plugins={chartPlugins as Plugin<"line">[]}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-[#64748b]">
@@ -113,12 +113,12 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
         </div>
 
         <div className="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
-          <div className="text-[#cbd5e1]">
-            <span className="font-medium text-white">Tonight (Northern US):</span>{" "}
+          <div className="text-[#94a3b8]">
+            <span className="font-medium text-white">Tonight:</span>{" "}
             {michiganGuidance}
           </div>
-          <div className="text-[#cbd5e1]">
-            <span className="font-medium text-white">Recent trend:</span>{" "}
+          <div className="text-[#94a3b8]">
+            <span className="font-medium text-white">Trend:</span>{" "}
             {kpHistory.length > 1 ? (
               (kpHistory[kpHistory.length - 1].Kp ?? 0) >
               (kpHistory[kpHistory.length - 2].Kp ?? 0)
@@ -130,10 +130,9 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
           </div>
         </div>
 
-        <div className="mt-3 text-[10px] text-[#64748b]">
-          Chart shows last ~36 hours of 3-hour Kp values
-          {hasForecast && " plus 36-hour NOAA forecast (dashed)"}
-          {hasTonight && ". Shaded area = tonight (8 pm–6 am local time)"}
+        <div className="mt-3 text-[10px] text-[#475569]">
+          Solid line = recent observations · Dashed = NOAA 36-hr forecast
+          {hasTonight && " · Shaded = tonight's viewing window"}
           {"."}
           {forecastQuery.error && !hasForecast && (
             <span className="ml-2 text-amber-400/70">Forecast temporarily unavailable.</span>
@@ -147,7 +146,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
               {forecastQuery.isLoading ? (
                 <div className="h-2.5 w-32 rounded animate-pulse bg-[#1e2937]" />
               ) : (
-                "3-DAY MAX KP FORECAST"
+                "3-DAY OUTLOOK"
               )}
             </div>
             <div className="grid grid-cols-3 gap-3">
