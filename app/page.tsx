@@ -30,11 +30,11 @@ export default function AuroraWatch() {
               <div className="font-semibold tracking-tighter text-xl sm:text-2xl leading-tight">
                 AuroraWatch
               </div>
-              <div className="text-[10px] sm:text-[11px] text-[#64748b] leading-none">
-                NOAA SWPC<span className="hidden sm:inline"> • Michigan Focus</span>
+              {/* Subtitle + live dot on one line */}
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#64748b] leading-none">
+                <span>NOAA SWPC<span className="hidden sm:inline"> • Michigan Focus</span></span>
+                <LiveIndicator />
               </div>
-              {/* Pulsing dot + "updated X ago" — appears once data arrives */}
-              <LiveIndicator />
             </div>
           </div>
 
