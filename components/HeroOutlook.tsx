@@ -6,6 +6,7 @@ import type { TonightOutlook } from "../lib/use-noaa-data";
 import { cloudCoverColor } from "../lib/noaa";
 import { ShareButton } from "./ShareButton";
 import { NotificationPrompt } from "./NotificationPrompt";
+import { InstallPrompt } from "./InstallPrompt";
 
 interface HeroOutlookProps {
   outlook: TonightOutlook;
@@ -137,7 +138,7 @@ export function HeroOutlook({
 
       {outlook.status !== "Loading" && (
         <div className="mt-4 pt-3 border-t border-[#1e2937] flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
             {userLocationProb == null && onRequestLocation && (
               <button
                 onClick={onRequestLocation}
@@ -154,6 +155,7 @@ export function HeroOutlook({
               </button>
             )}
             <NotificationPrompt />
+            <InstallPrompt />
           </div>
           <ShareButton
             status={outlook.status}
