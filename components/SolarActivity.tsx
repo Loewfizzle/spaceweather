@@ -69,6 +69,15 @@ function formatUTC(iso: string | undefined): string {
   );
 }
 
+function sunspotContext(n: number): { label: string; color: string } {
+  if (n >= 200) return { label: "very high", color: "#a78bfa" };
+  if (n >= 150) return { label: "high", color: "#f97316" };
+  if (n >= 100) return { label: "moderately elevated", color: "#f97316" };
+  if (n >= 60)  return { label: "moderate", color: "#eab308" };
+  if (n >= 30)  return { label: "below average", color: "#94a3b8" };
+  return { label: "quiet", color: "#64748b" };
+}
+
 function cmeImpactColor(impact: string | undefined): string {
   if (!impact) return "#64748b";
   const lc = impact.toLowerCase();
@@ -507,11 +516,18 @@ export function SolarActivity() {
             </div>
             <div className="flex items-center gap-2 text-[10px]">
               {solarActivity.sunspotNumber !== null ? (
-                <span className="text-[#94a3b8]">
+                <span>
                   <span className="tabular-nums font-semibold text-[#cbd5e1]">
                     {solarActivity.sunspotNumber}
                   </span>
-                  <span className="text-[#64748b] ml-1">today</span>
+                  {(() => {
+                    const ctx = sunspotContext(solarActivity.sunspotNumber);
+                    return (
+                      <span className="ml-1" style={{ color: ctx.color }}>
+                        — {ctx.label}
+                      </span>
+                    );
+                  })()}
                 </span>
               ) : solarActivity.regionsError ? (
                 <span className="text-amber-400/70">data delayed</span>
@@ -527,8 +543,9 @@ export function SolarActivity() {
           <div className="px-4 pt-3 pb-2 space-y-2.5">
             <p className="text-[10px] text-[#475569] leading-relaxed">
               <span className="text-[#64748b] font-medium">HMI Continuum</span> — visible-light
-              view of the solar disk. Sunspots mark regions of intense magnetic activity. A higher
-              count means more flare and CME potential — the primary drivers of aurora.
+              view of the solar disk. Sunspot groups are the source of flares and CMEs. Active
+              regions near the center of the disk are Earth-facing and most relevant to watch
+              for aurora potential.
             </p>
             <div className="flex items-center justify-between pb-1">
               <span className="text-[9px] text-[#334155]">Updates every ~15 min</span>
@@ -559,9 +576,9 @@ export function SolarActivity() {
           <div className="px-4 pt-3 pb-2 space-y-2.5">
             <p className="text-[10px] text-[#475569] leading-relaxed">
               <span className="text-[#64748b] font-medium">AIA 193Å</span> — extreme ultraviolet
-              view. Dark patches are coronal holes streaming high-speed solar wind into space. When
-              a hole faces Earth, the arriving plasma can compress the magnetosphere and spark
-              aurora — even without a flare or CME.
+              view. Dark patches are coronal holes where high-speed solar wind escapes into space.
+              When an equatorial hole rotates to face Earth, the fast-moving stream arrives in
+              2–4 days and can enhance aurora — even during otherwise quiet periods.
             </p>
             <div className="flex items-center justify-between pb-1">
               <span className="text-[9px] text-[#334155]">Updates every ~15 min</span>
