@@ -80,10 +80,13 @@ export function HeroOutlook({
 
         {outlook.status !== "Loading" && (
           <div className="space-y-1 mb-2">
-            {/* Label — always visible once cities are loaded */}
+            {/* Section divider + live label */}
             {displayedCities.length > 0 && (
-              <div className="text-[10px] text-[#475569] mb-0.5">
-                Live probabilities
+              <div className="flex items-center gap-1.5 border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
+                <span className="block h-1.5 w-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+                  Live probabilities
+                </span>
               </div>
             )}
             {/* User location row — shown first when granted */}
