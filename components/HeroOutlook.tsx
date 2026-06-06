@@ -46,8 +46,11 @@ export function HeroOutlook({
       style={{ borderLeftColor: outlook.accentColor }}
     >
       <div>
-        <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-2">
-          CURRENT CONDITIONS
+        <div className="flex items-center gap-2 mb-2">
+          <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
+            CURRENT CONDITIONS
+          </span>
+          <span className="text-[9px] font-semibold text-emerald-500 tracking-wide">LIVE</span>
         </div>
 
         {outlook.status === "Loading" ? (

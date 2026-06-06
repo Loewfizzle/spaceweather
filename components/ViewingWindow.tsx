@@ -29,11 +29,13 @@ function formatET(date: Date): string {
 function peakToLabel(kp: number): { label: string; color: string; guidance: string } {
   const tier = getKpTier(kp);
   const { color, label } = AURORA_TIERS[tier];
+  // All guidance strings use forecast/future language to distinguish from live
+  // "Current Conditions" — these reflect what's expected later tonight, not right now.
   const guidance =
-    tier === "storm"    ? "Head outside — aurora may be visible to the naked eye." :
-    tier === "active"   ? "Worth heading out to dark skies tonight." :
-    tier === "moderate" ? "Dark rural skies give you the best chance." :
-                          "Conditions are calm. Low activity expected.";
+    tier === "storm"    ? "Strong aurora forecast — may be visible to the naked eye tonight." :
+    tier === "active"   ? "Active conditions expected — dark skies are worth it tonight." :
+    tier === "moderate" ? "Moderate activity forecast — dark rural skies give your best chance." :
+                          "Quiet conditions forecast. Low aurora activity expected tonight.";
   return { label, color, guidance };
 }
 
@@ -73,7 +75,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
         <div className="flex items-center gap-2 mb-3">
           <Clock className="h-3 w-3 text-[#64748b]" />
           <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
-            BEST VIEWING WINDOW TONIGHT
+            TONIGHT'S FORECAST
           </span>
         </div>
 
@@ -106,10 +108,13 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
                   More accurate with your location
                 </div>
               )}
+              <div className="mt-2 text-[10px] text-[#334155]">
+                Based on NOAA 36-hr Kp forecast
+              </div>
             </div>
 
             <div className="text-right flex-shrink-0">
-              <div className="text-[10px] text-[#64748b] mb-0.5">Peak Kp</div>
+              <div className="text-[10px] text-[#64748b] mb-0.5">Forecast peak</div>
               <div
                 className="text-3xl font-bold tabular-nums leading-none"
                 style={{ color: tonight.color }}
