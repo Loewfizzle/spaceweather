@@ -349,28 +349,28 @@ export function getTonightOutlook(
   if (kp >= 7 || (kp >= 6 && (strongFavorableBz || highProb)) || (kp >= 5 && veryHighSpeed && isFavorableBz)) {
     status = 'Excellent';
     message = 'Strong chance across the northern tier, reaching well into the Great Lakes region.';
-    accentColor = '#22c55e';
+    accentColor = AURORA_TIERS.storm.color;
     if (strongFavorableBz) reasons.push('Strong southward Bz currently boosting chances');
     if (veryHighSpeed && solarWindSpeed) reasons.push(`Very high solar wind speed (${Math.round(solarWindSpeed)} km/s) amplifying activity`);
     if (highProb && !veryHighSpeed) reasons.push('Elevated OVATION probabilities across North America');
   } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || (kp >= 4 && highSpeed) || (kp >= 3 && highSpeed && isFavorableBz) || highProb) {
     status = 'Good';
     message = 'Good chance tonight for northern-tier states and the Great Lakes region.';
-    accentColor = '#22c55e';
+    accentColor = AURORA_TIERS.active.color;
     if (isFavorableBz) reasons.push('Southward Bz currently favorable');
     if (highSpeed && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) enhancing coupling`);
     if (highProb && !highSpeed) reasons.push('High aurora probabilities across NA');
   } else if (kp >= 4 || (kp >= 3 && isFavorableBz) || moderateProb || hasEarthCme || highSpeed) {
     status = 'Moderate';
     message = 'Possible across northern states under dark skies.';
-    accentColor = '#eab308';
+    accentColor = AURORA_TIERS.moderate.color;
     if (isFavorableBz) reasons.push('Favorable Bz may enhance activity');
     if (hasEarthCme) reasons.push('Recent Earth-directed CME may increase chances');
     if (highSpeed && !isFavorableBz && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) — watch for Bz to turn south`);
   } else if (kp >= 3 || isFavorableBz || significantFlare) {
     status = 'Low';
     message = 'Low probability across the northern US.';
-    accentColor = '#f97316';
+    accentColor = AURORA_TIERS.quiet.color;
     if (isFavorableBz) reasons.push('Southward Bz provides some opportunity');
   } else {
     status = 'Quiet';

@@ -60,7 +60,7 @@ describe('getTonightOutlook', () => {
   it('returns Excellent for very high Kp or strong combination', () => {
     const result = getTonightOutlook(7, -8, 25, baseCme, baseFlare)
     expect(result.status).toBe('Excellent')
-    expect(result.accentColor).toBe('#22c55e')
+    expect(result.accentColor).toBe('#a78bfa')
     expect(result.reasons.length).toBeGreaterThan(0)
   })
 
