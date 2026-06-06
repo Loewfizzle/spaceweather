@@ -45,23 +45,33 @@ export function HeroOutlook({
           TONIGHT'S MICHIGAN OUTLOOK
         </div>
 
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
-          <div
-            className="text-4xl font-semibold tracking-tighter"
-            style={{ color: outlook.accentColor }}
-          >
-            {outlook.status}
+        {outlook.status === "Loading" ? (
+          <div className="mb-3">
+            <div className="h-10 w-40 rounded animate-pulse bg-[#1e2937] mb-3" />
+            <div className="h-4 w-full rounded animate-pulse bg-[#1e2937] mb-2" />
+            <div className="h-4 w-4/5 rounded animate-pulse bg-[#1e2937]" />
           </div>
-          {outlook.drivers && outlook.status !== "Loading" && (
-            <div className="text-sm text-[#64748b] tabular-nums font-medium">
-              {outlook.drivers}
+        ) : (
+          <>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
+              <div
+                className="text-4xl font-semibold tracking-tighter"
+                style={{ color: outlook.accentColor }}
+              >
+                {outlook.status}
+              </div>
+              {outlook.drivers && (
+                <div className="text-sm text-[#64748b] tabular-nums font-medium">
+                  {outlook.drivers}
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <p className="text-[#cbd5e1] text-[15px] leading-relaxed mb-3">
-          {outlook.message}
-        </p>
+            <p className="text-[#cbd5e1] text-[15px] leading-relaxed mb-3">
+              {outlook.message}
+            </p>
+          </>
+        )}
 
         {outlook.status !== "Loading" && (
           <div className="space-y-1 mb-2">
@@ -126,9 +136,6 @@ export function HeroOutlook({
         )}
       </div>
 
-      {isLoading && (
-        <div className="mt-3 h-4 w-2/3 bg-[#1e2937] rounded animate-pulse" />
-      )}
       {error && (
         <div className="mt-2 text-xs text-amber-400">
           Some data sources unavailable — displaying last known values.

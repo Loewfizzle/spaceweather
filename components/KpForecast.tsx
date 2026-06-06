@@ -142,29 +142,41 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
         </div>
 
         {/* 3-Day Storm Outlook derived from NOAA Kp forecast */}
-        {stormDays.length > 0 && (
+        {(forecastQuery.isLoading || stormDays.length > 0) && (
           <div className="mt-5 pt-5 border-t border-[#1e2937]">
             <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
-              3-DAY MAX KP FORECAST
+              {forecastQuery.isLoading ? (
+                <div className="h-2.5 w-32 rounded animate-pulse bg-[#1e2937]" />
+              ) : (
+                "3-DAY MAX KP FORECAST"
+              )}
             </div>
             <div className="grid grid-cols-3 gap-3">
-              {stormDays.map(({ date, maxKp }) => {
-                const { label, color } = kpToStormLabel(maxKp);
-                return (
-                  <div key={date} className="rounded-lg bg-[#0a0e1a] border border-[#1e2937] p-3">
-                    <div className="text-[10px] text-[#64748b] mb-1.5">{date}</div>
-                    <div
-                      className="text-2xl font-semibold tabular-nums leading-none mb-1"
-                      style={{ color }}
-                    >
-                      {maxKp.toFixed(1)}
+              {forecastQuery.isLoading
+                ? [0, 1, 2].map((i) => (
+                    <div key={i} className="rounded-lg bg-[#0a0e1a] border border-[#1e2937] p-3">
+                      <div className="h-2.5 w-10 rounded animate-pulse bg-[#1e2937] mb-3" />
+                      <div className="h-7 w-8 rounded animate-pulse bg-[#1e2937] mb-2" />
+                      <div className="h-2.5 w-14 rounded animate-pulse bg-[#1e2937]" />
                     </div>
-                    <div className="text-[11px] font-medium" style={{ color }}>
-                      {label}
-                    </div>
-                  </div>
-                );
-              })}
+                  ))
+                : stormDays.map(({ date, maxKp }) => {
+                    const { label, color } = kpToStormLabel(maxKp);
+                    return (
+                      <div key={date} className="rounded-lg bg-[#0a0e1a] border border-[#1e2937] p-3">
+                        <div className="text-[10px] text-[#64748b] mb-1.5">{date}</div>
+                        <div
+                          className="text-2xl font-semibold tabular-nums leading-none mb-1"
+                          style={{ color }}
+                        >
+                          {maxKp.toFixed(1)}
+                        </div>
+                        <div className="text-[11px] font-medium" style={{ color }}>
+                          {label}
+                        </div>
+                      </div>
+                    );
+                  })}
             </div>
           </div>
         )}

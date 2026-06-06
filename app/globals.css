@@ -208,3 +208,20 @@ body {
   color: #a78bfa;
   border-color: rgba(167, 139, 250, 0.3);
 }
+
+/* Leaflet attribution — override default white background to match dark theme */
+.leaflet-control-attribution {
+  background: rgba(10, 14, 26, 0.85) !important;
+  color: #475569 !important;
+  border-radius: 6px !important;
+  font-size: 9px !important;
+  backdrop-filter: blur(4px);
+}
+
+.leaflet-control-attribution a {
+  color: #64748b !important;
+}
+
+.leaflet-control-attribution a:hover {
+  color: #94a3b8 !important;
+}
