@@ -7,7 +7,6 @@ import {
   formatMeteorPeak,
   createGoogleCalendarLink,
   useFireballs,
-  formatFireballDate,
   formatFireballLocation,
   formatFireballEnergy,
   type Fireball,
@@ -59,103 +58,98 @@ export function MeteorActivity() {
   const nextMeteor = getNextMeteorShower();
   const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
 
+  // Computed outside JSX to avoid IIFE noise in the template
+  const showerDays = nextMeteor
+    ? Math.ceil((nextMeteor.peakDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+  const showerColor = nextMeteor ? activityColor(nextMeteor.shower.activityLevel) : "#64748b";
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
       <div className="section-title">METEOR ACTIVITY</div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Next Meteor Shower */}
+        {/* ── Next Meteor Shower ─────────────────────────────────────────── */}
         <div className="card p-5">
-          {nextMeteor ? (
+          {nextMeteor && showerDays !== null ? (
             <>
-              {/* Header: label + countdown */}
-              {(() => {
-                const days = Math.ceil(
-                  (nextMeteor.peakDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-                );
-                const color = activityColor(nextMeteor.shower.activityLevel);
-                return (
-                  <>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">
-                        NEXT METEOR SHOWER
-                      </div>
-                      <span className="text-[11px] text-[#64748b] tabular-nums">
-                        {daysUntilLabel(days)}
-                      </span>
-                    </div>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">
+                  NEXT METEOR SHOWER
+                </div>
+                <span className="text-[11px] text-[#64748b] tabular-nums">
+                  {daysUntilLabel(showerDays)}
+                </span>
+              </div>
 
-                    {/* Name + date */}
-                    <div className="text-3xl font-semibold tracking-tight leading-none mb-1.5">
-                      {nextMeteor.shower.name}
-                    </div>
-                    <div className="text-[15px] text-[#94a3b8] tabular-nums mb-3">
-                      {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
-                    </div>
+              {/* Name + date */}
+              <div className="text-3xl font-semibold tracking-tight leading-none mb-1.5">
+                {nextMeteor.shower.name}
+              </div>
+              <div className="text-[15px] text-[#94a3b8] tabular-nums mb-3">
+                {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
+              </div>
 
-                    {/* Activity badge */}
-                    <div className="mb-3">
-                      <span
-                        className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full"
-                        style={{
-                          color,
-                          backgroundColor: color + "1a",
-                          border: `1px solid ${color}33`,
-                        }}
-                      >
-                        <span
-                          className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: color }}
-                        />
-                        {nextMeteor.shower.activityLevel} activity
-                      </span>
-                    </div>
+              {/* Activity badge */}
+              <div className="mb-3">
+                <span
+                  className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full"
+                  style={{
+                    color: showerColor,
+                    backgroundColor: showerColor + "1a",
+                    border: `1px solid ${showerColor}33`,
+                  }}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: showerColor }}
+                  />
+                  {nextMeteor.shower.activityLevel} activity
+                </span>
+              </div>
 
-                    {/* Description */}
-                    <p className="text-sm text-[#94a3b8] leading-relaxed mb-3">
-                      {nextMeteor.shower.description}
-                    </p>
+              {/* Description */}
+              <p className="text-sm text-[#94a3b8] leading-relaxed mb-3">
+                {nextMeteor.shower.description}
+              </p>
 
-                    {/* Viewing tip */}
-                    <div className="text-[11px] text-[#475569] mb-4">
-                      Best after midnight &middot; Dark rural skies
-                    </div>
-
-                    {/* Calendar button */}
-                    <button
-                      onClick={() => {
-                        const url = createGoogleCalendarLink(
-                          nextMeteor.shower,
-                          nextMeteor.peakDate
-                        );
-                        window.open(url, "_blank", "noopener");
-                      }}
-                      className="button w-full justify-center gap-2 text-xs px-4 py-1.5 min-h-0"
-                    >
-                      <CalendarPlus className="h-3.5 w-3.5" />
-                      Add Peak Night to Calendar
-                    </button>
-                  </>
-                );
-              })()}
+              {/* Footer zone: tip + calendar button */}
+              <div className="border-t border-[#1e2937] pt-3">
+                <div className="text-[10px] text-[#475569] mb-3">
+                  Best after midnight &middot; Dark rural skies
+                </div>
+                <button
+                  onClick={() => {
+                    const url = createGoogleCalendarLink(nextMeteor.shower, nextMeteor.peakDate);
+                    window.open(url, "_blank", "noopener");
+                  }}
+                  className="button w-full justify-center gap-2 text-xs px-4 py-1.5 min-h-0"
+                >
+                  <CalendarPlus className="h-3.5 w-3.5" />
+                  Add Peak Night to Calendar
+                </button>
+              </div>
             </>
           ) : (
-            <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-3">
-              NEXT METEOR SHOWER
-            </div>
-          )}
-          {!nextMeteor && (
-            <EmptyState
-              title="No upcoming shower data"
-              description="No major meteor shower peaks in the near future."
-            />
+            <>
+              <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-3">
+                NEXT METEOR SHOWER
+              </div>
+              <EmptyState
+                title="No upcoming shower data"
+                description="No major meteor shower peaks in the near future."
+              />
+            </>
           )}
         </div>
 
-        {/* Fireball Tracker */}
+        {/* ── Fireball Tracker ───────────────────────────────────────────── */}
         <div className="card p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">FIREBALL TRACKER</div>
+            <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">
+              FIREBALL TRACKER
+            </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
               <span className="text-[11px] text-[#64748b] tabular-nums">
                 {fireballsQuery.fireballs.length} recent
@@ -200,8 +194,12 @@ export function MeteorActivity() {
                       </div>
                       {fb.impactE && (
                         <span
-                          className="text-[10px] font-medium tabular-nums px-1.5 py-0.5 rounded flex-shrink-0"
-                          style={{ color, backgroundColor: color + "1a" }}
+                          className="text-[10px] font-medium tabular-nums px-2 py-0.5 rounded-full flex-shrink-0"
+                          style={{
+                            color,
+                            backgroundColor: color + "1a",
+                            border: `1px solid ${color}33`,
+                          }}
                         >
                           {formatFireballEnergy(fb.impactE)}
                         </span>
@@ -211,8 +209,12 @@ export function MeteorActivity() {
                   );
                 })}
               </div>
-              <div className="mt-3 pt-2.5 border-t border-[#1e2937] text-[9px] text-[#334155]">
-                Source: NASA JPL CNEOS · Orange = significant (&ge;1 kt) · Yellow = moderate
+
+              {/* Footer zone: legend + attribution */}
+              <div className="border-t border-[#1e2937] pt-3 mt-3">
+                <div className="text-[10px] text-[#475569]">
+                  Source: NASA JPL CNEOS &middot; Orange = significant (&ge;1 kt) &middot; Yellow = moderate
+                </div>
               </div>
             </>
           )}
