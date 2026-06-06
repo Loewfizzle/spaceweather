@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -128,8 +128,19 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
   return null;
 }
 
+function TileErrorDetector({ onError }: { onError: () => void }) {
+  const map = useMap();
+  useEffect(() => {
+    map.on('tileerror', onError);
+    return () => { map.off('tileerror', onError); };
+  }, [map, onError]);
+  return null;
+}
+
 export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
   const { data: ovationData, isLoading, error, refetch } = useOvationData();
+  const [tilesFailed, setTilesFailed] = useState(false);
+  const onTileError = useCallback(() => setTilesFailed(true), []);
 
   const points = useMemo(() => {
     const raw = filterOvationCoordinates(ovationData?.coordinates, minProb);
@@ -195,6 +206,7 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
+          <TileErrorDetector onError={onTileError} />
           <OvationCanvasLayer points={safePoints} />
         </MapContainer>
       </div>
@@ -212,6 +224,14 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
                 ? `No aurora areas ≥ ${minProb}% visible. Lower the filter slider to see more of the oval.`
                 : "The aurora oval is currently positioned away from North America. Conditions may improve when Kp rises."}
             </div>
+          </div>
+        </div>
+      )}
+
+      {tilesFailed && (
+        <div className="absolute top-2 left-2 z-[20] pointer-events-none">
+          <div className="bg-[#0a0e1a]/85 backdrop-blur-sm border border-[#1e2937] rounded-lg px-3 py-1.5 text-[10px] text-amber-400/80">
+            Map tiles unavailable — aurora data still shown
           </div>
         </div>
       )}

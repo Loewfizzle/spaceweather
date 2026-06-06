@@ -69,7 +69,7 @@ export function useOvationData() {
     queryKey: ["ovation"],
     queryFn: fetchOvation,
     staleTime: 1000 * 60 * 2,
-    gcTime: 1000 * 60 * 120,
+    gcTime: 1000 * 60 * 360,
     refetchInterval: 1000 * 60 * 2,
     refetchIntervalInBackground: false, // pause polling when tab is hidden (TanStack v5 default; explicit for clarity)
     retry: shouldRetryCritical,
@@ -83,7 +83,7 @@ export function useKpData() {
     queryKey: ["kp"],
     queryFn: fetchKpIndex,
     staleTime: 1000 * 60 * 3,
-    gcTime: 1000 * 60 * 120,
+    gcTime: 1000 * 60 * 360,
     refetchInterval: 1000 * 60 * 3,
     refetchIntervalInBackground: false,
     retry: shouldRetryCritical,

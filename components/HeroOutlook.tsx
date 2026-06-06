@@ -141,10 +141,12 @@ export function HeroOutlook({
 
       {error && (
         <div className="mt-2 text-xs text-amber-400">
-          NOAA temporarily unreachable — showing last known values
-          {latestUpdate
-            ? ` from ${formatDistanceToNow(latestUpdate, { addSuffix: true })}`
-            : ''}.
+          {kp !== null
+            ? <>
+                NOAA temporarily unreachable — showing last known values
+                {latestUpdate ? ` from ${formatDistanceToNow(latestUpdate, { addSuffix: true })}` : ''}.
+              </>
+            : 'NOAA temporarily unreachable — data will appear when connection is restored.'}
           {isFetching && " Retrying…"}
         </div>
       )}

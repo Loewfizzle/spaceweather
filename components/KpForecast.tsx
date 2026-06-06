@@ -142,7 +142,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
         </div>
 
         {/* 3-Day Storm Outlook derived from NOAA Kp forecast */}
-        {(forecastQuery.isLoading || stormDays.length > 0) && (
+        {(forecastQuery.isLoading || forecastQuery.error || stormDays.length > 0) && (
           <div className="mt-5 pt-5 border-t border-[#1e2937]">
             <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
               {forecastQuery.isLoading ? (
@@ -160,6 +160,18 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
                       <div className="h-2.5 w-14 rounded animate-pulse bg-[#1e2937]" />
                     </div>
                   ))
+                : forecastQuery.error && stormDays.length === 0
+                ? (
+                    <div className="col-span-3 text-[11px] text-amber-400/70 py-1">
+                      Forecast temporarily unavailable.{" "}
+                      <button
+                        onClick={() => forecastQuery.refetch()}
+                        className="underline underline-offset-2 hover:text-amber-400 transition-colors"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )
                 : stormDays.map(({ date, maxKp }) => {
                     const { label, color } = kpToStormLabel(maxKp);
                     return (
