@@ -156,6 +156,13 @@ export function getAuroraMarkerRadius(prob: number): number {
   return 4.5; // larger for the strongest areas
 }
 
+/** Cloud cover color for display: green < 30%, amber < 60%, slate otherwise. */
+export function cloudCoverColor(pct: number): string {
+  if (pct < 30) return "#22c55e";
+  if (pct < 60) return "#eab308";
+  return "#94a3b8";
+}
+
 // --- Solar Activity (pure functions only - fetchers moved to lib/api/fetchers.ts) ---
 
 // NOAA geomagnetic storm watch product IDs — issued specifically when Earth-directed CMEs

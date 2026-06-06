@@ -18,7 +18,7 @@ import { FireballModal } from "./FireballModal";
 
 /**
  * MeteorActivity
- * Two cards: Next Meteor Shower (with Add to Calendar Google link) + Fireball Tracker (AMS data).
+ * Two cards: Next Meteor Shower (with Google Calendar link) + Fireball Tracker (NASA JPL CNEOS).
  */
 export function MeteorActivity() {
   const fireballsQuery = useFireballs();

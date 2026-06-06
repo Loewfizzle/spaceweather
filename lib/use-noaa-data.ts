@@ -8,8 +8,8 @@ import {
   shouldRetryNonCritical,
   logDataError,
 } from "./utils/retry";
+// Network + Zod validation (single source for all external data)
 import {
-  // Fetchers are the single source for network + validation (lib/api/fetchers)
   fetchOvation,
   fetchKpIndex,
   fetchKpForecast,
@@ -21,8 +21,8 @@ import {
   fetchFireballs,
 } from "./api/fetchers";
 
+// Pure business logic and display helpers
 import {
-  // Pure business logic and helpers live in lib/noaa.ts
   latest,
   maxOvationNorthAmerica,
   parseRecentCmes,
@@ -281,10 +281,6 @@ export function useSolarActivity() {
     [regionsQuery.data]
   );
 
-  // Light treatment for coronal holes - no dedicated high-frequency JSON, use contextual note
-  const coronalHoleNote =
-    "Coronal holes can launch high-speed solar wind streams that enhance aurora potential 2–4 days later. Monitor solar wind speed and Bz for impacts.";
-
   const isLoading =
     flaresQuery.isLoading || alertsQuery.isLoading || regionsQuery.isLoading;
   // Only treat flares and alerts as fatal errors for the hook.
@@ -304,19 +300,16 @@ export function useSolarActivity() {
     latestFlare,
     recentCmes,
     sunspotNumber,
-    coronalHoleNote,
     isLoading,
     error,
-    regionsError, // for potential subtle UI note when sunspots delayed but flares ok
+    regionsError,
     isFetching: flaresQuery.isFetching || alertsQuery.isFetching || regionsQuery.isFetching,
     refetchAll,
-    // raw for freshness if needed
     flareTime: latestFlare?.max_time || latestFlare?.time_tag || null,
     alertsTime: alertsQuery.data && alertsQuery.data.length > 0 ? alertsQuery.data[0].issue_datetime : null,
     regionsTime: regionsQuery.data && regionsQuery.data.length > 0 ? regionsQuery.data[0]?.observed_date : null,
   };
 }
-
 
 // Fireball tracker (proxied via our /api/fireballs route to avoid CORS issues in production)
 export function useFireballs(limit = 10) {
@@ -338,13 +331,19 @@ export function useFireballs(limit = 10) {
   };
 }
 
-// Re-exports of pure business logic (sourced from lib/noaa.ts) for convenience
-// of current UI consumers (page.tsx, MeteorActivity, etc.). Prefer importing
-// hooks from here; business fns are composed inside the hooks.
-export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleCalendarLink, type TonightOutlook, getTonightOutlook, type CityAuroraProb, getLocationAuroraProb };
-
-// Re-export of the pure MI risk helper (defined in lib/noaa.ts)
-export { getMichiganRiskLevel };
-
-// Re-export fireball format helpers for display consistency
-export { formatFireballDate, formatFireballLocation, formatFireballEnergy, type Fireball };
+// Re-exports from lib/noaa.ts — convenience barrel for UI consumers that already import hooks here.
+export {
+  getNextMeteorShower,
+  formatMeteorPeak,
+  createGoogleCalendarLink,
+  getTonightOutlook,
+  getLocationAuroraProb,
+  getMichiganRiskLevel,
+  formatFireballDate,
+  formatFireballLocation,
+  formatFireballEnergy,
+  type MeteorShower,
+  type TonightOutlook,
+  type CityAuroraProb,
+  type Fireball,
+};

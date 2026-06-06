@@ -62,7 +62,7 @@ function SdoImage({ src, alt }: { src: string; alt: string }) {
             onClick={retry}
             className="text-[10px] text-[#475569] hover:text-[#64748b] transition-colors"
           >
-            retry
+            Retry
           </button>
         </div>
       )}

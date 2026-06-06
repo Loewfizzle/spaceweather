@@ -5,9 +5,7 @@ import { ChevronDown } from "lucide-react";
 
 /**
  * DataUnderstanding
- * Expandable/collapsible "Understanding the Data" educational section.
- * Starts collapsed (default) per original design and requirements.
- * All explanatory text on Kp, Bz, OVATION, Solar, Viewing Tips for Michigan, and the disclaimer is copied verbatim.
+ * Expandable/collapsible educational section for Kp, Bz, OVATION, Solar, and Michigan viewing tips.
  * Button uses aria-expanded + aria-controls for a11y.
  */
 export function DataUnderstanding() {

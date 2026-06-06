@@ -1,5 +1,3 @@
-import React from "react";
-
 interface LoadingSkeletonProps {
   variant?: "card" | "map" | "list" | "chart" | "metrics" | "full" | "page";
   count?: number;

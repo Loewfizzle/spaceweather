@@ -2,6 +2,7 @@
 
 import { MapPin, Loader2, Cloud } from "lucide-react";
 import type { TonightOutlook } from "../lib/use-noaa-data";
+import { cloudCoverColor } from "../lib/noaa";
 import { ShareButton } from "./ShareButton";
 
 interface HeroOutlookProps {
@@ -115,14 +116,7 @@ export function HeroOutlook({
                 <span className="text-[#64748b]">Skies tonight:</span>
                 <span
                   className="font-medium"
-                  style={{
-                    color:
-                      cloudCoverPct < 30
-                        ? "#22c55e"
-                        : cloudCoverPct < 60
-                        ? "#eab308"
-                        : "#94a3b8",
-                  }}
+                  style={{ color: cloudCoverColor(cloudCoverPct) }}
                 >
                   {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
                 </span>

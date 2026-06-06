@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { Clock } from "lucide-react";
 import { computeViewingWindow, computeLastNightPeak } from "../lib/utils/viewingWindow";
+import { cloudCoverColor } from "../lib/noaa";
 import type { KpEntry, KpForecastEntry } from "../lib/api/schemas";
 
 interface ViewingWindowProps {
@@ -61,7 +62,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
 
   const tonight = windowData.hasData ? peakToLabel(windowData.peakKp) : null;
   const hasClear = cloudCoverPct != null;
-  const cloudColor = cloudCoverPct == null ? '' : cloudCoverPct < 30 ? '#22c55e' : cloudCoverPct < 60 ? '#eab308' : '#94a3b8';
+  const cloudColor = cloudCoverPct == null ? '' : cloudCoverColor(cloudCoverPct);
   const lastNightLabel = lastNight ? peakToLabel(lastNight.peakKp) : null;
 
   return (
