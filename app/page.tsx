@@ -1,5 +1,6 @@
 import { Zap } from "lucide-react";
 import { LiveHeader } from "../components/LiveHeader";
+import { LiveIndicator } from "../components/LiveIndicator";
 import { DashboardClient } from "../components/DashboardClient";
 
 // No "use client" — this is a Server Component.
@@ -11,21 +12,33 @@ export default function AuroraWatch() {
     <div className="min-h-screen pb-12">
       {/* Sticky Header */}
       <header className="header">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          {/* Static branding — server-rendered, visible immediately */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-400 to-violet-400 flex items-center justify-center flex-shrink-0">
-              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#05070f]" />
+        {/*
+          py-3.5 instead of h-16: the branding now has three lines (title,
+          subtitle, live indicator) so we let height be content-driven with
+          symmetric padding rather than a fixed 64 px constraint.
+        */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between py-3.5">
+          {/* Static branding — server-rendered, visible immediately.
+              LiveIndicator is a tiny "use client" island that hydrates
+              independently and sits below the subtitle. */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-400 to-violet-400 flex items-center justify-center flex-shrink-0">
+              <Zap className="w-4 h-4 text-[#05070f]" />
             </div>
             <div>
-              <div className="font-semibold tracking-tighter text-lg sm:text-xl">AuroraWatch</div>
-              <div className="text-[9px] sm:text-[10px] text-[#64748b] -mt-0.5 leading-none">
+              {/* Slightly larger title for more presence */}
+              <div className="font-semibold tracking-tighter text-xl sm:text-2xl leading-tight">
+                AuroraWatch
+              </div>
+              <div className="text-[10px] sm:text-[11px] text-[#64748b] leading-none">
                 NOAA SWPC<span className="hidden sm:inline"> • Michigan Focus</span>
               </div>
+              {/* Pulsing dot + "updated X ago" — appears once data arrives */}
+              <LiveIndicator />
             </div>
           </div>
 
-          {/* Live status pills + refresh — client island */}
+          {/* Right: Kp pill, health indicator, refresh — client island */}
           <LiveHeader />
         </div>
       </header>

@@ -164,7 +164,13 @@ export function DashboardClient() {
         }
       >
         <Suspense fallback={<MapSectionSkeleton />}>
-          <AuroraMapSection />
+          {/* Pass pre-computed geo state so AuroraMap can render the user pin
+              without duplicating the geolocation hook or permission flow. */}
+          <AuroraMapSection
+            userLat={geoLat}
+            userLon={geoLon}
+            userProb={userLocationProb}
+          />
         </Suspense>
       </ErrorBoundary>
 

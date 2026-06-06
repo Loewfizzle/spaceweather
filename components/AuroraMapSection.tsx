@@ -10,6 +10,15 @@ const AuroraMap = dynamic(() => import("./AuroraMap"), {
   loading: () => <LoadingSkeleton variant="map" />,
 });
 
+interface AuroraMapSectionProps {
+  /** Granted geolocation latitude — null when permission not yet given. */
+  userLat?: number | null;
+  /** Granted geolocation longitude — null when permission not yet given. */
+  userLon?: number | null;
+  /** Pre-computed aurora probability at the user's location (0–100, or null). */
+  userProb?: number | null;
+}
+
 function formatObsTime(iso?: string): string | null {
   if (!iso) return null;
   try {
@@ -22,8 +31,27 @@ function formatObsTime(iso?: string): string | null {
   }
 }
 
-export function AuroraMapSection() {
-  const [minProb, setMinProb] = useState(3);
+export function AuroraMapSection({ userLat, userLon, userProb }: AuroraMapSectionProps) {
+  // Lazy initializer: read persisted minProb once on mount.
+  // Falls back to default (3%) if localStorage is unavailable or the saved
+  // value is outside the valid 0–50 range.
+  const [minProb, setMinProbState] = useState<number>(() => {
+    if (typeof window === "undefined") return 3;
+    try {
+      const saved = localStorage.getItem("aurora-min-prob");
+      if (saved !== null) {
+        const n = parseInt(saved, 10);
+        if (Number.isFinite(n) && n >= 0 && n <= 50) return n;
+      }
+    } catch { /* localStorage unavailable (e.g. private browsing with strict settings) */ }
+    return 3;
+  });
+
+  // Thin wrapper that keeps React state and localStorage in sync.
+  const setMinProb = (value: number) => {
+    setMinProbState(value);
+    try { localStorage.setItem("aurora-min-prob", String(value)); } catch { /* ignore */ }
+  };
 
   // Read from the already-cached OVATION query — no extra network request.
   const { data: ovationData } = useOvationData();
@@ -51,8 +79,6 @@ export function AuroraMapSection() {
               step={1}
               value={minProb}
               onChange={(e) => setMinProb(parseInt(e.target.value))}
-              // flex-1 stretches the slider across available space on mobile;
-              // sm:w-24 sm:flex-none locks it to a fixed width on desktop.
               className="flex-1 sm:w-24 sm:flex-none accent-[#22c55e] cursor-pointer"
               aria-label="Minimum aurora probability to show on map"
               aria-valuemin={0}
@@ -86,7 +112,12 @@ export function AuroraMapSection() {
         </div>
       </div>
 
-      <AuroraMap minProb={minProb} />
+      <AuroraMap
+        minProb={minProb}
+        userLat={userLat}
+        userLon={userLon}
+        userProb={userProb}
+      />
     </div>
   );
 }

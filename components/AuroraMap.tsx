@@ -7,10 +7,17 @@ import "leaflet/dist/leaflet.css";
 import { useOvationData } from "../lib/use-noaa-data";
 import { filterOvationCoordinates } from "../lib/noaa";
 
-
 interface AuroraMapProps {
   minProb?: number;
+  /** Granted geolocation latitude; undefined/null → no pin rendered. */
+  userLat?: number | null;
+  /** Granted geolocation longitude; undefined/null → no pin rendered. */
+  userLon?: number | null;
+  /** Pre-computed aurora probability at the user's location (0–100, or null). */
+  userProb?: number | null;
 }
+
+// ─── Aurora overlay ───────────────────────────────────────────────────────────
 
 function probToRGB(prob: number): [number, number, number] {
   if (prob < 10)  return [22,  101, 52];
@@ -42,9 +49,7 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
         canvasRef.current = canvas;
         this._map = map;
         this._rafId = null;
-        // Full redraw once the gesture settles — no throttle needed (fires once)
         map.on('moveend zoomend', this._draw, this);
-        // During continuous pan/zoom, coalesce redraws to one per animation frame
         map.on('move zoom', this._scheduleDraw, this);
         this._draw();
         return this;
@@ -73,30 +78,23 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
         if (!canvas || !this._map) return;
 
         const size = this._map.getSize();
-        // Only reset dimensions on resize — assigning canvas.width always clears it.
         if (canvas.width !== size.x || canvas.height !== size.y) {
           canvas.width = size.x;
           canvas.height = size.y;
         }
 
-        // setPosition cancels the pane's CSS transform so that canvas pixel (x,y)
-        // corresponds exactly to container pixel (x,y).  We must then draw using
-        // latLngToContainerPoint (not latLngToLayerPoint) to stay in the same space.
         const topLeft = this._map.containerPointToLayerPoint([0, 0]);
         L.DomUtil.setPosition(canvas, topLeft);
 
         const ctx = canvas.getContext('2d')!;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // cellSize: pixel span of cellDeg degrees longitude at current zoom.
-        // Using a difference so the pane offset cancels out.
         const cellDeg = 2.0;
         const originPx = this._map.latLngToContainerPoint([0, 0]);
         const cellPx   = this._map.latLngToContainerPoint([0, cellDeg]);
         const cellSize = Math.max(2, Math.abs(cellPx.x - originPx.x));
 
         for (const point of points) {
-          // containerPoint matches canvas coords after setPosition cancels pane offset.
           const px = this._map.latLngToContainerPoint([point.position[0], point.position[1]]);
           const alpha = Math.pow(point.prob / 100, 1.1) * 0.9;
           if (alpha < 0.06) continue;
@@ -128,6 +126,8 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
   return null;
 }
 
+// ─── Tile error detection ─────────────────────────────────────────────────────
+
 function TileErrorDetector({ onError }: { onError: () => void }) {
   const map = useMap();
   useEffect(() => {
@@ -137,10 +137,171 @@ function TileErrorDetector({ onError }: { onError: () => void }) {
   return null;
 }
 
-export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
+// ─── User location pin ────────────────────────────────────────────────────────
+
+/**
+ * Renders a subtle location dot at the user's granted coordinates.
+ *
+ * Visual design:
+ *   • 20 px outer ring  — semi-transparent accent-blue circle
+ *   • 6 px inner dot    — white with a soft blue glow
+ *   • Probability badge — small dark pill above the ring (hidden if prob is null)
+ *
+ * Uses L.divIcon + L.marker because it needs to sit in Leaflet's markerPane
+ * (above the overlayPane where the canvas aurora blobs live).
+ * The marker is non-interactive so map clicks/pans pass through normally.
+ */
+function UserLocationMarker({
+  lat,
+  lon,
+  prob,
+}: {
+  lat: number;
+  lon: number;
+  prob: number | null;
+}) {
+  const map = useMap();
+  const markerRef = useRef<L.Marker | null>(null);
+
+  useEffect(() => {
+    // Remove stale marker before creating a new one (e.g. when coords update)
+    if (markerRef.current) {
+      map.removeLayer(markerRef.current);
+      markerRef.current = null;
+    }
+
+    const SIZE = 20; // outer ring diameter in px
+
+    // Probability label: shown when we have a value, styled to match the legend
+    // palette. "< 1%" replaces an uninteresting "0%" for locations outside the
+    // current aurora oval.
+    const probBadge =
+      prob !== null
+        ? `<div style="
+            position:absolute;
+            bottom:${SIZE + 5}px;
+            left:50%;
+            transform:translateX(-50%);
+            white-space:nowrap;
+            background:rgba(15,20,37,0.92);
+            border:1px solid rgba(30,41,55,0.9);
+            border-radius:4px;
+            padding:2px 7px;
+            font-size:9px;
+            color:#94a3b8;
+            font-family:ui-monospace,monospace;
+            letter-spacing:0.03em;
+            pointer-events:none;
+          ">${prob > 0 ? prob + "%" : "< 1%"}</div>`
+        : "";
+
+    const icon = L.divIcon({
+      html: `
+        <div style="width:${SIZE}px;height:${SIZE}px;position:relative;">
+          ${probBadge}
+          <!-- outer ring -->
+          <div style="
+            position:absolute;inset:0;border-radius:50%;
+            background:rgba(59,130,246,0.12);
+            border:1.5px solid rgba(59,130,246,0.65);
+          "></div>
+          <!-- inner dot -->
+          <div style="
+            position:absolute;
+            top:50%;left:50%;
+            width:6px;height:6px;
+            margin:-3px 0 0 -3px;
+            border-radius:50%;
+            background:#f1f5f9;
+            box-shadow:0 0 6px rgba(59,130,246,0.5);
+          "></div>
+        </div>
+      `,
+      className: "",          // suppress Leaflet's default white background
+      iconSize: [SIZE, SIZE],
+      iconAnchor: [SIZE / 2, SIZE / 2], // lat/lng maps to the visual centre
+    });
+
+    const marker = L.marker([lat, lon], {
+      icon,
+      interactive: false, // pass-through for pan/zoom gestures
+      keyboard: false,
+      zIndexOffset: 1000,  // float above any canvas aurora blobs
+    });
+    marker.addTo(map);
+    markerRef.current = marker;
+
+    return () => {
+      if (markerRef.current) {
+        map.removeLayer(markerRef.current);
+        markerRef.current = null;
+      }
+    };
+  }, [map, lat, lon, prob]);
+
+  return null;
+}
+
+// ─── Map state persistence ────────────────────────────────────────────────────
+
+/**
+ * Saves the map's current center + zoom to localStorage on every moveend/zoomend.
+ * The stored value is read once on AuroraMap mount to restore the user's last view.
+ */
+function MapStateTracker() {
+  const map = useMap();
+  useEffect(() => {
+    const save = () => {
+      const { lat, lng } = map.getCenter();
+      const zoom = map.getZoom();
+      try {
+        localStorage.setItem(
+          "aurora-map-state",
+          JSON.stringify({ lat, lng, zoom })
+        );
+      } catch { /* storage full or unavailable */ }
+    };
+    map.on("moveend zoomend", save);
+    return () => { map.off("moveend zoomend", save); };
+  }, [map]);
+  return null;
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export default function AuroraMap({
+  minProb = 3,
+  userLat,
+  userLon,
+  userProb,
+}: AuroraMapProps) {
   const { data: ovationData, isLoading, error, refetch } = useOvationData();
   const [tilesFailed, setTilesFailed] = useState(false);
   const onTileError = useCallback(() => setTilesFailed(true), []);
+
+  // Restore the user's last map position from localStorage (runs once on mount).
+  // Validates every field so a corrupted entry can't break the map.
+  const [mapInitialState] = useState<{ center: [number, number]; zoom: number }>(() => {
+    const defaults = { center: [48, -100] as [number, number], zoom: 3 };
+    if (typeof window === "undefined") return defaults;
+    try {
+      const raw = localStorage.getItem("aurora-map-state");
+      if (raw) {
+        const { lat, lng, zoom } = JSON.parse(raw) as {
+          lat: number; lng: number; zoom: number;
+        };
+        if (
+          isFinite(lat) && isFinite(lng) && isFinite(zoom) &&
+          lat >= -90 && lat <= 90 &&
+          lng >= -180 && lng <= 180 &&
+          zoom >= 1 && zoom <= 18
+        ) {
+          return { center: [lat, lng], zoom: Math.round(zoom) };
+        }
+      }
+    } catch { /* parse error or storage unavailable */ }
+    return defaults;
+  });
 
   const points = useMemo(() => {
     const raw = filterOvationCoordinates(ovationData?.coordinates, minProb);
@@ -168,6 +329,11 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
 
   const isEmpty = !isLoading && !error && safePoints.length === 0;
 
+  // Whether we have a valid location to render a pin for
+  const hasUserLocation =
+    userLat != null && userLon != null &&
+    isFinite(userLat) && isFinite(userLon);
+
   if (isLoading) {
     return (
       <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
@@ -184,7 +350,10 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
       <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
         <div className="text-center text-sm">
           <div className="text-[#94a3b8] mb-2">Aurora data temporarily unavailable.</div>
-          <button onClick={() => refetch()} className="text-[#64748b] underline underline-offset-2 hover:text-white transition-colors">
+          <button
+            onClick={() => refetch()}
+            className="text-[#64748b] underline underline-offset-2 hover:text-white transition-colors"
+          >
             Try refreshing
           </button>
         </div>
@@ -196,8 +365,8 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
     <div className="relative overflow-hidden rounded-2xl border border-[#1e2937] bg-[#05070f]">
       <div className="h-[420px] sm:h-[480px] md:h-[520px]">
         <MapContainer
-          center={[48, -100]}
-          zoom={3}
+          center={mapInitialState.center}
+          zoom={mapInitialState.zoom}
           style={{ height: "100%", width: "100%", background: "#05070f" }}
           className="z-0"
           zoomControl={true}
@@ -208,6 +377,16 @@ export default function AuroraMap({ minProb = 3 }: AuroraMapProps) {
           />
           <TileErrorDetector onError={onTileError} />
           <OvationCanvasLayer points={safePoints} />
+          {/* Persist center/zoom so the map remembers the user's last view */}
+          <MapStateTracker />
+          {/* User location pin — only rendered when geolocation has been granted */}
+          {hasUserLocation && (
+            <UserLocationMarker
+              lat={userLat!}
+              lon={userLon!}
+              prob={userProb ?? null}
+            />
+          )}
         </MapContainer>
       </div>
 
