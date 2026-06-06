@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin, Loader2, Cloud } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
 import { cloudCoverColor } from "../lib/noaa";
 import { ShareButton } from "./ShareButton";
@@ -8,6 +9,7 @@ import { ShareButton } from "./ShareButton";
 interface HeroOutlookProps {
   outlook: TonightOutlook;
   isLoading?: boolean;
+  latestUpdate?: Date | null;
   error?: Error | null;
   isFetching?: boolean;
   userLocationProb?: number | null;
@@ -31,6 +33,7 @@ export function HeroOutlook({
   cloudCoverPct,
   cloudCoverLabel,
   kp,
+  latestUpdate,
 }: HeroOutlookProps) {
   // Show at most 4 pre-defined cities — enough for the north→south gradient without crowding
   const displayedCities = outlook.cityProbs?.slice(0, 4) ?? [];
@@ -138,8 +141,11 @@ export function HeroOutlook({
 
       {error && (
         <div className="mt-2 text-xs text-amber-400">
-          Some data sources unavailable — displaying last known values.
-          {isFetching && " (retrying…)"}
+          NOAA temporarily unreachable — showing last known values
+          {latestUpdate
+            ? ` from ${formatDistanceToNow(latestUpdate, { addSuffix: true })}`
+            : ''}.
+          {isFetching && " Retrying…"}
         </div>
       )}
 

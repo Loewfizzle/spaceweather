@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     `&timezone=auto`;
 
   try {
-    const upstream = await fetch(url);
+    const upstream = await fetch(url, { signal: AbortSignal.timeout(10_000) });
     if (!upstream.ok) {
       return NextResponse.json({ error: 'Upstream error' }, { status: 502 });
     }

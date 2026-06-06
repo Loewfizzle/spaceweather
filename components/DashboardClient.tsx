@@ -129,6 +129,7 @@ export function DashboardClient() {
             cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
             cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
             kp={kp}
+            latestUpdate={latestGlobalUpdate}
           />
         </ErrorBoundary>
       </div>

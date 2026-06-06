@@ -12,22 +12,44 @@ const SDO_SUNSPOT_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024
 const SDO_CORONAL_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0193.jpg";
 const SDO_DATA_URL = "https://sdo.gsfc.nasa.gov/data/";
 
+// Stop auto-refreshing after this many consecutive failures to avoid an indefinite
+// loading→failed loop during a NASA SDO outage. Manual retry resets the counter.
+const SDO_MAX_AUTO_FAILS = 3;
+
 function SdoImage({ src, alt }: { src: string; alt: string }) {
   const [imgState, setImgState] = useState<'loading' | 'loaded' | 'failed'>('loading');
   const [attempt, setAttempt] = useState(0);
+  const [consecutiveFails, setConsecutiveFails] = useState(0);
 
-  // NASA SDO updates every ~15 min — keep the image in sync automatically.
+  const autoRefreshPaused = consecutiveFails >= SDO_MAX_AUTO_FAILS;
+
+  // NASA SDO updates every ~15 min. Pause auto-refresh once the image has failed
+  // repeatedly so the failed state doesn't keep resetting during an outage.
   useEffect(() => {
+    if (autoRefreshPaused) return;
     const id = setInterval(() => {
       setAttempt((n) => n + 1);
       setImgState('loading');
     }, 1000 * 60 * 15);
     return () => clearInterval(id);
-  }, []);
+  }, [autoRefreshPaused]);
+
+  const onLoad = () => {
+    setImgState('loaded');
+    setConsecutiveFails(0);
+  };
+
+  const onError = () => {
+    setImgState('failed');
+    setConsecutiveFails((n) => n + 1);
+    console.warn('[AuroraWatch] SDO image failed to load:', src);
+  };
 
   const retry = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    // Reset fail counter so auto-refresh resumes if retry succeeds
+    setConsecutiveFails(0);
     setImgState('loading');
     setAttempt((n) => n + 1);
   };
@@ -47,9 +69,11 @@ function SdoImage({ src, alt }: { src: string; alt: string }) {
 
       {/* Error state — no nested <a> (card is already an <a>); use buttons instead */}
       {imgState === 'failed' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-6 text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
           <span className="text-[#475569] text-xs leading-relaxed">
-            Image temporarily unavailable
+            {autoRefreshPaused
+              ? 'NASA SDO temporarily unreachable'
+              : 'Image temporarily unavailable'}
           </span>
           <button
             onClick={openSdo}
@@ -63,6 +87,11 @@ function SdoImage({ src, alt }: { src: string; alt: string }) {
           >
             Retry
           </button>
+          {autoRefreshPaused && (
+            <span className="text-[9px] text-[#334155]">
+              Auto-refresh paused
+            </span>
+          )}
         </div>
       )}
 
@@ -75,8 +104,8 @@ function SdoImage({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         loading="lazy"
-        onLoad={() => setImgState('loaded')}
-        onError={() => { setImgState('failed'); console.warn('[AuroraWatch] SDO image failed to load:', src); }}
+        onLoad={onLoad}
+        onError={onError}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
           imgState === 'loaded' ? 'opacity-100' : 'opacity-0'
         }`}
@@ -235,8 +264,8 @@ export function SolarActivity() {
 
       {solarActivity.error && (
         <div className="mt-2 text-[10px] text-amber-400">
-          Some solar data sources unavailable — using cached values if available.
-          {solarActivity.isFetching && " (retrying…)"}
+          NOAA data temporarily unavailable — showing last known values.
+          {solarActivity.isFetching && " Retrying…"}
         </div>
       )}
 
