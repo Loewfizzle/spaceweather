@@ -52,11 +52,23 @@ async function checkAurora() {
     if (!res.ok) return;
 
     const raw = await res.json();
-    if (!Array.isArray(raw) || raw.length < 2) return;
 
-    // Latest entry is the last element (same convention as lib/noaa.ts `latest()`)
-    const entry = raw[raw.length - 1];
-    const kp = typeof entry.Kp === 'number' ? entry.Kp : null;
+    // NOAA returns string[][] (header row + data rows); find the Kp column index
+    // from the header then read the last (most-recent) data row.
+    // Same logic as lib/utils/swKpParsing.ts — mirrored here because SW has no imports.
+    function parseKpFromTabular(data) {
+      if (!Array.isArray(data) || data.length < 2) return null;
+      const headers = data[0];
+      if (!Array.isArray(headers)) return null;
+      const kpColIdx = headers.indexOf('Kp');
+      if (kpColIdx === -1) return null;
+      const lastRow = data[data.length - 1];
+      if (!Array.isArray(lastRow)) return null;
+      const kp = parseFloat(String(lastRow[kpColIdx]));
+      return isNaN(kp) ? null : kp;
+    }
+
+    const kp = parseKpFromTabular(raw);
     if (kp === null) return;
 
     // Multi-factor condition — mirrors the likelyForMI logic in useNotifications.ts

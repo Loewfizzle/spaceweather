@@ -148,9 +148,9 @@ export function useCurrentConditions() {
     [ovationData]
   );
 
-  const ovationProcessed = !!ovationData &&
-    Array.isArray(ovationData.coordinates) &&
-    ovationData.coordinates.length > 0;
+  // True when the NOAA fetch itself succeeded — even if the aurora oval happened
+  // to have no coordinates (legitimate quiet-sun result, not a data failure).
+  const ovationProcessed = ovationQuery.isSuccess && !!ovationData;
 
   // Observability: log when OVATION yields unexpectedly low/empty NA results.
   // Runs in an effect (not render body) to avoid firing on discarded renders in StrictMode.
@@ -200,7 +200,7 @@ export function useCurrentConditions() {
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
-    michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz),
+    michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
     riskLevel: getMichiganRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz),
     isLoading:
       kpQuery.isLoading ||

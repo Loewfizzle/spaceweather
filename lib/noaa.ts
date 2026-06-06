@@ -39,13 +39,15 @@ export function latest<T extends { time_tag?: string | null }>(arr: T[]): T | nu
 export function getMichiganGuidance(
   kp: number | null,
   maxProb: number | null,
-  bz: number | null
+  bz: number | null,
+  solarWindSpeed?: number | null
 ): string {
   if (kp === null) return "Data loading...";
+  const highSpeed = solarWindSpeed != null && solarWindSpeed > 600;
   let text: string;
   if (kp >= 7) {
     text = "High probability of aurora visible across the northern United States, including areas well south of the Great Lakes.";
-  } else if (kp >= 5) {
+  } else if (kp >= 5 || (kp >= 3 && highSpeed)) {
     text = "Good chance across northern-tier states; possible in the Great Lakes region with clear dark skies.";
   } else if (kp >= 4) {
     text = "Possible across the northern states. Farther south unlikely unless skies are very dark and clear.";
@@ -54,6 +56,8 @@ export function getMichiganGuidance(
   }
   if (bz !== null && bz <= -5) {
     text += " Strong southward Bz currently boosting chances.";
+  } else if (highSpeed) {
+    text += " Elevated solar wind speed may enhance activity if Bz turns southward.";
   } else if (maxProb !== null && maxProb >= 20) {
     text += " Elevated probabilities across North America increase the odds.";
   }
@@ -617,14 +621,14 @@ export function approximateLocation(lat: number, lon: number): string {
   if (lat >= 10 && lat <= 24 && lon >= -88  && lon <= -60) return "Caribbean Sea";
   if (lat >= -5 && lat <= 10 && lon >= -5   && lon <= 10)  return "Gulf of Guinea";
 
-  // Greenland (before North America lon range)
-  if (lat >= 60 && lon >= -58 && lon <= -12) return "Greenland";
+  // Greenland (before North America lon range; island extends to ~73°W)
+  if (lat >= 60 && lon >= -73 && lon <= -12) return "Greenland";
 
   // Land masses
   // Alaska / NW Canada: extends into the -168→-130 range not covered by the main NA check below
   if (lat >= 54  && lon >= -168 && lon <= -130) return "North America";
-  // Contiguous US / Canada / Mexico (western edge ~-130 avoids open Pacific misclassification)
-  if (lat >= 15  && lat <= 72  && lon >= -130 && lon <= -52) return "North America";
+  // Contiguous US / Canada / Mexico — raised lat cap to 85 to cover northern Canada/Arctic islands
+  if (lat >= 15  && lat <= 85  && lon >= -130 && lon <= -52) return "North America";
   if (lat >= 7   && lat <  15  && lon >= -93  && lon <= -77) return "Central America";
   if (lat >= -56 && lat <  13  && lon >= -82  && lon <= -34) return "South America";
   if (lat >= 35  && lat <= 72  && lon >= -12  && lon <= 40)  return "Europe";
