@@ -8,6 +8,15 @@ import { useMemo } from "react";
  * Used for the consolidated "LIVE" / relative freshness indicator in header and Current Conditions.
  * Pure derived state; no fetching side effects.
  */
+// NOAA timestamps are always UTC but arrive in mixed formats:
+// "2026-06-05 23:00:00.000" (space-sep, no Z), "2026-06-05T23:00:00Z" (already correct), "2026-06-05" (date-only, parses as UTC natively).
+// Normalize to unambiguous UTC before constructing Date objects.
+function parseNoaaTimestamp(s: string): Date {
+  const normalized = s.replace(' ', 'T');
+  const hasOffset = /Z$|[+-]\d{2}:?\d{2}$/.test(normalized);
+  return new Date(hasOffset ? normalized : normalized + 'Z');
+}
+
 export function useGlobalFreshness(
   kpTime?: string | null,
   flareTime?: string | null,
@@ -15,12 +24,10 @@ export function useGlobalFreshness(
   regionsTime?: string | null
 ): Date | null {
   return useMemo(() => {
-    const lastUpdatedTimes = [
-      kpTime ? new Date(kpTime) : null,
-      flareTime ? new Date(flareTime) : null,
-      alertsTime ? new Date(alertsTime) : null,
-      regionsTime ? new Date(regionsTime) : null,
-    ].filter((d): d is Date => d !== null && !isNaN(d.getTime()));
+    const lastUpdatedTimes = [kpTime, flareTime, alertsTime, regionsTime]
+      .filter((s): s is string => !!s)
+      .map(parseNoaaTimestamp)
+      .filter((d) => !isNaN(d.getTime()));
 
     if (lastUpdatedTimes.length === 0) return null;
 

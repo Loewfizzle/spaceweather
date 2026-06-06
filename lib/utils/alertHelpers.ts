@@ -25,10 +25,11 @@ export function alertFirstLine(message: string): string {
   return raw.length < body.length ? raw : raw + (body.length > 120 ? '…' : '');
 }
 
-// NOAA issue_datetime uses space instead of T ("2026-06-05 23:25:16") — normalize before parsing.
+// NOAA issue_datetime is UTC with a space separator ("2026-06-05 23:25:16").
+// Normalize to ISO and append Z so JavaScript parses it as UTC, not local time.
 export function formatAlertAge(issueDatetime: string): string {
   try {
-    return formatDistanceToNow(new Date(issueDatetime.replace(' ', 'T')), { addSuffix: true });
+    return formatDistanceToNow(new Date(issueDatetime.replace(' ', 'T') + 'Z'), { addSuffix: true });
   } catch {
     return issueDatetime;
   }

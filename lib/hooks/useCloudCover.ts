@@ -37,8 +37,9 @@ async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResu
     : null;
 
   // Compute tonight's average over hours 20–06 local time.
-  // Open-Meteo returns local-time ISO strings when timezone=auto, so we parse
-  // the hour directly from the string rather than relying on Date().getHours().
+  // Open-Meteo returns timezone-local ISO strings without offset suffix (e.g. "2026-06-05T22:00").
+  // We use utc_offset_seconds from the response to compute true UTC ms for date-range filtering,
+  // then extract the local hour from the string for the 20:00–06:00 window check.
   let tonightAvg: number | null = null;
   if (
     Array.isArray(data?.hourly?.time) &&
@@ -48,12 +49,16 @@ async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResu
     const covers = data.hourly.cloud_cover as number[];
     const nowMs = Date.now();
     const dayMs = 24 * 60 * 60 * 1000;
+    // utc_offset_seconds: e.g. -14400 for EDT, -18000 for EST.
+    // Treating the string as UTC then subtracting the offset gives true UTC ms.
+    const utcOffsetMs = (typeof data.utc_offset_seconds === 'number' ? data.utc_offset_seconds : 0) * 1000;
 
     const tonightValues: number[] = [];
     for (let i = 0; i < times.length; i++) {
-      const t = new Date(times[i]).getTime();
+      // Parse as UTC then shift by location offset → correct UTC ms regardless of browser TZ
+      const t = new Date(times[i] + 'Z').getTime() - utcOffsetMs;
       if (t <= nowMs || t > nowMs + dayMs) continue;
-      // Extract hour from "2026-06-05T22:00" — safe regardless of tz suffix
+      // Extract local hour from "2026-06-05T22:00" — already in location's timezone
       const hourStr = (times[i].split('T')[1] ?? '').substring(0, 2);
       const hour = parseInt(hourStr, 10);
       if (hour >= 20 || hour < 6) {

@@ -242,7 +242,9 @@ export function useSolarActivity() {
     queryFn: fetchXrayFlaresLatest,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 15,
-    retry: shouldRetryCritical, // flares are high priority for solar context
+    refetchInterval: 1000 * 60 * 5,
+    refetchIntervalInBackground: false,
+    retry: shouldRetryCritical,
     retryDelay: exponentialBackoff,
   });
 
@@ -251,6 +253,8 @@ export function useSolarActivity() {
     queryFn: fetchAlerts,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 15,
+    refetchInterval: 1000 * 60 * 5,
+    refetchIntervalInBackground: false,
     retry: shouldRetryCritical,
     retryDelay: exponentialBackoff,
   });
