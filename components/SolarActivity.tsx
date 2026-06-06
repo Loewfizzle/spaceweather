@@ -500,12 +500,7 @@ export function SolarActivity() {
 
       {/* Live SDO imagery */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <a
-          href={SDO_DATA_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden hover:border-[#334155] transition-colors block"
-        >
+        <div className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2937]">
             <div className="flex items-center gap-2 text-[#64748b] text-xs">
               <Sun className="w-4 h-4" /> SUNSPOTS
@@ -521,7 +516,6 @@ export function SolarActivity() {
               ) : solarActivity.regionsError ? (
                 <span className="text-amber-400/70">data delayed</span>
               ) : null}
-              <span className="text-[#334155]">↗ NASA SDO</span>
             </div>
           </div>
 
@@ -530,25 +524,31 @@ export function SolarActivity() {
             alt="Live SDO HMI Continuum image of the solar disk showing sunspot regions"
           />
 
-          <div className="px-4 py-3 text-[10px] text-[#475569] leading-relaxed">
-            <span className="text-[#64748b] font-medium">HMI Continuum</span> — visible-light
-            view of the solar disk. Dark regions are sunspots where strong magnetic fields suppress
-            convection. More active regions mean higher flare and CME potential.{" "}
-            <span className="text-[#334155]">Updates every ~15 min.</span>
+          <div className="px-4 pt-3 pb-2 space-y-2.5">
+            <p className="text-[10px] text-[#475569] leading-relaxed">
+              <span className="text-[#64748b] font-medium">HMI Continuum</span> — visible-light
+              view of the solar disk. Sunspots mark regions of intense magnetic activity. A higher
+              count means more flare and CME potential — the primary drivers of aurora.
+            </p>
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-[9px] text-[#334155]">Updates every ~15 min</span>
+              <a
+                href={SDO_DATA_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-[#475569] hover:text-[#64748b] transition-colors"
+              >
+                View full data on NASA SDO ↗
+              </a>
+            </div>
           </div>
-        </a>
+        </div>
 
-        <a
-          href={SDO_DATA_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden hover:border-[#334155] transition-colors block"
-        >
+        <div className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2937]">
             <div className="flex items-center gap-2 text-[#64748b] text-xs">
               <TrendingUp className="w-4 h-4" /> CORONAL HOLES
             </div>
-            <span className="text-[10px] text-[#334155]">↗ NASA SDO</span>
           </div>
 
           <SdoImage
@@ -556,14 +556,26 @@ export function SolarActivity() {
             alt="Live SDO AIA 193Å extreme ultraviolet image showing coronal holes as dark regions"
           />
 
-          <div className="px-4 py-3 text-[10px] text-[#475569] leading-relaxed">
-            <span className="text-[#64748b] font-medium">AIA 193Å</span> — extreme ultraviolet
-            view. Dark areas are coronal holes where open magnetic field lines let high-speed solar
-            wind escape. Streams typically reach Earth in 2–4 days and can enhance aurora even
-            during quiet periods.{" "}
-            <span className="text-[#334155]">Updates every ~15 min.</span>
+          <div className="px-4 pt-3 pb-2 space-y-2.5">
+            <p className="text-[10px] text-[#475569] leading-relaxed">
+              <span className="text-[#64748b] font-medium">AIA 193Å</span> — extreme ultraviolet
+              view. Dark patches are coronal holes streaming high-speed solar wind into space. When
+              a hole faces Earth, the arriving plasma can compress the magnetosphere and spark
+              aurora — even without a flare or CME.
+            </p>
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-[9px] text-[#334155]">Updates every ~15 min</span>
+              <a
+                href={SDO_DATA_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-[#475569] hover:text-[#64748b] transition-colors"
+              >
+                View full data on NASA SDO ↗
+              </a>
+            </div>
           </div>
-        </a>
+        </div>
       </div>
 
       {solarActivity.error && (
