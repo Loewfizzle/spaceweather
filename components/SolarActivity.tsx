@@ -119,12 +119,7 @@ export function SolarActivity() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-      <div className="section-title flex items-baseline justify-between">
-        <span>SOLAR ACTIVITY</span>
-        <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
-          Key drivers of geomagnetic activity · Michigan-relevant
-        </span>
-      </div>
+      <div className="section-title">SOLAR ACTIVITY</div>
 
       {/* Row 1: compact text-stat cards — skeleton while NOAA data loads */}
       {solarActivity.isLoading ? (
