@@ -229,6 +229,54 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
   });
 }
 
+export type CmeImpactLevel = "likely" | "possible" | "none";
+
+export interface EarthImpactAssessment {
+  level: CmeImpactLevel;
+  headline: string;
+  detail: string;
+  cme: CmeSummary | null;
+}
+
+/**
+ * Derive a plain-English Earth-impact assessment from recent CME data.
+ * Ignores CMEs older than 5 days — by then they've already arrived or missed.
+ */
+export function assessEarthImpact(recentCmes: CmeSummary[]): EarthImpactAssessment {
+  const fresh = recentCmes.filter(
+    (c) => Date.now() - new Date(c.time).getTime() < 1000 * 60 * 60 * 24 * 5
+  );
+
+  const likely = fresh.find((c) => c.earthImpact === "Likely Earth impact");
+  if (likely) {
+    const speedStr = likely.speed ? ` traveling at ${likely.speed.toLocaleString()} km/s` : "";
+    return {
+      level: "likely",
+      headline: "Likely Earth-directed CME detected",
+      detail: `A potentially Earth-directed CME${speedStr} was detected. If confirmed, aurora enhancement is possible in 1–3 days.`,
+      cme: likely,
+    };
+  }
+
+  if (fresh.length > 0) {
+    const cme = fresh[0];
+    const speedStr = cme.speed ? ` (${cme.speed.toLocaleString()} km/s)` : "";
+    return {
+      level: "possible",
+      headline: "Possible Earth-directed CME",
+      detail: `CME activity${speedStr} has been detected. An Earth-directed impact is uncertain — monitor for updated NOAA alerts.`,
+      cme,
+    };
+  }
+
+  return {
+    level: "none",
+    headline: "No Earth-directed CME detected recently",
+    detail: "No Earth-directed CME alerts appear in recent NOAA data. Aurora activity depends primarily on current solar wind and Bz.",
+    cme: null,
+  };
+}
+
 /** Compute total sunspot number from latest reported regions. */
 export function currentSunspotNumber(regions: SolarRegion[] | undefined): number | null {
   if (!regions || regions.length === 0) return null;

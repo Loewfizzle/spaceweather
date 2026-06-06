@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Sun, TrendingUp, Zap, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
-import type { XrayFlare } from "../lib/api/schemas";
+import type { XrayFlare, CmeSummary } from "../lib/api/schemas";
+import { assessEarthImpact } from "../lib/noaa";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -164,12 +165,21 @@ function SdoImage({ src, alt }: { src: string; alt: string }) {
 
 // ── Flare Modal ───────────────────────────────────────────────────────────────
 
-function FlareModal({ flare, onClose }: { flare: XrayFlare; onClose: () => void }) {
+function FlareModal({
+  flare,
+  recentCmes,
+  onClose,
+}: {
+  flare: XrayFlare;
+  recentCmes: CmeSummary[];
+  onClose: () => void;
+}) {
   const cls = flare.max_class || flare.current_class;
   const info = flareClassInfo(cls);
   const duration = flareDuration(flare.begin_time, flare.end_time);
   const peakTime = flare.max_time || flare.time_tag;
   const [goesState, setGoesState] = useState<"loading" | "loaded" | "failed">("loading");
+  const impact = assessEarthImpact(recentCmes);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -273,6 +283,39 @@ function FlareModal({ flare, onClose }: { flare: XrayFlare; onClose: () => void 
             <div className="text-xs font-medium text-[#94a3b8] mb-2">Aurora impact</div>
             <p className="text-[13px] text-[#64748b] leading-relaxed">{info.impact}</p>
           </div>
+
+          {/* Earth impact assessment */}
+          {(() => {
+            const dotColor =
+              impact.level === "likely"
+                ? "#f97316"
+                : impact.level === "possible"
+                ? "#eab308"
+                : "#475569";
+            return (
+              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="h-2 w-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: dotColor }}
+                  />
+                  <span
+                    className="text-xs font-semibold"
+                    style={{ color: dotColor }}
+                  >
+                    {impact.headline}
+                  </span>
+                </div>
+                <p className="text-[12px] text-[#64748b] leading-relaxed">{impact.detail}</p>
+                {impact.cme && (
+                  <div className="mt-1.5 text-[10px] text-[#475569]">
+                    Detected{" "}
+                    {formatDistanceToNow(new Date(impact.cme.time), { addSuffix: true })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* GOES X-ray flux chart */}
           <div>
@@ -537,7 +580,11 @@ export function SolarActivity() {
       </div>
 
       {showFlareModal && latestFlare && (
-        <FlareModal flare={latestFlare} onClose={() => setShowFlareModal(false)} />
+        <FlareModal
+          flare={latestFlare}
+          recentCmes={solarActivity.recentCmes}
+          onClose={() => setShowFlareModal(false)}
+        />
       )}
     </div>
   );
