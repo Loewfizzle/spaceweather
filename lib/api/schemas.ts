@@ -48,23 +48,26 @@ export const MagEntrySchema = z.object({
 });
 export type MagEntry = z.infer<typeof MagEntrySchema>;
 
-// --- AMS Fireball API ---
-export const AMSFireballSchema = z.object({
-  event_id: z.number(),
-  event_date: z.string(),
-  city: z.string().nullable().optional(),
-  state: z.string().nullable().optional(),
-  country: z.string().nullable().optional(),
-  witnesses: z.number().nullable().optional(),
-  lat: z.number().nullable().optional(),
-  lon: z.number().nullable().optional(),
+// --- NASA JPL CNEOS Fireball API ---
+// Raw tabular response: fields array + data rows (values can be null for unrecorded fields).
+export const NASAFireballRawSchema = z.object({
+  signature: z.object({ source: z.string(), version: z.string() }).optional(),
+  count: z.string().optional(),
+  fields: z.array(z.string()),
+  data: z.array(z.array(z.string().nullable())),
 });
-export type AMSFireball = z.infer<typeof AMSFireballSchema>;
 
-export const AMSFireballApiResponseSchema = z.object({
-  fireball_report: z.array(AMSFireballSchema),
+// Normalized fireball — parsed from tabular rows in the fetcher.
+export const FireballSchema = z.object({
+  date: z.string(),
+  lat: z.number().nullable(),
+  lon: z.number().nullable(),
+  energy: z.string().nullable(),  // radiated energy (joules, scientific notation)
+  impactE: z.string().nullable(), // impact energy (kt TNT)
+  alt: z.string().nullable(),     // peak altitude (km)
+  vel: z.string().nullable(),     // velocity (km/s)
 });
-export type AMSFireballApiResponse = z.infer<typeof AMSFireballApiResponseSchema>;
+export type Fireball = z.infer<typeof FireballSchema>;
 
 // --- NOAA X-ray Flares (GOES) ---
 export const XrayFlareSchema = z.object({

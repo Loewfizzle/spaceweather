@@ -6,9 +6,10 @@ import {
   formatMeteorPeak,
   createGoogleCalendarLink,
   useFireballs,
-  formatAMSFireballDate,
-  formatAMSFireballLocation,
-  type AMSFireball,
+  formatFireballDate,
+  formatFireballLocation,
+  formatFireballEnergy,
+  type Fireball,
 } from "../lib/use-noaa-data";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
@@ -22,7 +23,7 @@ import { FireballModal } from "./FireballModal";
 export function MeteorActivity() {
   const fireballsQuery = useFireballs();
   const nextMeteor = getNextMeteorShower();
-  const [selectedFireball, setSelectedFireball] = useState<AMSFireball | null>(null);
+  const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
@@ -64,7 +65,7 @@ export function MeteorActivity() {
         <div className="card p-5">
           <div className="flex items-baseline justify-between mb-2">
             <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">FIREBALL TRACKER</div>
-            <div className="text-[10px] text-[#64748b] normal-case">AMS • last 7 days</div>
+            <div className="text-[10px] text-[#64748b] normal-case">NASA JPL CNEOS</div>
           </div>
 
           {fireballsQuery.isLoading ? (
@@ -77,26 +78,26 @@ export function MeteorActivity() {
           ) : fireballsQuery.fireballs.length === 0 ? (
             <EmptyState
               title="No recent fireballs reported"
-              description="AMS has not reported any US fireballs in the last 7 days."
+              description="NASA JPL has not recorded any notable fireballs recently."
             />
           ) : (
             <div className="space-y-1.5 text-sm">
-              {fireballsQuery.fireballs.slice(0, 4).map((fb: AMSFireball, idx: number) => {
+              {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball) => {
                 const hasLocation = fb.lat != null && fb.lon != null;
                 return (
                   <div
-                    key={fb.event_id}
+                    key={fb.date}
                     className={`flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0 rounded transition-colors${hasLocation ? " cursor-pointer hover:bg-[#1e2937]" : ""}`}
                     onClick={hasLocation ? () => setSelectedFireball(fb) : undefined}
                     role={hasLocation ? "button" : undefined}
                   >
                     <div className="min-w-0">
-                      <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatAMSFireballDate(fb.event_date)}</div>
-                      <div className="text-[11px] text-[#64748b] truncate">{formatAMSFireballLocation(fb)}</div>
+                      <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatFireballDate(fb.date)}</div>
+                      <div className="text-[11px] text-[#64748b] truncate">{formatFireballLocation(fb)}</div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-3 tabular-nums">
-                      {fb.witnesses != null && fb.witnesses > 0 && (
-                        <div className="text-[10px] text-[#22c55e]">{fb.witnesses} witnesses</div>
+                      {fb.impactE && (
+                        <div className="text-[10px] text-[#f97316]">{formatFireballEnergy(fb.impactE)}</div>
                       )}
                     </div>
                   </div>

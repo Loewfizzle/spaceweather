@@ -32,8 +32,9 @@ import {
   getNextMeteorShower,
   formatMeteorPeak,
   createGoogleCalendarLink,
-  formatAMSFireballDate,
-  formatAMSFireballLocation,
+  formatFireballDate,
+  formatFireballLocation,
+  formatFireballEnergy,
   getCityAuroraProbabilities,
 } from "./noaa";
 
@@ -48,7 +49,7 @@ import type {
   XrayFlare,
   Alert,
   SolarRegion,
-  AMSFireball,
+  Fireball,
   CmeSummary,
 } from "./api/schemas";
 
@@ -286,19 +287,19 @@ export function useSolarActivity() {
 
 
 // Fireball tracker (proxied via our /api/fireballs route to avoid CORS issues in production)
-export function useFireballs(limit = 8) {
-  const query = useQuery<AMSFireball[]>({
+export function useFireballs(limit = 10) {
+  const query = useQuery<Fireball[]>({
     queryKey: ["fireballs", limit],
     queryFn: () => fetchFireballs(limit),
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 4,
-    refetchInterval: false, // historical data; no background polling needed
+    refetchInterval: false,
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
 
   return {
-    fireballs: (query.data || []) as AMSFireball[],
+    fireballs: (query.data || []) as Fireball[],
     isLoading: query.isLoading,
     error: query.error,
     refetch: query.refetch,
@@ -314,4 +315,4 @@ export { getNextMeteorShower, type MeteorShower, formatMeteorPeak, createGoogleC
 export { getMichiganRiskLevel };
 
 // Re-export fireball format helpers for display consistency
-export { formatAMSFireballDate, formatAMSFireballLocation, type AMSFireball };
+export { formatFireballDate, formatFireballLocation, formatFireballEnergy, type Fireball };

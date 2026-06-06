@@ -7,7 +7,7 @@ import {
   XrayFlareSchema,
   AlertSchema,
   SolarRegionSchema,
-  AMSFireballApiResponseSchema,
+  NASAFireballRawSchema,
 } from './schemas';
 import type {
   KpEntry,
@@ -17,7 +17,7 @@ import type {
   XrayFlare,
   Alert,
   SolarRegion,
-  AMSFireball,
+  Fireball,
 } from './schemas';
 import { logDataError } from '../utils/retry';
 
@@ -128,12 +128,38 @@ export async function fetchSolarRegions(): Promise<SolarRegion[]> {
   return z.array(SolarRegionSchema).parse(raw);
 }
 
-// Fireballs - proxied via /api/fireballs (CORS-safe + cached), sourced from AMS
-export async function fetchFireballs(limit = 8): Promise<AMSFireball[]> {
+// Fireballs - proxied via /api/fireballs (CORS-safe + cached), sourced from NASA JPL CNEOS.
+// The API returns a tabular format { fields, data }; we normalize it to Fireball objects here.
+export async function fetchFireballs(limit = 10): Promise<Fireball[]> {
   const url = `/api/fireballs?limit=${limit}`;
   const raw = await fetchJson<unknown>(url);
-  const parsed = AMSFireballApiResponseSchema.parse(raw);
-  return parsed.fireball_report;
+  const { fields, data } = NASAFireballRawSchema.parse(raw);
+
+  const col = (row: (string | null)[], name: string): string | null => {
+    const i = fields.indexOf(name);
+    return i >= 0 ? row[i] : null;
+  };
+
+  return data
+    .map((row): Fireball => {
+      const latStr = col(row, 'lat');
+      const lonStr = col(row, 'lon');
+      const latDir = col(row, 'lat-dir');
+      const lonDir = col(row, 'lon-dir');
+      const latNum = latStr != null ? parseFloat(latStr) : null;
+      const lonNum = lonStr != null ? parseFloat(lonStr) : null;
+
+      return {
+        date:    col(row, 'date') ?? '',
+        lat:     latNum != null && isFinite(latNum) ? latNum * (latDir === 'S' ? -1 : 1) : null,
+        lon:     lonNum != null && isFinite(lonNum) ? lonNum * (lonDir === 'W' ? -1 : 1) : null,
+        energy:  col(row, 'energy'),
+        impactE: col(row, 'impact-e'),
+        alt:     col(row, 'alt'),
+        vel:     col(row, 'vel'),
+      };
+    })
+    .filter((f) => f.date !== '');
 }
 
 // Types are exported from ./schemas (the single source of truth).

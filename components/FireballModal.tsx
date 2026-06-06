@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
-import type { AMSFireball } from "../lib/use-noaa-data";
-import { formatAMSFireballDate, formatAMSFireballLocation } from "../lib/use-noaa-data";
+import type { Fireball } from "../lib/use-noaa-data";
+import { formatFireballDate, formatFireballLocation, formatFireballEnergy } from "../lib/use-noaa-data";
 
 const FireballMap = dynamic(() => import("./FireballMap"), {
   ssr: false,
@@ -13,7 +13,7 @@ const FireballMap = dynamic(() => import("./FireballMap"), {
 });
 
 interface FireballModalProps {
-  fireball: AMSFireball;
+  fireball: Fireball;
   onClose: () => void;
 }
 
@@ -81,12 +81,11 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
             FIREBALL IMPACT
           </div>
           <div className="space-y-2">
-            <MetaRow label="Date / Time" value={formatAMSFireballDate(fireball.event_date)} />
-            <MetaRow label="Location" value={formatAMSFireballLocation(fireball)} />
-            <MetaRow
-              label="Witnesses"
-              value={fireball.witnesses != null ? String(fireball.witnesses) : "—"}
-            />
+            <MetaRow label="Date / Time" value={formatFireballDate(fireball.date)} />
+            <MetaRow label="Location"    value={formatFireballLocation(fireball)} />
+            <MetaRow label="Impact Energy" value={formatFireballEnergy(fireball.impactE)} />
+            {fireball.vel  && <MetaRow label="Velocity" value={`${parseFloat(fireball.vel).toFixed(1)} km/s`} />}
+            {fireball.alt  && <MetaRow label="Altitude" value={`${parseFloat(fireball.alt).toFixed(0)} km`} />}
           </div>
         </div>
       </div>
