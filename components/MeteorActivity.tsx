@@ -83,13 +83,12 @@ export function MeteorActivity() {
           ) : (
             <div className="space-y-1.5 text-sm">
               {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball) => {
-                const hasLocation = fb.lat != null && fb.lon != null;
                 return (
                   <div
                     key={fb.date}
-                    className={`flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0 rounded transition-colors${hasLocation ? " cursor-pointer hover:bg-[#1e2937]" : ""}`}
-                    onClick={hasLocation ? () => setSelectedFireball(fb) : undefined}
-                    role={hasLocation ? "button" : undefined}
+                    className="flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0 rounded transition-colors cursor-pointer hover:bg-[#1e2937]"
+                    onClick={() => setSelectedFireball(fb)}
+                    role="button"
                   >
                     <div className="min-w-0">
                       <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatFireballDate(fb.date)}</div>

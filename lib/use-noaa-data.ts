@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   exponentialBackoff,
   shouldRetryCritical,
@@ -174,10 +174,9 @@ export function useCurrentConditions() {
     }
   }, [criticalError]);
 
-  const cityProbs = getCityAuroraProbabilities(
-    ovationData ?? null,
-    latestKp?.Kp ?? null,
-    solarWind.current.bz
+  const cityProbs = useMemo(
+    () => getCityAuroraProbabilities(ovationData ?? null, latestKp?.Kp ?? null, solarWind.current.bz),
+    [ovationData, latestKp?.Kp, solarWind.current.bz]
   );
 
   return {

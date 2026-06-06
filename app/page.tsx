@@ -10,7 +10,6 @@ import { formatDistanceToNow } from "date-fns";
 import {
   useCurrentConditions,
   useSolarActivity,
-  useFireballs,
   getTonightOutlook,
 } from "../lib/use-noaa-data";
 import { LoadingSkeleton } from "../components/LoadingSkeleton";
@@ -23,7 +22,6 @@ import { MeteorActivity } from "../components/MeteorActivity";
 import { DataUnderstanding } from "../components/DataUnderstanding";
 import { AlertsPanel } from "../components/AlertsPanel";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
-import { logDataError } from "../lib/utils/retry";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { ErrorState } from "../components/ErrorState";
 
@@ -56,14 +54,6 @@ export default function AuroraWatch() {
 
   // New solar activity data (flares, CMEs, sunspots, coronal holes)
   const solarActivity = useSolarActivity();
-
-  const fireballsQuery = useFireballs();
-
-  useEffect(() => {
-    if (fireballsQuery.error) {
-      logDataError('Fireball tracker (NASA)', fireballsQuery.error, ['useFireballs'], false);
-    }
-  }, [fireballsQuery.error]);
 
   const tonightOutlook = useMemo(
     () => ({
@@ -159,13 +149,12 @@ export default function AuroraWatch() {
               onClick={() => {
                 refetchAll();
                 solarActivity.refetchAll();
-                fireballsQuery.refetch();
               }}
-              disabled={isLoading || solarActivity.isLoading || fireballsQuery.isLoading}
+              disabled={isLoading || solarActivity.isLoading}
               className="button flex items-center justify-center gap-1.5 text-xs px-2.5 sm:px-3 py-1 min-h-[38px] sm:min-h-0"
               title="Refresh live data"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading || solarActivity.isLoading || fireballsQuery.isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading || solarActivity.isLoading ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
