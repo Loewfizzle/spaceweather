@@ -53,18 +53,18 @@ export function ShareButton({ status, kp, cityProbs = [] }: ShareButtonProps) {
   return (
     <button
       onClick={handleShare}
-      className="flex items-center gap-1.5 text-[11px] text-[#64748b] hover:text-[#94a3b8] transition-colors"
+      className="flex items-center gap-1.5 text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors"
       title="Share tonight's forecast"
     >
       {copied ? (
         <>
-          <Check className="h-3 w-3 text-[#22c55e]" />
+          <Check className="h-3.5 w-3.5 text-[#22c55e]" />
           <span className="text-[#22c55e]">Copied!</span>
         </>
       ) : (
         <>
-          <Share2 className="h-3 w-3" />
-          <span className="hidden sm:inline">Share</span>
+          <Share2 className="h-3.5 w-3.5" />
+          <span>Share forecast</span>
         </>
       )}
     </button>
