@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https://*.basemaps.cartocdn.com https://sdo.gsfc.nasa.gov",
+              "img-src 'self' data: https://*.basemaps.cartocdn.com https://sdo.gsfc.nasa.gov https://services.swpc.noaa.gov",
               "connect-src 'self' https://services.swpc.noaa.gov",
               "font-src 'self'",
               "worker-src 'self'",
