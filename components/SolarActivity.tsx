@@ -420,8 +420,8 @@ export function SolarActivity() {
                 LATEST FLARE
               </div>
               {latestFlare && (
-                <span className="text-[10px] text-[#334155] group-hover:text-[#475569] transition-colors flex items-center gap-0.5">
-                  Details <ChevronRight className="h-3 w-3" />
+                <span className="text-xs text-[#64748b] group-hover:text-[#94a3b8] transition-colors flex items-center gap-0.5">
+                  Details <ChevronRight className="h-3.5 w-3.5" />
                 </span>
               )}
             </div>
