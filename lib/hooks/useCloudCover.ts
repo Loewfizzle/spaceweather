@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { logDataError, recordDataSuccess } from "../utils/retry";
 
 export interface CloudCoverResult {
   currentPct: number | null;
@@ -23,12 +24,13 @@ async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResu
       signal: AbortSignal.timeout(15_000),
     });
   } catch (e) {
-    console.warn('[AuroraWatch] Cloud cover fetch failed (network/timeout):', e);
+    logDataError('Cloud cover fetch', e, undefined, false, 'cloud-cover');
     throw e;
   }
   if (!res.ok) {
-    console.warn(`[AuroraWatch] Cloud cover HTTP ${res.status}`);
-    throw new Error(`Cloud cover fetch failed: ${res.status}`);
+    const err = new Error(`Cloud cover fetch failed: ${res.status}`);
+    logDataError(`Cloud cover HTTP ${res.status}`, err, undefined, false, 'cloud-cover');
+    throw err;
   }
   const data = await res.json();
 
@@ -73,6 +75,7 @@ async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResu
 
   const displayPct = tonightAvg ?? currentPct;
   if (displayPct === null) return { currentPct: null, tonightAvg: null, label: 'Unknown' };
+  recordDataSuccess('cloud-cover');
   return { currentPct, tonightAvg, label: cloudLabel(displayPct) };
 }
 

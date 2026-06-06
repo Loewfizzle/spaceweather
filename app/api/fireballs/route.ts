@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NASAFireballRawSchema } from '@/lib/api/schemas';
+import { logDataError } from '@/lib/utils/retry';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -17,7 +18,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!res.ok) {
-      console.error(`Fireball proxy error: NASA JPL returned ${res.status} ${res.statusText}`);
+      const err = new Error(`NASA JPL returned ${res.status} ${res.statusText}`);
+      logDataError('Fireball proxy: upstream', err, { status: res.status }, true);
       return NextResponse.json(
         { error: `Failed to fetch from NASA JPL fireball API: ${res.status} ${res.statusText}` },
         { status: res.status }
@@ -33,7 +35,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Fireball proxy error:', error);
+    logDataError('Fireball proxy: error', error, undefined, true);
     return NextResponse.json(
       { error: 'Failed to fetch fireball data from NASA JPL' },
       { status: 500 }

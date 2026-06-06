@@ -4,6 +4,7 @@ import { Activity, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useCurrentConditions, useSolarActivity } from "../lib/use-noaa-data";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
+import { DataStatus } from "./DataStatus";
 
 export function LiveHeader() {
   const conditions = useCurrentConditions();
@@ -55,6 +56,8 @@ export function LiveHeader() {
           <span className="sm:hidden text-[#22c55e] font-medium">LIVE</span>
         </div>
       )}
+
+      <DataStatus />
 
       <button
         onClick={() => { refetchAll(); solarActivity.refetchAll(); }}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import { logDataError } from "../lib/utils/retry";
 
 interface Props {
   children: ReactNode;
@@ -27,7 +28,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("AuroraWatch ErrorBoundary caught:", error, errorInfo);
+    logDataError('ErrorBoundary', error, { componentStack: errorInfo.componentStack }, true);
   }
 
   render() {

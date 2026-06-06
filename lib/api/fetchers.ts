@@ -21,28 +21,22 @@ import type {
   SolarRegion,
   Fireball,
 } from './schemas';
-import { logDataError } from '../utils/retry';
+import { logDataError, recordDataSuccess } from '../utils/retry';
 
 // Base fetch helper (shared, server + client safe).
+// Pure HTTP utility — intentionally has no logDataError calls so that each
+// fetcher can attribute errors to the correct source in the health store.
 // 30-second timeout guards against hung NOAA/NASA endpoints.
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  try {
-    const res = await fetch(url, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(30_000),
-      ...options,
-    });
-    if (!res.ok) {
-      const error = new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
-      logDataError(`HTTP ${res.status}`, error, { url }, false);
-      throw error;
-    }
-    return res.json() as Promise<T>;
-  } catch (error) {
-    // Network errors, timeouts, CORS, etc.
-    logDataError('Network/Parse', error, { url }, false);
-    throw error;
+  const res = await fetch(url, {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(30_000),
+    ...options,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
   }
+  return res.json() as Promise<T>;
 }
 
 // Centralized, schema-validated fetchers for AuroraWatch.
@@ -70,112 +64,157 @@ export function parseStringArrayRows(raw: string[][]): Record<string, string | n
 
 // NOAA OVATION
 export async function fetchOvation(): Promise<OvationResponse> {
-  const raw = await fetchJson<unknown>(
-    'https://services.swpc.noaa.gov/json/ovation_aurora_latest.json'
-  );
-  const result = OvationResponseSchema.safeParse(raw);
-  if (!result.success) {
-    logDataError('OVATION parse', result.error, { url: 'ovation_aurora_latest.json' }, true);
-    // Return safe fallback so downstream can still attempt processing or show 0 gracefully
-    return { coordinates: [] };
+  const url = 'https://services.swpc.noaa.gov/json/ovation_aurora_latest.json';
+  try {
+    const raw = await fetchJson<unknown>(url);
+    const result = OvationResponseSchema.safeParse(raw);
+    if (!result.success) {
+      // Parse failure: log the error but return a safe fallback so the map stays functional
+      logDataError('OVATION parse', result.error, { url }, true, 'ovation');
+      return { coordinates: [] };
+    }
+    recordDataSuccess('ovation');
+    return result.data;
+  } catch (e) {
+    logDataError('OVATION fetch', e, { url }, true, 'ovation');
+    throw e;
   }
-  return result.data;
 }
 
 // Planetary K-index
 export async function fetchKpIndex(): Promise<KpEntry[]> {
-  const raw = await fetchJson<unknown>(
-    'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json'
-  );
+  const url = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json';
   try {
-    return KpResponseSchema.parse(raw);
+    const raw = await fetchJson<unknown>(url);
+    const result = KpResponseSchema.parse(raw);
+    recordDataSuccess('kp');
+    return result;
   } catch (e) {
-    logDataError('KpIndex parse', e, { url: 'noaa-planetary-k-index.json' }, true);
+    logDataError('KpIndex', e, { url }, true, 'kp');
     throw e;
   }
 }
 
 // 3-day Kp forecast (lowercase `kp` field, unlike historical)
 export async function fetchKpForecast(): Promise<KpForecastEntry[]> {
-  const raw = await fetchJson<unknown>(
-    'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json'
-  );
-  const result = z.array(KpForecastEntrySchema).safeParse(raw);
-  if (!result.success) {
-    logDataError('KpForecast parse', result.error, { url: 'noaa-planetary-k-index-forecast.json' }, false);
-    return [];
+  const url = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json';
+  try {
+    const raw = await fetchJson<unknown>(url);
+    const result = z.array(KpForecastEntrySchema).safeParse(raw);
+    if (!result.success) {
+      logDataError('KpForecast parse', result.error, { url }, false, 'kp-forecast');
+      return [];
+    }
+    recordDataSuccess('kp-forecast');
+    return result.data;
+  } catch (e) {
+    logDataError('KpForecast fetch', e, { url }, false, 'kp-forecast');
+    throw e;
   }
-  return result.data;
 }
 
 // Solar wind plasma (parsed from string[][])
 export async function fetchPlasma(): Promise<PlasmaEntry[]> {
-  const raw = await fetchJson<string[][]>(
-    'https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json'
-  );
-  return parseStringArrayRows(raw).filter((obj) => PlasmaEntrySchema.safeParse(obj).success);
+  const url = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-6-hour.json';
+  try {
+    const raw = await fetchJson<string[][]>(url);
+    const result = parseStringArrayRows(raw).filter((obj) => PlasmaEntrySchema.safeParse(obj).success);
+    recordDataSuccess('plasma');
+    return result;
+  } catch (e) {
+    logDataError('Plasma fetch', e, { url }, false, 'plasma');
+    throw e;
+  }
 }
 
 // Magnetic field data
 export async function fetchMag(): Promise<MagEntry[]> {
-  const raw = await fetchJson<string[][]>(
-    'https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json'
-  );
-  return parseStringArrayRows(raw).filter((obj) => MagEntrySchema.safeParse(obj).success);
+  const url = 'https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json';
+  try {
+    const raw = await fetchJson<string[][]>(url);
+    const result = parseStringArrayRows(raw).filter((obj) => MagEntrySchema.safeParse(obj).success);
+    recordDataSuccess('mag');
+    return result;
+  } catch (e) {
+    logDataError('Mag fetch', e, { url }, false, 'mag');
+    throw e;
+  }
 }
 
 // X-ray flares
 export async function fetchXrayFlaresLatest(): Promise<XrayFlare[]> {
-  const raw = await fetchJson<unknown>(
-    'https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json'
-  );
-  const result = z.array(XrayFlareSchema).safeParse(raw);
-  if (!result.success) {
-    logDataError('XrayFlares parse', result.error, { url: 'xray-flares-latest.json' }, false);
-    return [];
+  const url = 'https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json';
+  try {
+    const raw = await fetchJson<unknown>(url);
+    const result = z.array(XrayFlareSchema).safeParse(raw);
+    if (!result.success) {
+      logDataError('XrayFlares parse', result.error, { url }, false, 'xray-flares');
+      return [];
+    }
+    recordDataSuccess('xray-flares');
+    return result.data;
+  } catch (e) {
+    logDataError('XrayFlares fetch', e, { url }, false, 'xray-flares');
+    throw e;
   }
-  return result.data;
 }
 
 // Alerts
 export async function fetchAlerts(): Promise<Alert[]> {
-  const raw = await fetchJson<unknown>(
-    'https://services.swpc.noaa.gov/products/alerts.json'
-  );
-  const result = z.array(AlertSchema).safeParse(raw);
-  if (!result.success) {
-    logDataError('Alerts parse', result.error, { url: 'alerts.json' }, false);
-    return [];
+  const url = 'https://services.swpc.noaa.gov/products/alerts.json';
+  try {
+    const raw = await fetchJson<unknown>(url);
+    const result = z.array(AlertSchema).safeParse(raw);
+    if (!result.success) {
+      logDataError('Alerts parse', result.error, { url }, false, 'alerts');
+      return [];
+    }
+    recordDataSuccess('alerts');
+    return result.data;
+  } catch (e) {
+    logDataError('Alerts fetch', e, { url }, false, 'alerts');
+    throw e;
   }
-  return result.data;
 }
 
 // Solar regions
 export async function fetchSolarRegions(): Promise<SolarRegion[]> {
-  const raw = await fetchJson<unknown>(
-    'https://services.swpc.noaa.gov/json/solar_regions.json'
-  );
-  const result = z.array(SolarRegionSchema).safeParse(raw);
-  if (!result.success) {
-    logDataError('SolarRegions parse', result.error, { url: 'solar_regions.json' }, false);
-    return [];
+  const url = 'https://services.swpc.noaa.gov/json/solar_regions.json';
+  try {
+    const raw = await fetchJson<unknown>(url);
+    const result = z.array(SolarRegionSchema).safeParse(raw);
+    if (!result.success) {
+      logDataError('SolarRegions parse', result.error, { url }, false, 'solar-regions');
+      return [];
+    }
+    recordDataSuccess('solar-regions');
+    return result.data;
+  } catch (e) {
+    logDataError('SolarRegions fetch', e, { url }, false, 'solar-regions');
+    throw e;
   }
-  return result.data;
 }
 
 // Fireballs - proxied via /api/fireballs (CORS-safe + cached), sourced from NASA JPL CNEOS.
 // The API returns a tabular format { fields, data }; we normalize it to Fireball objects here.
 export async function fetchFireballs(limit = 10): Promise<Fireball[]> {
   const url = `/api/fireballs?limit=${limit}`;
-  const raw = await fetchJson<unknown>(url);
-  const { fields, data } = NASAFireballRawSchema.parse(raw);
+  let fields: string[];
+  let data: (string | null)[][];
+  try {
+    const raw = await fetchJson<unknown>(url);
+    ({ fields, data } = NASAFireballRawSchema.parse(raw));
+  } catch (e) {
+    logDataError('Fireballs fetch', e, { url }, false, 'fireballs');
+    throw e;
+  }
 
   const col = (row: (string | null)[], name: string): string | null => {
     const i = fields.indexOf(name);
     return i >= 0 ? row[i] : null;
   };
 
-  return data
+  const fireballs = data
     .map((row): Fireball => {
       const latStr = col(row, 'lat');
       const lonStr = col(row, 'lon');
@@ -195,6 +234,8 @@ export async function fetchFireballs(limit = 10): Promise<Fireball[]> {
       };
     })
     .filter((f) => f.date !== '');
+  recordDataSuccess('fireballs');
+  return fireballs;
 }
 
 // Types are exported from ./schemas (the single source of truth).
