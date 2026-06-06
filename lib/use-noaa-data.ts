@@ -50,7 +50,6 @@ import type {
   Alert,
   SolarRegion,
   Fireball,
-  CmeSummary,
 } from "./api/schemas";
 
 /**
@@ -66,9 +65,10 @@ export function useOvationData() {
   return useQuery<OvationResponse>({
     queryKey: ["ovation"],
     queryFn: fetchOvation,
-    staleTime: 1000 * 60 * 2, // 2 minutes - fresh enough for live feel
-    gcTime: 1000 * 60 * 30, // Keep data 30min for graceful degradation on outages
-    refetchInterval: 1000 * 60 * 2, // 2min — matches staleTime; aurora oval shifts continuously
+    staleTime: 1000 * 60 * 2,
+    gcTime: 1000 * 60 * 30,
+    refetchInterval: 1000 * 60 * 2,
+    refetchIntervalInBackground: false, // pause polling when tab is hidden (TanStack v5 default; explicit for clarity)
     retry: shouldRetryCritical,
     retryDelay: exponentialBackoff,
     refetchOnWindowFocus: true,
@@ -79,9 +79,10 @@ export function useKpData() {
   return useQuery<KpEntry[]>({
     queryKey: ["kp"],
     queryFn: fetchKpIndex,
-    staleTime: 1000 * 60 * 3, // 3 minutes
+    staleTime: 1000 * 60 * 3,
     gcTime: 1000 * 60 * 30,
-    refetchInterval: 1000 * 60 * 3, // 3min — matches staleTime; Kp updates every 3min from NOAA
+    refetchInterval: 1000 * 60 * 3,
+    refetchIntervalInBackground: false,
     retry: shouldRetryCritical,
     retryDelay: exponentialBackoff,
     refetchOnWindowFocus: true,
@@ -93,8 +94,9 @@ export function useSolarWindData() {
     queryKey: ["plasma"],
     queryFn: fetchPlasma,
     staleTime: 1000 * 60 * 1,
-    gcTime: 1000 * 60 * 30, // keep cached solar wind data for 30min so values stay populated during NOAA outages
-    refetchInterval: 1000 * 60, // 60s — solar wind changes fast during active events
+    gcTime: 1000 * 60 * 30,
+    refetchInterval: 1000 * 60,
+    refetchIntervalInBackground: false,
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
@@ -103,8 +105,9 @@ export function useSolarWindData() {
     queryKey: ["mag"],
     queryFn: fetchMag,
     staleTime: 1000 * 60 * 1,
-    gcTime: 1000 * 60 * 30, // keep cached mag data for 30min so Bz stays populated during NOAA outages
-    refetchInterval: 1000 * 60, // 60s — Bz flips fast and drives aurora visibility
+    gcTime: 1000 * 60 * 30,
+    refetchInterval: 1000 * 60,
+    refetchIntervalInBackground: false,
     retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
@@ -134,12 +137,15 @@ export function useCurrentConditions() {
 
   const latestKp = kpQuery.data ? latest(kpQuery.data) : null;
   const ovationData = ovationQuery.data;
-  const maxProbNA = ovationData
-    ? maxOvationNorthAmerica(ovationData)
-    : null;
 
-  const ovationProcessed = !!ovationData && 
-    Array.isArray(ovationData.coordinates) && 
+  // maxOvationNorthAmerica walks the full OVATION grid (~65k entries); memoize on data identity.
+  const maxProbNA = useMemo(
+    () => (ovationData ? maxOvationNorthAmerica(ovationData) : null),
+    [ovationData]
+  );
+
+  const ovationProcessed = !!ovationData &&
+    Array.isArray(ovationData.coordinates) &&
     ovationData.coordinates.length > 0;
 
   // Observability: log when OVATION yields unexpectedly low/empty NA results.
@@ -176,6 +182,7 @@ export function useCurrentConditions() {
 
   const cityProbs = useMemo(
     () => getCityAuroraProbabilities(ovationData ?? null, latestKp?.Kp ?? null, solarWind.current.bz),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [ovationData, latestKp?.Kp, solarWind.current.bz]
   );
 
@@ -245,9 +252,17 @@ export function useSolarActivity() {
     ? flaresQuery.data[0]
     : null;
 
-  const recentCmes: CmeSummary[] = parseRecentCmes(alertsQuery.data);
+  // parseRecentCmes and currentSunspotNumber produce new array/value references every call;
+  // memoize so consumers (e.g. tonightOutlook useMemo in page.tsx) get stable deps.
+  const recentCmes = useMemo(
+    () => parseRecentCmes(alertsQuery.data),
+    [alertsQuery.data]
+  );
 
-  const sunspotNumber = currentSunspotNumber(regionsQuery.data);
+  const sunspotNumber = useMemo(
+    () => currentSunspotNumber(regionsQuery.data),
+    [regionsQuery.data]
+  );
 
   // Light treatment for coronal holes - no dedicated high-frequency JSON, use contextual note
   const coronalHoleNote =

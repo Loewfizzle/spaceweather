@@ -421,7 +421,7 @@ export function createGoogleCalendarLink(shower: MeteorShower, peakDate: Date): 
 export function formatFireballDate(dateStr: string): string {
   if (!dateStr) return "—";
   try {
-    const d = new Date(dateStr + "Z");
+    const d = new Date(dateStr.replace(" ", "T") + "Z");
     return (
       d.toLocaleString("en-US", {
         month: "short",

@@ -12,6 +12,7 @@ import {
   getAuroraColor,
   parseRecentCmes,
   getCityAuroraProbabilities,
+  formatFireballDate,
 } from '../../lib/noaa'
 import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse, MeteorShower } from '../../lib/api/schemas'
 
@@ -334,5 +335,24 @@ describe('parseRecentCmes', () => {
     const cmes = parseRecentCmes(alerts)
     expect(cmes.length).toBe(1)
     expect(cmes[0].speed).toBe(1200)
+  })
+})
+
+// ============================================
+// formatFireballDate
+// ============================================
+describe('formatFireballDate', () => {
+  it('returns — for empty string', () => {
+    expect(formatFireballDate('')).toBe('—')
+  })
+
+  it('parses NASA JPL space-separated format correctly (ISO 8601 via T-replacement)', () => {
+    // "2024-01-15 21:30:45" must produce a valid, human-readable UTC string.
+    // The old `dateStr + "Z"` form is non-standard and fails in Safari/JSC.
+    const result = formatFireballDate('2024-01-15 21:30:45')
+    expect(result).not.toBe('—')
+    expect(result).not.toContain('Invalid Date')
+    expect(result).toContain('2024')
+    expect(result).toContain('UTC')
   })
 })

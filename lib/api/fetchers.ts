@@ -48,7 +48,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
  */
 
 // Shared helper: convert NOAA's string[][] format (header row + data rows) to typed objects.
-function parseStringArrayRows(raw: string[][]): Record<string, string | number | null>[] {
+export function parseStringArrayRows(raw: string[][]): Record<string, string | number | null>[] {
   if (!raw || raw.length < 2) return [];
   const headers = raw[0];
   return raw.slice(1).map((row) => {

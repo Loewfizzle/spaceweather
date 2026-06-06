@@ -5,7 +5,7 @@ import {
   Activity,
   RefreshCw,
 } from "lucide-react";
-import { Suspense, useMemo, useEffect } from "react";
+import { Suspense, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   useCurrentConditions,

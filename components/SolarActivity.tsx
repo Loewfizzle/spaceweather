@@ -61,7 +61,9 @@ function SdoImage({ src, alt }: { src: string; alt: string }) {
       )}
 
       {/* Image always in DOM so the browser can fetch it; fades in once loaded.
-          key={attempt} forces a full remount (and re-fetch) on retry. */}
+          key={attempt} forces a full remount (and re-fetch) on retry.
+          Using <img> intentionally — Next.js <Image> caches aggressively and breaks live NASA SDO refreshes. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         key={attempt}
         src={src}
