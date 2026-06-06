@@ -17,6 +17,9 @@ export type AlertSensitivity = "sensitive" | "balanced" | "strong";
 export async function saveSensitivity(val: AlertSensitivity): Promise<void> {
   if (typeof window !== "undefined") {
     localStorage.setItem("aw_alert_sensitivity", val);
+    // Notify all useNotifications instances in this tab so their React state stays
+    // in sync when the value is written outside the hook (e.g. NotificationPrompt).
+    window.dispatchEvent(new CustomEvent("aurorawatch:sensitivity-changed", { detail: val }));
   }
   if (typeof window !== "undefined" && "caches" in window) {
     try {
@@ -111,6 +114,19 @@ export function useNotifications({
     }
     return "balanced";
   });
+
+  // Keep sensitivity state in sync when saveSensitivity() is called outside this hook instance
+  // (e.g. NotificationPrompt writes prefs directly — this ensures AlertsPanel reflects the change).
+  useEffect(() => {
+    function onSensitivityChanged(e: Event) {
+      const val = (e as CustomEvent<AlertSensitivity>).detail;
+      if (val === "sensitive" || val === "balanced" || val === "strong") {
+        setAlertSensitivityState(val);
+      }
+    }
+    window.addEventListener("aurorawatch:sensitivity-changed", onSensitivityChanged);
+    return () => window.removeEventListener("aurorawatch:sensitivity-changed", onSensitivityChanged);
+  }, []);
 
   const setAlertsEnabled = (val: boolean) => {
     setAlertsEnabledState(val);
