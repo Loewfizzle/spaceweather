@@ -87,7 +87,12 @@ export async function fetchKpIndex(): Promise<KpEntry[]> {
   const raw = await fetchJson<unknown>(
     'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json'
   );
-  return KpResponseSchema.parse(raw);
+  try {
+    return KpResponseSchema.parse(raw);
+  } catch (e) {
+    logDataError('KpIndex parse', e, { url: 'noaa-planetary-k-index.json' }, true);
+    throw e;
+  }
 }
 
 // 3-day Kp forecast (lowercase `kp` field, unlike historical)

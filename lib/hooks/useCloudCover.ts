@@ -17,10 +17,19 @@ function cloudLabel(pct: number): string {
 }
 
 async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResult> {
-  const res = await fetch(`/api/cloud-cover?lat=${lat}&lon=${lon}`, {
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!res.ok) throw new Error(`Cloud cover fetch failed: ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetch(`/api/cloud-cover?lat=${lat}&lon=${lon}`, {
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch (e) {
+    console.warn('[AuroraWatch] Cloud cover fetch failed (network/timeout):', e);
+    throw e;
+  }
+  if (!res.ok) {
+    console.warn(`[AuroraWatch] Cloud cover HTTP ${res.status}`);
+    throw new Error(`Cloud cover fetch failed: ${res.status}`);
+  }
   const data = await res.json();
 
   const currentPct: number | null = typeof data?.current?.cloud_cover === 'number'

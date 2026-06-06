@@ -12,6 +12,8 @@ import {
   getAuroraColor,
   parseRecentCmes,
   getCityAuroraProbabilities,
+  getLocationAuroraProb,
+  getNearestCityName,
   formatFireballDate,
 } from '../../lib/noaa'
 import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse, MeteorShower } from '../../lib/api/schemas'
@@ -354,5 +356,69 @@ describe('formatFireballDate', () => {
     expect(result).not.toContain('Invalid Date')
     expect(result).toContain('2024')
     expect(result).toContain('UTC')
+  })
+})
+
+// ============================================
+// getNearestCityName
+// ============================================
+describe('getNearestCityName', () => {
+  it('returns a string in "City, ST" format', () => {
+    const result = getNearestCityName(42.73, -84.55) // Lansing, MI
+    expect(result).toMatch(/^.+, [A-Z]{2}$/)
+  })
+
+  it('returns Lansing for coordinates exactly at Lansing', () => {
+    expect(getNearestCityName(42.73, -84.55)).toBe('Lansing, MI')
+  })
+
+  it('returns Marquette for coordinates in the Upper Peninsula', () => {
+    // Marquette, MI lat: 46.54 lon: -87.40
+    expect(getNearestCityName(46.54, -87.40)).toBe('Marquette, MI')
+  })
+
+  it('returns a city near the given coordinates (not an arbitrary default)', () => {
+    // Grand Rapids area — should return a western Michigan city
+    const result = getNearestCityName(42.96, -85.67)
+    expect(result).toContain('MI')
+  })
+})
+
+// ============================================
+// getLocationAuroraProb
+// ============================================
+describe('getLocationAuroraProb', () => {
+  it('returns 0 with no OVATION data and kp=null', () => {
+    expect(getLocationAuroraProb(44.0, -85.0, null, null, null)).toBe(0)
+  })
+
+  it('uses Kp-based fallback when OVATION is null', () => {
+    // High Kp should give a meaningful probability at a northern latitude
+    const prob = getLocationAuroraProb(46.0, -87.0, null, 7, null)
+    expect(prob).toBeGreaterThan(0)
+    expect(prob).toBeLessThanOrEqual(99)
+  })
+
+  it('picks the nearest OVATION grid cell', () => {
+    const ovation: OvationResponse = {
+      coordinates: [
+        [275, 44, 60],  // lon 275 → -85°, near query point
+        [260, 46, 5],   // lon 260 → -100°, far from query point
+      ],
+    }
+    const prob = getLocationAuroraProb(44.0, -85.0, ovation, 5, null)
+    expect(prob).toBe(60)
+  })
+
+  it('applies Bz boost for strongly southward Bz', () => {
+    const base = getLocationAuroraProb(44.0, -85.0, null, 5, null)
+    const boosted = getLocationAuroraProb(44.0, -85.0, null, 5, -8)
+    expect(boosted).toBeGreaterThan(base)
+  })
+
+  it('clamps result to 0–99', () => {
+    const prob = getLocationAuroraProb(60.0, -100.0, null, 9, -30)
+    expect(prob).toBeGreaterThanOrEqual(0)
+    expect(prob).toBeLessThanOrEqual(99)
   })
 })

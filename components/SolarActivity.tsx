@@ -76,7 +76,7 @@ function SdoImage({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         onLoad={() => setImgState('loaded')}
-        onError={() => setImgState('failed')}
+        onError={() => { setImgState('failed'); console.warn('[AuroraWatch] SDO image failed to load:', src); }}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
           imgState === 'loaded' ? 'opacity-100' : 'opacity-0'
         }`}
