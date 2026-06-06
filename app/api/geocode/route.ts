@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   const lat = parseFloat(searchParams.get("lat") ?? "");
   const lon = parseFloat(searchParams.get("lon") ?? "");
 
-  if (isNaN(lat) || isNaN(lon)) {
+  if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
     return NextResponse.json({ location: null }, { status: 400 });
   }
 

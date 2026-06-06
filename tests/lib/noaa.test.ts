@@ -15,6 +15,8 @@ import {
   getLocationAuroraProb,
   getNearestCityName,
   formatFireballDate,
+  approximateLocation,
+  assessEarthImpact,
 } from '../../lib/noaa'
 import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse, MeteorShower } from '../../lib/api/schemas'
 
@@ -473,5 +475,192 @@ describe('getLocationAuroraProb', () => {
     const prob = getLocationAuroraProb(60.0, -100.0, null, 9, -30)
     expect(prob).toBeGreaterThanOrEqual(0)
     expect(prob).toBeLessThanOrEqual(99)
+  })
+})
+
+// ============================================
+// getTonightOutlook — drivers string null cases
+// ============================================
+describe('getTonightOutlook drivers string', () => {
+  const baseCme: CmeSummary[] = []
+  const baseFlare: XrayFlare | null = null
+
+  it('uses em-dash when bz is null', () => {
+    const result = getTonightOutlook(3, null, 10, baseCme, baseFlare)
+    expect(result.drivers).toContain('Bz —')
+  })
+
+  it('omits speed segment when solarWindSpeed is null', () => {
+    const result = getTonightOutlook(3, -4, 10, baseCme, baseFlare)
+    expect(result.drivers).not.toContain('km/s')
+    expect(result.drivers).toMatch(/^Kp \d+\.\d+ • Bz/)
+  })
+
+  it('omits speed segment when solarWindSpeed is undefined', () => {
+    const result = getTonightOutlook(3, -4, 10, baseCme, baseFlare, undefined)
+    expect(result.drivers).not.toContain('km/s')
+  })
+
+  it('includes speed segment when solarWindSpeed is provided', () => {
+    const result = getTonightOutlook(3, -4, 10, baseCme, baseFlare, 500)
+    expect(result.drivers).toContain('500 km/s')
+  })
+
+  it('shows em-dash for bz and omits speed when both are null', () => {
+    const result = getTonightOutlook(3, null, 10, baseCme, baseFlare)
+    expect(result.drivers).toContain('Bz —')
+    expect(result.drivers).not.toContain('km/s')
+  })
+})
+
+// ============================================
+// assessEarthImpact
+// ============================================
+describe('assessEarthImpact', () => {
+  const fresh = (overrides: Partial<CmeSummary> = {}): CmeSummary => ({
+    time: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    note: 'test CME',
+    ...overrides,
+  })
+  const stale = (overrides: Partial<CmeSummary> = {}): CmeSummary => ({
+    time: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(), // 6 days ago
+    note: 'old CME',
+    ...overrides,
+  })
+
+  it('returns none for empty array', () => {
+    expect(assessEarthImpact([])).toMatchObject({ level: 'none', cme: null })
+  })
+
+  it('returns none when all CMEs are older than 5 days', () => {
+    expect(assessEarthImpact([stale(), stale()])).toMatchObject({ level: 'none' })
+  })
+
+  it('returns possible for a fresh CME with no earthImpact flag', () => {
+    const result = assessEarthImpact([fresh()])
+    expect(result.level).toBe('possible')
+    expect(result.cme).not.toBeNull()
+  })
+
+  it('returns likely when a fresh CME has earthImpact = "Likely Earth impact"', () => {
+    const result = assessEarthImpact([fresh({ earthImpact: 'Likely Earth impact' })])
+    expect(result.level).toBe('likely')
+    expect(result.headline).toContain('Earth-directed')
+  })
+
+  it('likely takes priority over possible even when possible comes first in the array', () => {
+    const result = assessEarthImpact([
+      fresh({ note: 'uncertain' }),
+      fresh({ earthImpact: 'Likely Earth impact', note: 'confirmed' }),
+    ])
+    expect(result.level).toBe('likely')
+  })
+
+  it('stale likely CME does not trigger — returns possible for remaining fresh CME', () => {
+    const result = assessEarthImpact([
+      fresh({ note: 'generic' }),
+      stale({ earthImpact: 'Likely Earth impact' }),
+    ])
+    expect(result.level).toBe('possible')
+  })
+
+  it('includes speed in detail when provided', () => {
+    const result = assessEarthImpact([fresh({ earthImpact: 'Likely Earth impact', speed: 1500 })])
+    expect(result.detail).toContain('1,500')
+  })
+
+  it('omits speed phrase when speed is absent', () => {
+    const result = assessEarthImpact([fresh({ earthImpact: 'Likely Earth impact', speed: undefined })])
+    expect(result.detail).not.toContain('traveling at')
+  })
+})
+
+// ============================================
+// approximateLocation
+// ============================================
+describe('approximateLocation', () => {
+  // Polar
+  it('returns Arctic Ocean for lat > 67', () => {
+    expect(approximateLocation(70, 0)).toBe('Arctic Ocean')
+    expect(approximateLocation(68, 90)).toBe('Arctic Ocean')
+  })
+
+  it('returns Southern Ocean for lat < -60', () => {
+    expect(approximateLocation(-61, 0)).toBe('Southern Ocean')
+    expect(approximateLocation(-80, -60)).toBe('Southern Ocean')
+  })
+
+  // Enclosed seas
+  it('returns Mediterranean Sea', () => {
+    expect(approximateLocation(38, 15)).toBe('Mediterranean Sea')
+  })
+
+  it('returns Gulf of Mexico', () => {
+    expect(approximateLocation(25, -90)).toBe('Gulf of Mexico')
+  })
+
+  it('returns Caribbean Sea', () => {
+    expect(approximateLocation(15, -75)).toBe('Caribbean Sea')
+  })
+
+  // Greenland
+  it('returns Greenland', () => {
+    expect(approximateLocation(72, -40)).toBe('Greenland')
+  })
+
+  it('does not mis-classify western Greenland as ocean (lon >= -73 fix)', () => {
+    expect(approximateLocation(65, -50)).toBe('Greenland')
+  })
+
+  // North America — land checks
+  it('returns North America for contiguous US', () => {
+    expect(approximateLocation(40, -100)).toBe('North America') // Kansas
+    expect(approximateLocation(35, -80)).toBe('North America')  // Carolinas
+  })
+
+  it('returns North America for Alaska (separate band check)', () => {
+    expect(approximateLocation(64, -150)).toBe('North America') // Interior Alaska
+    expect(approximateLocation(55, -160)).toBe('North America') // SW Alaska
+  })
+
+  it('returns North America for northern Canada above lat 72 (cap fix)', () => {
+    expect(approximateLocation(80, -90)).toBe('North America')  // Ellesmere Island
+    expect(approximateLocation(78, -95)).toBe('North America')  // Nunavut
+  })
+
+  // The key regression: open Pacific must NOT be North America
+  it('returns North Pacific Ocean for lat=35 lon=-140 (was incorrectly North America)', () => {
+    expect(approximateLocation(35, -140)).toBe('North Pacific Ocean')
+  })
+
+  it('returns North Pacific Ocean for points west of -130 below Alaska latitude', () => {
+    expect(approximateLocation(45, -145)).toBe('North Pacific Ocean')
+  })
+
+  // Other land masses
+  it('returns Europe', () => {
+    expect(approximateLocation(51, 0)).toBe('Europe')   // London
+    expect(approximateLocation(48, 2)).toBe('Europe')   // Paris
+  })
+
+  it('returns Africa', () => {
+    expect(approximateLocation(0, 20)).toBe('Africa')
+  })
+
+  it('returns Australia', () => {
+    expect(approximateLocation(-25, 135)).toBe('Australia')
+  })
+
+  // Open ocean catch-alls
+  it('returns South Pacific Ocean for southern latitudes west of -75', () => {
+    expect(approximateLocation(-30, -100)).toBe('South Pacific Ocean')
+  })
+
+  it('returns North Atlantic Ocean', () => {
+    expect(approximateLocation(40, -40)).toBe('North Atlantic Ocean')
+  })
+
+  it('returns Indian Ocean', () => {
+    expect(approximateLocation(-10, 70)).toBe('Indian Ocean')
   })
 })

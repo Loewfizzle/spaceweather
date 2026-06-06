@@ -609,11 +609,13 @@ export function formatFireballEnergy(impactE: string | null | undefined): string
  * Returns "" when no region matches — callers should fall back to coordinates.
  */
 export function approximateLocation(lat: number, lon: number): string {
-  // Polar
-  if (lat > 67)  return "Arctic Ocean";
-  if (lat < -60) return "Southern Ocean";
+  // Evaluation order matters:
+  // 1. Enclosed seas — their bounding boxes overlap land-mass boxes (e.g. Gulf of Mexico ⊂ NA box)
+  // 2. Greenland + NA — must precede the Arctic catch-all (Greenland reaches 83°N, N. Canada 85°N)
+  // 3. Polar catch-alls
+  // 4. Remaining land masses + open-ocean catch-alls
 
-  // Enclosed / semi-enclosed seas (before open-ocean catch-alls)
+  // Enclosed / semi-enclosed seas
   if (lat >= 30 && lat <= 47 && lon >= -6   && lon <= 42)  return "Mediterranean Sea";
   if (lat >= 22 && lat <= 32 && lon >= 32   && lon <= 45)  return "Red Sea";
   if (lat >= 22 && lat <= 30 && lon >= 47   && lon <= 57)  return "Persian Gulf";
@@ -623,14 +625,20 @@ export function approximateLocation(lat: number, lon: number): string {
   if (lat >= 10 && lat <= 24 && lon >= -88  && lon <= -60) return "Caribbean Sea";
   if (lat >= -5 && lat <= 10 && lon >= -5   && lon <= 10)  return "Gulf of Guinea";
 
-  // Greenland (before North America lon range; island extends to ~73°W)
+  // Greenland (extends to ~83°N; before Arctic catch-all and before NA lon range)
   if (lat >= 60 && lon >= -73 && lon <= -12) return "Greenland";
 
-  // Land masses
-  // Alaska / NW Canada: extends into the -168→-130 range not covered by the main NA check below
+  // North America — before polar so high-lat Canada isn't swallowed by Arctic Ocean
+  // Alaska / NW Canada band (-168→-130) not covered by the main check below
   if (lat >= 54  && lon >= -168 && lon <= -130) return "North America";
-  // Contiguous US / Canada / Mexico — raised lat cap to 85 to cover northern Canada/Arctic islands
+  // Contiguous US / Canada / Mexico — lat cap 85 covers northern Canada/Arctic islands
   if (lat >= 15  && lat <= 85  && lon >= -130 && lon <= -52) return "North America";
+
+  // Polar catch-alls
+  if (lat > 67)  return "Arctic Ocean";
+  if (lat < -60) return "Southern Ocean";
+
+  // Remaining land masses
   if (lat >= 7   && lat <  15  && lon >= -93  && lon <= -77) return "Central America";
   if (lat >= -56 && lat <  13  && lon >= -82  && lon <= -34) return "South America";
   if (lat >= 35  && lat <= 72  && lon >= -12  && lon <= 40)  return "Europe";

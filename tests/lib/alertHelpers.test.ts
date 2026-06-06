@@ -136,4 +136,19 @@ describe('formatAlertAge', () => {
     expect(result).not.toBe('2026-06-05 01:30:15.893')
     expect(result).toContain('ago')
   })
+
+  it('does not double-append Z when the string already ends in Z', () => {
+    vi.setSystemTime(new Date('2026-06-05T12:00:00Z'))
+    // Already ISO with Z — appending another Z would produce an invalid date
+    const result = formatAlertAge('2026-06-05T01:00:00Z')
+    expect(result).toContain('ago')
+    expect(result).not.toBe('2026-06-05T01:00:00Z')
+  })
+
+  it('handles already-normalized ISO string with T separator (no Z)', () => {
+    vi.setSystemTime(new Date('2026-06-05T12:00:00Z'))
+    // T already present, no Z — should still get Z appended and parse correctly
+    const result = formatAlertAge('2026-06-05T01:00:00')
+    expect(result).toContain('ago')
+  })
 })
