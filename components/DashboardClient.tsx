@@ -131,6 +131,7 @@ export function DashboardClient() {
         kpHistory={kpHistory}
         cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
         cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
+        locationGranted={geoState.status === "granted"}
         isLoading={isLoading || kpForecastQuery.isLoading}
       />
 

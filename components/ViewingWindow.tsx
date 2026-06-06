@@ -11,6 +11,7 @@ interface ViewingWindowProps {
   kpHistory: KpEntry[];
   cloudCoverPct?: number | null;
   cloudCoverLabel?: string | null;
+  locationGranted?: boolean;
   isLoading?: boolean;
 }
 
@@ -29,14 +30,14 @@ function peakToLabel(kp: number): { label: string; color: string; guidance: stri
   const tier = getKpTier(kp);
   const { color, label } = AURORA_TIERS[tier];
   const guidance =
-    tier === "storm"    ? "Get outside and look north." :
-    tier === "active"   ? "Worth watching from dark skies." :
-    tier === "moderate" ? "Best chance from rural areas." :
-                          "Calm conditions expected.";
+    tier === "storm"    ? "Head outside — aurora may be visible to the naked eye." :
+    tier === "active"   ? "Worth heading out to dark skies tonight." :
+    tier === "moderate" ? "Dark rural skies give you the best chance." :
+                          "Conditions are calm. Low activity expected.";
   return { label, color, guidance };
 }
 
-export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, isLoading }: ViewingWindowProps) {
+export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, locationGranted, isLoading }: ViewingWindowProps) {
   const windowData = useMemo(() => computeViewingWindow(kpForecast), [kpForecast]);
   const lastNight = useMemo(() => computeLastNightPeak(kpHistory), [kpHistory]);
 
@@ -90,12 +91,19 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
 
               <div className="text-[13px] text-[#94a3b8]">{tonight.guidance}</div>
 
-              {hasClear && (
+              {/* When location is shared, show personalised sky conditions */}
+              {locationGranted && hasClear && (
                 <div className="mt-2 text-[11px]">
-                  <span className="text-[#64748b]">Skies: </span>
+                  <span className="text-[#64748b]">Your skies tonight: </span>
                   <span className="font-medium" style={{ color: cloudColor }}>
                     {cloudCoverLabel} ({cloudCoverPct}%)
                   </span>
+                </div>
+              )}
+              {/* When location is not shared, surface a gentle nudge */}
+              {!locationGranted && (
+                <div className="mt-2 text-[11px] text-[#334155]">
+                  More accurate with your location
                 </div>
               )}
             </div>
