@@ -80,6 +80,12 @@ export function HeroOutlook({
 
         {outlook.status !== "Loading" && (
           <div className="space-y-1 mb-2">
+            {/* Clarifying label — anchors the percentages as current/live, not forecast */}
+            {(userLocationProb != null || (displayedCities.length > 0)) && (
+              <div className="uppercase tracking-[2px] text-[9px] text-[#475569] pb-0.5">
+                Current modeled probabilities
+              </div>
+            )}
             {/* User location row — shown first when granted */}
             {userLocationProb != null && (
               <div className="text-sm text-[#94a3b8] flex items-center gap-2">

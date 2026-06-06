@@ -307,7 +307,7 @@ export function getTonightOutlook(
     if (highProb && !veryHighSpeed) reasons.push('Elevated OVATION probabilities across North America');
   } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || (kp >= 4 && highSpeed) || (kp >= 3 && highSpeed && isFavorableBz) || highProb) {
     status = 'Good';
-    message = 'Good chance for northern-tier states and the Great Lakes region.';
+    message = 'Good chance tonight for northern-tier states and the Great Lakes region.';
     accentColor = '#22c55e';
     if (isFavorableBz) reasons.push('Southward Bz currently favorable');
     if (highSpeed && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) enhancing coupling`);
