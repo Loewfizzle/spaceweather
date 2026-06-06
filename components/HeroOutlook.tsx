@@ -93,9 +93,8 @@ export function HeroOutlook({
             {userLocationProb != null && (
               <div className="flex items-center gap-2 py-0.5">
                 <span className="block h-1.5 w-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
-                <span className="flex-1 text-[15px] font-semibold text-white leading-tight flex items-center gap-1.5">
+                <span className="flex-1 text-[15px] font-semibold text-white leading-tight">
                   {userLocationLabel ?? "Your location"}
-                  <span className="text-[9px] font-medium text-cyan-400/60 tracking-wide leading-none">YOU</span>
                 </span>
                 <span className="tabular-nums font-semibold text-white w-10 text-right">
                   {userLocationProb > 0 ? `${userLocationProb}%` : "< 1%"}
