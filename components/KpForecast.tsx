@@ -94,7 +94,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
       <div className="card p-6">
         <div className="h-56">
           {kpQuery.isLoading ? (
-            <LoadingSkeleton variant="chart" />
+            <div className="h-full animate-pulse bg-[#1e2937] rounded" />
           ) : kpQuery.error ? (
             <ErrorState
               message="Unable to load Kp outlook data right now."
