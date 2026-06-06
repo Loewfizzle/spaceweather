@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, ChevronRight } from "lucide-react";
 import {
   getNextMeteorShower,
   formatMeteorPeak,
@@ -16,6 +16,26 @@ import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
 import { FireballModal } from "./FireballModal";
+
+function energyColor(impactE: string | null | undefined): string {
+  if (!impactE) return "#475569";
+  const val = parseFloat(impactE);
+  if (isNaN(val)) return "#475569";
+  if (val >= 1)   return "#f97316"; // significant
+  if (val >= 0.1) return "#eab308"; // moderate
+  return "#64748b";                 // minor
+}
+
+function dateShort(dateStr: string): string {
+  try {
+    const d = new Date(dateStr.replace(" ", "T") + "Z");
+    return d.toLocaleString("en-US", {
+      month: "short", day: "numeric", year: "numeric", timeZone: "UTC",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 function activityColor(level: string): string {
   const lc = level.toLowerCase();
@@ -134,9 +154,13 @@ export function MeteorActivity() {
 
         {/* Fireball Tracker */}
         <div className="card p-5">
-          <div className="flex items-baseline justify-between mb-2">
+          <div className="flex items-center justify-between mb-3">
             <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">FIREBALL TRACKER</div>
-            <div className="text-[10px] text-[#64748b] normal-case">NASA JPL CNEOS</div>
+            {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
+              <span className="text-[11px] text-[#64748b] tabular-nums">
+                {fireballsQuery.fireballs.length} recent
+              </span>
+            )}
           </div>
 
           {fireballsQuery.isLoading ? (
@@ -152,28 +176,45 @@ export function MeteorActivity() {
               description="NASA JPL has not recorded any notable fireballs recently."
             />
           ) : (
-            <div className="space-y-1.5 text-sm">
-              {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball) => {
-                return (
-                  <div
-                    key={fb.date}
-                    className="flex justify-between items-start border-b border-[#1e2937] pb-1.5 last:border-b-0 last:pb-0 rounded transition-colors cursor-pointer hover:bg-[#1e2937]"
-                    onClick={() => setSelectedFireball(fb)}
-                    role="button"
-                  >
-                    <div className="min-w-0">
-                      <div className="tabular-nums text-[#cbd5e1] text-[13px]">{formatFireballDate(fb.date)}</div>
-                      <div className="text-[11px] text-[#64748b] truncate">{formatFireballLocation(fb)}</div>
-                    </div>
-                    <div className="text-right flex-shrink-0 ml-3 tabular-nums">
+            <>
+              <div className="space-y-0.5">
+                {fireballsQuery.fireballs.slice(0, 4).map((fb: Fireball) => {
+                  const color = energyColor(fb.impactE);
+                  return (
+                    <button
+                      key={fb.date}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#0f1720] transition-colors text-left group"
+                      onClick={() => setSelectedFireball(fb)}
+                    >
+                      <div
+                        className="h-2 w-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: color }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-medium text-[#cbd5e1] tabular-nums leading-tight">
+                          {dateShort(fb.date)}
+                        </div>
+                        <div className="text-[11px] text-[#64748b] truncate mt-0.5">
+                          {formatFireballLocation(fb)}
+                        </div>
+                      </div>
                       {fb.impactE && (
-                        <div className="text-[10px] text-[#f97316]">{formatFireballEnergy(fb.impactE)}</div>
+                        <span
+                          className="text-[10px] font-medium tabular-nums px-1.5 py-0.5 rounded flex-shrink-0"
+                          style={{ color, backgroundColor: color + "1a" }}
+                        >
+                          {formatFireballEnergy(fb.impactE)}
+                        </span>
                       )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                      <ChevronRight className="h-3.5 w-3.5 text-[#334155] group-hover:text-[#475569] transition-colors flex-shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 pt-2.5 border-t border-[#1e2937] text-[9px] text-[#334155]">
+                Source: NASA JPL CNEOS · Orange = significant (&ge;1 kt) · Yellow = moderate
+              </div>
+            </>
           )}
         </div>
       </div>
