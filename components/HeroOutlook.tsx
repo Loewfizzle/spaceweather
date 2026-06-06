@@ -131,8 +131,14 @@ export function HeroOutlook({
         </div>
       )}
 
+      {outlook.status !== "Loading" && !error && latestUpdate && (
+        <div className="mt-3 text-[10px] text-[#334155]">
+          Updated {formatDistanceToNow(latestUpdate, { addSuffix: true })}
+        </div>
+      )}
+
       {outlook.status !== "Loading" && (
-        <div className="mt-4 pt-3 border-t border-[#1e2937] flex items-center justify-between">
+        <div className="mt-2 pt-3 border-t border-[#1e2937] flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
             {userLocationProb == null && onRequestLocation && (
               <button

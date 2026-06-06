@@ -29,6 +29,7 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+      <div className="section-title">AURORA ALERTS</div>
       <div className="card p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
           {/* Left: description + controls */}

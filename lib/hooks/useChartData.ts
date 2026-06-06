@@ -191,96 +191,100 @@ function formatTimeLabel(timeTag: string, referenceUtcDate: string): string {
   return time;
 }
 
+// ── Core computation (exported for unit tests) ────────────────────────────────
+
+export function buildChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[] = []) {
+  // Last ~12 entries (~36 hours of 3h Kp data)
+  const recent = kpHistory
+    .filter((entry) => !!entry.time_tag && !isNaN(new Date(entry.time_tag).getTime()))
+    .slice(-12);
+
+  const todayUtc =
+    recent.length > 0
+      ? new Date(recent[recent.length - 1].time_tag!).toLocaleDateString("en-US", {
+          timeZone: "UTC",
+        })
+      : "";
+
+  const historicalLabels = recent.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
+  const historicalValues = recent.map((entry) => entry.Kp ?? 0);
+  const historicalTonightMask = recent.map((e) => isTonightMichigan(new Date(e.time_tag!)));
+
+  const lastHistoricalTime =
+    recent.length > 0 ? new Date(recent[recent.length - 1].time_tag!).getTime() : 0;
+
+  const futureForecast = kpForecast
+    .filter(
+      (e) =>
+        !!e.time_tag &&
+        !isNaN(new Date(e.time_tag).getTime()) &&
+        new Date(e.time_tag).getTime() > lastHistoricalTime,
+    )
+    .slice(0, 12); // next 36 hours
+
+  const forecastLabels = futureForecast.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
+  const forecastValues = futureForecast.map((e) => e.kp ?? 0);
+  const forecastTonightMask = futureForecast.map((e) => isTonightMichigan(new Date(e.time_tag!)));
+
+  const fullMask = [...historicalTonightMask, ...forecastTonightMask];
+  const hasTonight = fullMask.some((v) => v);
+
+  // Pad datasets so both span the full label array
+  const histPad = Array<null>(futureForecast.length).fill(null);
+  const fcstPad = Array<null>(recent.length).fill(null);
+
+  const histDataset = {
+    label: "Kp Index",
+    data: [...historicalValues, ...histPad] as (number | null)[],
+    borderColor: "#22c55e",
+    backgroundColor: "rgba(34, 197, 94, 0.10)",
+    borderWidth: 2.5,
+    tension: 0.4,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    pointBackgroundColor: "#22c55e",
+    spanGaps: false,
+  };
+
+  const fcstDataset =
+    futureForecast.length > 0
+      ? {
+          label: "Forecast",
+          data: [...fcstPad, ...forecastValues] as (number | null)[],
+          borderColor: "#94a3b8",
+          backgroundColor: "rgba(148, 163, 184, 0.04)",
+          borderWidth: 2,
+          borderDash: [5, 4],
+          tension: 0.4,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          pointBackgroundColor: "#94a3b8",
+          spanGaps: false,
+        }
+      : null;
+
+  const chartData = {
+    labels: [...historicalLabels, ...forecastLabels],
+    datasets: fcstDataset ? [histDataset, fcstDataset] : [histDataset],
+  };
+
+  // Build plugin list: tonight shading + forecast boundary marker (when forecast exists)
+  const chartPlugins = [
+    makeTonightPlugin(fullMask),
+    ...(futureForecast.length > 0 ? [makeForecastBoundaryPlugin(recent.length)] : []),
+  ];
+
+  return {
+    chartData,
+    chartOptions: makeChartOptions(),
+    chartPlugins,
+    hasTonight,
+    hasForecast: futureForecast.length > 0,
+  };
+}
+
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[] = []) {
-  return useMemo(() => {
-    // Last ~12 entries (~36 hours of 3h Kp data)
-    const recent = kpHistory
-      .filter((entry) => !!entry.time_tag && !isNaN(new Date(entry.time_tag).getTime()))
-      .slice(-12);
-
-    const todayUtc =
-      recent.length > 0
-        ? new Date(recent[recent.length - 1].time_tag!).toLocaleDateString("en-US", {
-            timeZone: "UTC",
-          })
-        : "";
-
-    const historicalLabels = recent.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
-    const historicalValues = recent.map((entry) => entry.Kp ?? 0);
-    const historicalTonightMask = recent.map((e) => isTonightMichigan(new Date(e.time_tag!)));
-
-    const lastHistoricalTime =
-      recent.length > 0 ? new Date(recent[recent.length - 1].time_tag!).getTime() : 0;
-
-    const futureForecast = kpForecast
-      .filter(
-        (e) =>
-          !!e.time_tag &&
-          !isNaN(new Date(e.time_tag).getTime()) &&
-          new Date(e.time_tag).getTime() > lastHistoricalTime,
-      )
-      .slice(0, 12); // next 36 hours
-
-    const forecastLabels = futureForecast.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
-    const forecastValues = futureForecast.map((e) => e.kp ?? 0);
-    const forecastTonightMask = futureForecast.map((e) => isTonightMichigan(new Date(e.time_tag!)));
-
-    const fullMask = [...historicalTonightMask, ...forecastTonightMask];
-    const hasTonight = fullMask.some((v) => v);
-
-    // Pad datasets so both span the full label array
-    const histPad = Array<null>(futureForecast.length).fill(null);
-    const fcstPad = Array<null>(recent.length).fill(null);
-
-    const histDataset = {
-      label: "Kp Index",
-      data: [...historicalValues, ...histPad] as (number | null)[],
-      borderColor: "#22c55e",
-      backgroundColor: "rgba(34, 197, 94, 0.10)",
-      borderWidth: 2.5,
-      tension: 0.4,
-      pointRadius: 3,
-      pointHoverRadius: 5,
-      pointBackgroundColor: "#22c55e",
-      spanGaps: false,
-    };
-
-    const fcstDataset =
-      futureForecast.length > 0
-        ? {
-            label: "Forecast",
-            data: [...fcstPad, ...forecastValues] as (number | null)[],
-            borderColor: "#94a3b8",
-            backgroundColor: "rgba(148, 163, 184, 0.04)",
-            borderWidth: 2,
-            borderDash: [5, 4],
-            tension: 0.4,
-            pointRadius: 2,
-            pointHoverRadius: 4,
-            pointBackgroundColor: "#94a3b8",
-            spanGaps: false,
-          }
-        : null;
-
-    const chartData = {
-      labels: [...historicalLabels, ...forecastLabels],
-      datasets: fcstDataset ? [histDataset, fcstDataset] : [histDataset],
-    };
-
-    // Build plugin list: tonight shading + forecast boundary marker (when forecast exists)
-    const chartPlugins = [
-      makeTonightPlugin(fullMask),
-      ...(futureForecast.length > 0 ? [makeForecastBoundaryPlugin(recent.length)] : []),
-    ];
-
-    return {
-      chartData,
-      chartOptions: makeChartOptions(),
-      chartPlugins,
-      hasTonight,
-      hasForecast: futureForecast.length > 0,
-    };
-  }, [kpHistory, kpForecast]);
+  return useMemo(() => buildChartData(kpHistory, kpForecast), [kpHistory, kpForecast]);
 }
