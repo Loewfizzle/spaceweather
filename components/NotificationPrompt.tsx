@@ -1,51 +1,97 @@
 "use client";
 
 import { useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Check } from "lucide-react";
+import {
+  ALERT_THRESHOLDS,
+  saveSensitivity,
+  type AlertSensitivity,
+} from "../lib/hooks/useNotifications";
+
+type Phase = "prompt" | "picking" | "done";
+
+const PRESETS: { key: AlertSensitivity; label: string; desc: string }[] = [
+  { key: "sensitive", label: "Sensitive", desc: "Kp ≥3 or 10%" },
+  { key: "balanced",  label: "Balanced",  desc: "Kp ≥4 or 15%" },
+  { key: "strong",    label: "Strong",    desc: "Kp ≥5 or 25%" },
+];
+
+type WithPeriodicSync = ServiceWorkerRegistration & {
+  periodicSync: { register(tag: string, opts: { minInterval: number }): Promise<void> };
+};
 
 export function NotificationPrompt() {
   const [perm, setPerm] = useState<NotificationPermission>(() => {
-    if (typeof window === 'undefined' || !('Notification' in window)) return 'denied';
+    if (typeof window === "undefined" || !("Notification" in window)) return "denied";
     return Notification.permission;
   });
+  const [phase, setPhase] = useState<Phase>("prompt");
+  const [chosen, setChosen] = useState<AlertSensitivity>("balanced");
 
-  // Only show when permission hasn't been asked yet — AlertsPanel handles full config
-  if (perm !== 'default') return null;
+  // Show confirmation after the user completed the flow
+  if (phase === "done") {
+    return (
+      <span className="flex items-center gap-1.5 text-xs font-medium text-green-400">
+        <Check className="h-3.5 w-3.5" />
+        Alerts on · {PRESETS.find((p) => p.key === chosen)!.label}
+      </span>
+    );
+  }
 
-  const handleClick = async () => {
-    const result = await Notification.requestPermission();
-    setPerm(result);
-    if (result === 'granted') {
-      // Register periodic background sync for aurora checks
-      if ('serviceWorker' in navigator) {
-        try {
-          const reg = await navigator.serviceWorker.ready;
-          if ('periodicSync' in reg) {
-            type WithPeriodicSync = ServiceWorkerRegistration & {
-              periodicSync: { register(tag: string, opts: { minInterval: number }): Promise<void> };
-            };
-            await (reg as WithPeriodicSync).periodicSync.register('aurora-check', {
-              minInterval: 30 * 60 * 1000,
-            });
-          }
-        } catch {
-          // periodicSync not supported or permission denied — alerts still work when tab is open
-        }
-      }
-      try {
-        new Notification('AuroraWatch', {
-          body: 'Alerts enabled. Configure sensitivity in the Alerts section below.',
-          icon: '/icons/icon-192.png',
-        });
-      } catch {
-        // Non-fatal if SW isn't ready yet
-      }
-    }
-  };
+  // Already resolved (granted from a previous session) or unavailable — AlertsPanel handles config
+  if (perm !== "default") return null;
 
+  if (phase === "picking") {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-[#64748b]">Notify me for:</span>
+        {PRESETS.map((p) => (
+          <button
+            key={p.key}
+            onClick={async () => {
+              setChosen(p.key);
+              if (typeof window !== "undefined") {
+                localStorage.setItem("aw_alerts_enabled", "1");
+              }
+              await saveSensitivity(p.key);
+              if ("serviceWorker" in navigator) {
+                try {
+                  const reg = await navigator.serviceWorker.ready;
+                  if ("periodicSync" in reg) {
+                    await (reg as WithPeriodicSync).periodicSync.register(
+                      "aurora-check",
+                      { minInterval: 30 * 60 * 1000 },
+                    );
+                  }
+                } catch {}
+              }
+              try {
+                const thresh = ALERT_THRESHOLDS[p.key];
+                new Notification("AuroraWatch", {
+                  body: `Alerts on. You'll hear from us when Kp ≥ ${thresh.kp} or OVATION ≥ ${thresh.prob}%.`,
+                  icon: "/icons/icon-192.png",
+                });
+              } catch {}
+              setPhase("done");
+            }}
+            className="text-xs px-2.5 py-0.5 rounded-full border border-[#1e2937] text-[#94a3b8] hover:border-sky-400 hover:text-sky-400 transition-colors"
+            title={p.desc}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  // phase === "prompt"
   return (
     <button
-      onClick={handleClick}
+      onClick={async () => {
+        const result = await Notification.requestPermission();
+        setPerm(result);
+        if (result === "granted") setPhase("picking");
+      }}
       className="flex items-center gap-1.5 text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors"
       title="Get browser notifications when aurora conditions improve"
     >

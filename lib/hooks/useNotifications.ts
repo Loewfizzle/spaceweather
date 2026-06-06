@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Alert threshold presets (module scope for stability + used by effect, handler, and render in AlertsPanel)
 export const ALERT_THRESHOLDS = {
@@ -10,6 +10,24 @@ export const ALERT_THRESHOLDS = {
 } as const;
 
 export type AlertSensitivity = "sensitive" | "balanced" | "strong";
+
+// Writes the chosen sensitivity thresholds to localStorage and the SW cache.
+// Exported as a standalone function so non-hook contexts (e.g. NotificationPrompt)
+// can persist prefs without mounting the full hook.
+export async function saveSensitivity(val: AlertSensitivity): Promise<void> {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("aw_alert_sensitivity", val);
+  }
+  if (typeof window !== "undefined" && "caches" in window) {
+    try {
+      const { kp, prob } = ALERT_THRESHOLDS[val];
+      const cache = await caches.open("aurorawatch-sw-v1");
+      await cache.put("/__prefs", new Response(JSON.stringify({ kp, prob })));
+    } catch {
+      // Cache API unavailable (private browsing, etc.) — non-fatal
+    }
+  }
+}
 
 interface UseNotificationsParams {
   kp: number | null;
@@ -94,19 +112,6 @@ export function useNotifications({
     return "balanced";
   });
 
-  // Writes the active Kp/prob thresholds into the SW cache so background checks
-  // use the same sensitivity the user has chosen in the UI.
-  const syncPrefsToSw = useCallback(async (sensitivity: AlertSensitivity) => {
-    if (!("caches" in window)) return;
-    try {
-      const { kp, prob } = ALERT_THRESHOLDS[sensitivity];
-      const cache = await caches.open("aurorawatch-sw-v1");
-      await cache.put("/__prefs", new Response(JSON.stringify({ kp, prob })));
-    } catch {
-      // Cache API unavailable (private browsing, etc.) — non-fatal
-    }
-  }, []);
-
   const setAlertsEnabled = (val: boolean) => {
     setAlertsEnabledState(val);
     if (typeof window !== "undefined") {
@@ -116,10 +121,7 @@ export function useNotifications({
 
   const setAlertSensitivity = (val: AlertSensitivity) => {
     setAlertSensitivityState(val);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("aw_alert_sensitivity", val);
-    }
-    syncPrefsToSw(val);
+    saveSensitivity(val);
   };
 
   // Auto-trigger browser notification when conditions look good for Michigan.
@@ -203,7 +205,7 @@ export function useNotifications({
 
     if (perm === "granted") {
       setAlertsEnabled(true);
-      syncPrefsToSw(alertSensitivity);
+      saveSensitivity(alertSensitivity);
 
       // Register Periodic Background Sync so alerts fire even when the tab is closed.
       // Only available in Chrome/Edge; fails silently on other browsers.
