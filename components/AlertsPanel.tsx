@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell } from "lucide-react";
-import { useNotifications, ALERT_THRESHOLDS } from "../lib/hooks/useNotifications";
+import { useNotifications, ALERT_THRESHOLDS, PRESETS } from "../lib/hooks/useNotifications";
 import { alertProductLabel, alertFirstLine, formatAlertAge } from "../lib/utils/alertHelpers";
 import { useIsMobile } from "../lib/hooks/useIsMobile";
 import type { Alert } from "../lib/api/schemas";
@@ -24,6 +24,7 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
     alertsEnabled,
     alertSensitivity,
     notificationError,
+    swCacheDegraded,
     setAlertsEnabled,
     setAlertSensitivity,
     handleEnableAlerts,
@@ -96,13 +97,7 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
               <div className="mt-4">
                 <div className="text-xs text-[#64748b] mb-1.5">Notify me for:</div>
                 <div className="flex flex-wrap gap-1.5">
-                  {(
-                    [
-                      { key: "sensitive", label: "Sensitive", desc: "Kp ≥3 or 10%" },
-                      { key: "balanced", label: "Balanced", desc: "Kp ≥4 or 15%" },
-                      { key: "strong", label: "Strong only", desc: "Kp ≥5 or 25%" },
-                    ] as const
-                  ).map((opt) => (
+                  {PRESETS.map((opt) => (
                     <button
                       key={opt.key}
                       onClick={() => setAlertSensitivity(opt.key)}
@@ -126,6 +121,11 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
               {notificationPermission === "granted" && (
                 <div className="mt-3 text-[10px] text-[#64748b]">
                   Throttled to once per 30 min • Respects Do Not Disturb
+                </div>
+              )}
+              {swCacheDegraded && alertsEnabled && notificationPermission === "granted" && (
+                <div className="mt-2 text-[10px] text-amber-500/70">
+                  Background alerts limited in this browser mode
                 </div>
               )}
               {notificationError && (

@@ -4,17 +4,12 @@ import { useState } from "react";
 import { Bell, Check } from "lucide-react";
 import {
   ALERT_THRESHOLDS,
+  PRESETS,
   saveSensitivity,
   type AlertSensitivity,
 } from "../lib/hooks/useNotifications";
 
 type Phase = "prompt" | "picking" | "done";
-
-const PRESETS: { key: AlertSensitivity; label: string; desc: string }[] = [
-  { key: "sensitive", label: "Sensitive", desc: "Kp ≥3 or 10%" },
-  { key: "balanced",  label: "Balanced",  desc: "Kp ≥4 or 15%" },
-  { key: "strong",    label: "Strong",    desc: "Kp ≥5 or 25%" },
-];
 
 type WithPeriodicSync = ServiceWorkerRegistration & {
   periodicSync: { register(tag: string, opts: { minInterval: number }): Promise<void> };
@@ -95,7 +90,10 @@ export function NotificationPrompt({ accentColor = "#38bdf8" }: NotificationProm
       onClick={async () => {
         const result = await Notification.requestPermission();
         setPerm(result);
-        if (result === "granted") setPhase("picking");
+        if (result === "granted") {
+          window.dispatchEvent(new CustomEvent("aurorawatch:permission-changed", { detail: result }));
+          setPhase("picking");
+        }
       }}
       style={{ color: accentColor }}
       className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity"

@@ -42,7 +42,7 @@ import {
   getLocationAuroraProb,
 } from "./noaa";
 
-import { computeViewingWindow } from "./utils/viewingWindow";
+import { computeViewingWindow, type ViewingWindowData } from "./utils/viewingWindow";
 
 import type { MeteorShower, TonightOutlook, CityAuroraProb } from "./noaa";
 
@@ -200,13 +200,13 @@ export function useCurrentConditions() {
     [ovationPoints, latestKp?.Kp, solarWind.current.bz]
   );
 
-  // Peak Kp within tonight's northern US aurora viewing window (8pm–6am ET).
-  // computeViewingWindow handles DST-aware ET offset and the > now filter internally.
-  const forecastPeakKp = useMemo(() => {
-    if (!forecastQuery.data || forecastQuery.data.length === 0) return null;
-    const result = computeViewingWindow(forecastQuery.data);
-    return result.hasData ? result.peakKp : null;
-  }, [forecastQuery.data]);
+  // Tonight's viewing window — computed once and shared with both getAuroraGuidance (for forecast
+  // peak Kp) and the ViewingWindow component, so both see the same snapshot and new Date() is
+  // called only once per render cycle rather than independently in two places.
+  const viewingWindow = useMemo<ViewingWindowData | null>(
+    () => (forecastQuery.data && forecastQuery.data.length > 0 ? computeViewingWindow(forecastQuery.data) : null),
+    [forecastQuery.data]
+  );
 
   return {
     kp: latestKp?.Kp ?? null,
@@ -214,12 +214,13 @@ export function useCurrentConditions() {
     kpHistory: kpQuery.data ?? [],
     maxAuroraProbNA: maxProbNA,
     ovationPoints,
+    viewingWindow,
     ovationProcessed,  // true when the NOAA fetch succeeded — empty coordinates are a valid quiet-sun result, not a failure
     cityProbs,
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
-    guidance: getAuroraGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed, forecastPeakKp),
+    guidance: getAuroraGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed, viewingWindow?.hasData ? viewingWindow.peakKp : null),
     riskLevel: getAuroraRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
     isLoading:
       kpQuery.isLoading ||
@@ -387,3 +388,4 @@ export {
   type CityAuroraProb,
   type Fireball,
 };
+export type { ViewingWindowData };

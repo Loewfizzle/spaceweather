@@ -12,6 +12,12 @@ export const ALERT_THRESHOLDS = {
 
 export type AlertSensitivity = "sensitive" | "balanced" | "strong";
 
+export const PRESETS: { key: AlertSensitivity; label: string; desc: string }[] = [
+  { key: "sensitive", label: "Sensitive", desc: "Kp ≥3 or 10%" },
+  { key: "balanced",  label: "Balanced",  desc: "Kp ≥4 or 15%" },
+  { key: "strong",    label: "Strong only", desc: "Kp ≥5 or 25%" },
+];
+
 // Writes the chosen sensitivity thresholds to localStorage and the SW cache.
 // Exported as a standalone function so non-hook contexts (e.g. NotificationPrompt)
 // can persist prefs without mounting the full hook.
@@ -41,8 +47,8 @@ export async function saveSensitivity(val: AlertSensitivity): Promise<void> {
 export async function syncLiveStateToSw(
   bz: number | null,
   maxAuroraProbNA: number | null,
-): Promise<void> {
-  if (typeof window === "undefined" || !("caches" in window)) return;
+): Promise<boolean> {
+  if (typeof window === "undefined" || !("caches" in window)) return false;
   try {
     const cache = await caches.open("aurorawatch-sw-v1");
     await cache.put(
@@ -51,8 +57,9 @@ export async function syncLiveStateToSw(
         JSON.stringify({ bz, maxProb: maxAuroraProbNA, updatedAt: Date.now() }),
       ),
     );
+    return true;
   } catch {
-    // Cache API unavailable — non-fatal, SW falls back to Kp-only check
+    return false;
   }
 }
 
@@ -68,6 +75,7 @@ interface UseNotificationsReturn {
   alertsEnabled: boolean;
   alertSensitivity: AlertSensitivity;
   notificationError: string | null;
+  swCacheDegraded: boolean;
   setAlertsEnabled: (val: boolean) => void;
   setAlertSensitivity: (val: AlertSensitivity) => void;
   handleEnableAlerts: () => Promise<void>;
@@ -98,6 +106,25 @@ export function useNotifications({
   });
 
   const [notificationError, setNotificationError] = useState<string | null>(null);
+  const [swCacheDegraded, setSwCacheDegraded] = useState(false);
+
+  // Re-sync Notification.permission when tab regains focus (user may have changed browser setting)
+  // or when another component instance grants permission (e.g. NotificationPrompt).
+  useEffect(() => {
+    function syncPermission() {
+      if ("Notification" in window) setNotificationPermission(Notification.permission);
+    }
+    function onPermissionChanged(e: Event) {
+      const val = (e as CustomEvent<NotificationPermission>).detail;
+      setNotificationPermission(val);
+    }
+    document.addEventListener("visibilitychange", syncPermission);
+    window.addEventListener("aurorawatch:permission-changed", onPermissionChanged);
+    return () => {
+      document.removeEventListener("visibilitychange", syncPermission);
+      window.removeEventListener("aurorawatch:permission-changed", onPermissionChanged);
+    };
+  }, []);
 
   // Use ref for throttle to avoid setState in effect (lint + perf)
   const lastNotifiedRef = useRef<number>(0);
@@ -154,9 +181,12 @@ export function useNotifications({
 
   // Keep the SW cache fresh with the latest Bz and OVATION probability so background
   // checks can apply multi-factor conditions without fetching the large OVATION grid.
+  // Track whether the cache write succeeded so we can surface a degraded-mode note in the UI.
   useEffect(() => {
     if (kp !== null && !isLoading) {
-      syncLiveStateToSw(bz, maxAuroraProbNA);
+      syncLiveStateToSw(bz, maxAuroraProbNA).then((ok) => {
+        if (!ok) setSwCacheDegraded(true);
+      });
     }
   }, [kp, bz, maxAuroraProbNA, isLoading]);
 
@@ -247,6 +277,7 @@ export function useNotifications({
 
     const perm = await Notification.requestPermission();
     setNotificationPermission(perm);
+    window.dispatchEvent(new CustomEvent("aurorawatch:permission-changed", { detail: perm }));
 
     if (perm === "granted") {
       setAlertsEnabled(true);
@@ -279,6 +310,7 @@ export function useNotifications({
     alertsEnabled,
     alertSensitivity,
     notificationError,
+    swCacheDegraded,
     setAlertsEnabled,
     setAlertSensitivity,
     handleEnableAlerts,

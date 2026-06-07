@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Clock } from "lucide-react";
-import { computeViewingWindow, computeLastNightPeak } from "../lib/utils/viewingWindow";
+import { computeViewingWindow, computeLastNightPeak, type ViewingWindowData } from "../lib/utils/viewingWindow";
 import { cloudCoverColor, getKpTier, AURORA_TIERS } from "../lib/noaa";
 import type { KpEntry, KpForecastEntry } from "../lib/api/schemas";
 
@@ -13,6 +13,7 @@ interface ViewingWindowProps {
   cloudCoverLabel?: string | null;
   locationGranted?: boolean;
   isLoading?: boolean;
+  viewingWindow?: ViewingWindowData | null;
 }
 
 function formatET(date: Date): string {
@@ -39,13 +40,15 @@ function peakToLabel(kp: number): { label: string; color: string; guidance: stri
   return { label, color, guidance };
 }
 
-export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, locationGranted, isLoading }: ViewingWindowProps) {
-  const windowData = useMemo(() => computeViewingWindow(kpForecast), [kpForecast]);
+export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, locationGranted, isLoading, viewingWindow: viewingWindowProp }: ViewingWindowProps) {
+  const windowData = useMemo(
+    () => viewingWindowProp ?? computeViewingWindow(kpForecast),
+    [viewingWindowProp, kpForecast]
+  );
   const lastNight = useMemo(() => computeLastNightPeak(kpHistory), [kpHistory]);
 
   if (!windowData.hasData && !lastNight) {
-    if (!isLoading) return null;
-    return (
+    if (isLoading) return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
         <div className="card p-5 max-w-3xl animate-pulse">
           <div className="flex items-center gap-2 mb-3">
@@ -59,6 +62,21 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
             </div>
             <div className="h-10 w-12 rounded bg-[#1e2937]" />
           </div>
+        </div>
+      </div>
+    );
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+        <div className="card p-5 max-w-3xl">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="h-3 w-3 text-[#64748b]" />
+            <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
+              TONIGHT&apos;S FORECAST
+            </span>
+          </div>
+          <p className="text-sm text-[#475569]">
+            No forecast data available for tonight&apos;s viewing window.
+          </p>
         </div>
       </div>
     );

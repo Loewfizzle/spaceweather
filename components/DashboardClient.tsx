@@ -46,6 +46,7 @@ function DashboardInner() {
     maxAuroraProbNA,
     ovationPoints,
     ovationProcessed,
+    viewingWindow,
     solarWindSpeed,
     solarWindDensity,
     bz,
@@ -126,6 +127,7 @@ function DashboardInner() {
           cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
           locationGranted={locationState.status === "set"}
           isLoading={isLoading || kpForecastQuery.isLoading}
+          viewingWindow={viewingWindow}
         />
       </ErrorBoundary>
 
