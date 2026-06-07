@@ -138,6 +138,7 @@ export function useCurrentConditions() {
   const kpQuery = useKpData();
   const ovationQuery = useOvationData();
   const solarWind = useSolarWindData();
+  const forecastQuery = useKpForecast();
 
   const latestKp = kpQuery.data ? latest(kpQuery.data) : null;
   const ovationData = ovationQuery.data;
@@ -190,6 +191,19 @@ export function useCurrentConditions() {
     [ovationData, latestKp?.Kp, solarWind.current.bz]
   );
 
+  // Max Kp across predicted forecast entries — used to surface tonight's expected
+  // peak in the guidance text when conditions are set to improve later.
+  // Uses observed === "predicted" (NOAA's own label for future entries) to avoid
+  // calling Date.now() inside useMemo (impure function, violates react-hooks/purity).
+  const forecastPeakKp = useMemo(() => {
+    if (!forecastQuery.data || forecastQuery.data.length === 0) return null;
+    const predicted = forecastQuery.data.filter(
+      (e) => e.kp != null && e.observed === 'predicted'
+    );
+    if (predicted.length === 0) return null;
+    return Math.max(...predicted.map((e) => e.kp as number));
+  }, [forecastQuery.data]);
+
   return {
     kp: latestKp?.Kp ?? null,
     kpTime: latestKp?.time_tag ?? null,
@@ -200,7 +214,7 @@ export function useCurrentConditions() {
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
-    michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
+    michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed, forecastPeakKp),
     riskLevel: getMichiganRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
     isLoading:
       kpQuery.isLoading ||

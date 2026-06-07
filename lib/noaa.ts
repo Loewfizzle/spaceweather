@@ -40,16 +40,19 @@ export function getMichiganGuidance(
   kp: number | null,
   maxProb: number | null,
   bz: number | null,
-  solarWindSpeed?: number | null
+  solarWindSpeed?: number | null,
+  forecastPeakKp?: number | null
 ): string {
   if (kp === null) return "Data loading...";
   const highSpeed = solarWindSpeed != null && solarWindSpeed > 600;
+  // Use the higher of current Kp or forecast peak to select the guidance tier
+  const effectiveKp = forecastPeakKp != null ? Math.max(kp, forecastPeakKp) : kp;
   let text: string;
-  if (kp >= 7) {
+  if (effectiveKp >= 7) {
     text = "High probability of aurora visible across the northern United States, including areas well south of the Great Lakes.";
-  } else if (kp >= 5 || (kp >= 3 && highSpeed)) {
+  } else if (effectiveKp >= 5 || (effectiveKp >= 3 && highSpeed)) {
     text = "Good chance across northern-tier states; possible in the Great Lakes region with clear dark skies.";
-  } else if (kp >= 4) {
+  } else if (effectiveKp >= 4) {
     text = "Possible across the northern states. Farther south unlikely unless skies are very dark and clear.";
   } else {
     text = "Low probability across the northern US. Best chances remain at the highest latitudes.";
@@ -60,6 +63,9 @@ export function getMichiganGuidance(
     text += " Elevated solar wind speed may enhance activity if Bz turns southward.";
   } else if (maxProb !== null && maxProb >= 20) {
     text += " Elevated probabilities across North America increase the odds.";
+  }
+  if (forecastPeakKp != null && forecastPeakKp > kp + 0.5) {
+    text += ` Kp ${forecastPeakKp.toFixed(1)} forecast as tonight's peak.`;
   }
   return text;
 }
