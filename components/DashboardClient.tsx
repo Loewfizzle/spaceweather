@@ -133,6 +133,12 @@ function DashboardInner() {
         />
       </SectionErrorBoundary>
 
+      <SectionErrorBoundary message="Aurora map unavailable.">
+        <Suspense fallback={<MapSectionSkeleton />}>
+          <AuroraMapSection userProb={userLocationProb} ovationPoints={ovationPoints} />
+        </Suspense>
+      </SectionErrorBoundary>
+
       <SectionErrorBoundary
         message="Current conditions data unavailable."
         className="max-w-7xl mx-auto px-4 sm:px-6 pb-10"
@@ -148,12 +154,6 @@ function DashboardInner() {
           solarWindError={solarWindError}
           ovationProcessed={ovationProcessed}
         />
-      </SectionErrorBoundary>
-
-      <SectionErrorBoundary message="Aurora map unavailable.">
-        <Suspense fallback={<MapSectionSkeleton />}>
-          <AuroraMapSection userProb={userLocationProb} ovationPoints={ovationPoints} />
-        </Suspense>
       </SectionErrorBoundary>
 
       <SectionErrorBoundary message="Kp forecast unavailable.">
@@ -181,11 +181,11 @@ function DashboardInner() {
         </Suspense>
       </SectionErrorBoundary>
 
+      <DataUnderstanding />
+
       <SectionErrorBoundary message="Meteor activity data unavailable.">
         <MeteorActivity />
       </SectionErrorBoundary>
-
-      <DataUnderstanding />
 
       <SectionErrorBoundary message="Alerts unavailable.">
         <AlertsPanel

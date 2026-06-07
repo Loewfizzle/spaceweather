@@ -53,14 +53,14 @@ export function LoadingSkeleton({
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-          <div className="section-title">CURRENT CONDITIONS</div>
-          <LoadingSkeleton variant="metrics" count={4} />
-        </div>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
           <div className="section-title">AURORA MAP — OVATION MODEL</div>
           <LoadingSkeleton variant="map" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+          <div className="section-title">CURRENT CONDITIONS</div>
+          <LoadingSkeleton variant="metrics" count={4} />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
@@ -73,16 +73,16 @@ export function LoadingSkeleton({
           <LoadingSkeleton variant="metrics" count={4} />
         </div>
 
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+          <LoadingSkeleton variant="card" />
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
           <div className="section-title">METEOR ACTIVITY</div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <LoadingSkeleton variant="card" />
             <LoadingSkeleton variant="list" count={4} />
           </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
-          <LoadingSkeleton variant="card" />
         </div>
       </div>
     );
