@@ -39,7 +39,7 @@ function locationBlurb(userLat: number, kp: number, label?: string | null): stri
   if (diff >= 5)   return `${name} is comfortably within the viewing zone at this activity level — good conditions for you tonight.`;
   if (diff >= 0)   return `${name} is just inside the viewing zone tonight. Dark skies away from city lights will make a real difference.`;
   if (diff >= -3)  return `${name} is just outside the typical viewing zone. Conditions would need to tick up slightly for aurora to reach you.`;
-  const needed = Math.ceil(Math.max(0, (67 - userLat) / 3));
+  const needed = Math.floor(Math.max(0, (67 - userLat) / 3));
   if (diff >= -8)  return `${name} is outside the viewing zone at this Kp level. Activity would need to reach around Kp ${needed} for aurora to be likely from your area.`;
   return `${name} is well south of the aurora oval right now. Aurora reaching your area would require a very strong storm — Kp ${needed} or higher.`;
 }
@@ -105,7 +105,7 @@ export function ViewingWindowModal({
                 This is the big-picture prediction for the night ahead — think of it like a weather
                 forecast for aurora. It uses NOAA&apos;s 36-hour Kp forecast and the OVATION
                 model to estimate when conditions will peak after sunset.
-                The <span className="text-[#94a3b8]">Live Conditions</span> section shows
+                The <span className="font-semibold text-[#94a3b8]">Live Conditions</span>{" "}section shows
                 what&apos;s happening right now; this card looks ahead.
               </p>
             </div>
