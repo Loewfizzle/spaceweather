@@ -153,35 +153,32 @@ export function SolarActivity() {
       {/* Live SDO imagery */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2937]">
-            <div className="flex items-center gap-2 text-[#64748b] text-xs">
-              <Sun className="w-4 h-4" /> SUNSPOTS
-            </div>
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between px-4 py-3 border-b border-[#1e2937]">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 text-[#64748b] text-xs">
+                <Sun className="w-4 h-4" /> SUNSPOTS
+              </div>
               {sunCtx !== null && solarActivity.sunspotNumber !== null ? (
-                <div className="flex items-baseline gap-1.5">
-                  <span
-                    className="text-base font-bold tabular-nums leading-none"
-                    style={{ color: sunCtx.color }}
-                  >
-                    {solarActivity.sunspotNumber}
-                  </span>
-                  <span className="text-[10px]" style={{ color: sunCtx.color }}>
-                    {sunCtx.label}
-                  </span>
-                </div>
+                <>
+                  <div className="text-[13px] font-semibold mt-0.5" style={{ color: sunCtx.color }}>
+                    {solarActivity.sunspotNumber} · {sunCtx.label}
+                  </div>
+                  {!!solarActivity.regionsError && (
+                    <div className="text-[10px] text-amber-400/70">data delayed</div>
+                  )}
+                </>
               ) : solarActivity.regionsError ? (
-                <span className="text-[10px] text-amber-400/70">data delayed</span>
+                <div className="text-[10px] text-amber-400/70 mt-0.5">data delayed</div>
               ) : null}
-              {solarActivity.sunspotNumber !== null && (
-                <button
-                  onClick={() => setOpenModal("sunspot")}
-                  className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
-                >
-                  Details <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-              )}
             </div>
+            {solarActivity.sunspotNumber !== null && (
+              <button
+                onClick={() => setOpenModal("sunspot")}
+                className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+              >
+                Details <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
 
           <SdoImage
