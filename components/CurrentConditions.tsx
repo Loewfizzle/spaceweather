@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { Wind, Zap, Activity, Satellite, Info, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { getKpTier, AURORA_TIERS } from "../lib/noaa";
@@ -107,17 +107,6 @@ function cardIcon(id: CardId) {
 }
 
 function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, []);
-
   const content = MODAL_CONTENT[card];
 
   return (
@@ -205,6 +194,7 @@ export function CurrentConditions({
   ovationProcessed,
 }: CurrentConditionsProps) {
   const [openCard, setOpenCard] = useState<CardId | null>(null);
+  const closeCard = useCallback(() => setOpenCard(null), []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
@@ -321,7 +311,7 @@ export function CurrentConditions({
       )}
 
       {openCard && (
-        <MetricInfoModal card={openCard} onClose={() => setOpenCard(null)} />
+        <MetricInfoModal card={openCard} onClose={closeCard} />
       )}
     </div>
   );

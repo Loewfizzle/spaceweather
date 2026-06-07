@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useModal } from "../lib/hooks/useModal";
 import { Sun, TrendingUp, Zap, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
@@ -191,8 +190,6 @@ function FlareModal({
   const [goesState, setGoesState] = useState<"loading" | "loaded" | "failed">("loading");
   const impact = assessEarthImpact(recentCmes);
 
-  useModal(onClose);
-
   const timingRows = [
     { label: "Begin", time: flare.begin_time },
     { label: "Peak", time: flare.max_time },
@@ -376,8 +373,6 @@ function CmeModal({
   recentCmes: CmeSummary[];
   onClose: () => void;
 }) {
-  useModal(onClose);
-
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
@@ -530,8 +525,6 @@ function SunspotModal({
     (active, t, i) => (sunspotNumber >= t.min ? i : active),
     0
   );
-
-  useModal(onClose);
 
   return (
     <div

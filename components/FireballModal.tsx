@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useModal } from "../lib/hooks/useModal";
 import dynamic from "next/dynamic";
 import type { Fireball } from "../lib/use-noaa-data";
 import { formatFireballDate, formatFireballLocation, formatFireballEnergy, approximateLocation } from "../lib/use-noaa-data";
@@ -42,8 +41,6 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
   const [isLoadingLocation, setIsLoadingLocation] = useState(
     fireball.lat != null && fireball.lon != null
   );
-
-  useModal(onClose);
 
   // Geocode on open — abort on unmount or if coordinates change
   useEffect(() => {

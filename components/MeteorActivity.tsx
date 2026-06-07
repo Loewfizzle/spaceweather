@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { CalendarPlus, ChevronRight } from "lucide-react";
 import {
   getNextMeteorShower,
@@ -70,6 +70,7 @@ export function MeteorActivity() {
   const nextMeteor = getNextMeteorShower();
   const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
   const [now] = useState(Date.now);
+  const closeFireball = useCallback(() => setSelectedFireball(null), []);
 
   const showerDays = nextMeteor
     ? Math.ceil((nextMeteor.peakDate.getTime() - now) / (1000 * 60 * 60 * 24))
@@ -273,7 +274,7 @@ export function MeteorActivity() {
       {selectedFireball && (
         <FireballModal
           fireball={selectedFireball}
-          onClose={() => setSelectedFireball(null)}
+          onClose={closeFireball}
         />
       )}
     </div>
