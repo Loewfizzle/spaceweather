@@ -72,10 +72,10 @@ export function HeroOutlook({
           <>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
               <div
-                className="text-4xl font-semibold tracking-tighter"
+                className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug"
                 style={{ color: outlook.accentColor }}
               >
-                {outlook.status}
+                Current indicators show {outlook.status.toLowerCase()} chance of auroras tonight
               </div>
               {outlook.drivers && (
                 <div className="text-sm text-[#64748b] tabular-nums font-medium">

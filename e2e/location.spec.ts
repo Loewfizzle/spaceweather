@@ -6,7 +6,7 @@ test.describe('Location flows', () => {
     await mockNoaaApis(page);
     await page.goto('/');
     // Wait for hero to exit Loading state (requires Kp data)
-    await page.getByRole('heading', { name: /Quiet|Good|Moderate|Excellent/i }).waitFor();
+    await page.getByRole('heading', { name: /very low|low|good|moderate|excellent/i }).waitFor();
   });
 
   test('direct lat/lon entry sets location label in hero', async ({ page }) => {
@@ -30,7 +30,7 @@ test.describe('Location flows', () => {
     const page = await context.newPage();
     await mockNoaaApis(page);
     await page.goto('/');
-    await page.getByRole('heading', { name: /Quiet|Good|Moderate|Excellent/i }).waitFor();
+    await page.getByRole('heading', { name: /very low|low|good|moderate|excellent/i }).waitFor();
 
     await page.getByRole('button', { name: 'Use my location' }).click();
 

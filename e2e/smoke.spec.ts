@@ -13,11 +13,11 @@ test.describe('AuroraWatch smoke tests', () => {
 
   test('hero status heading is present', async ({ page }) => {
     await page.goto('/');
-    const statusTexts = ['Quiet', 'Good', 'Moderate', 'Excellent', 'Loading'];
+    const statusTexts = ['very low', 'low', 'good', 'moderate', 'excellent'];
     const found = await Promise.any(
       statusTexts.map((t) =>
         expect(
-          page.locator('div.tracking-tighter', { hasText: t }).first()
+          page.locator('div.tracking-tight', { hasText: t }).first()
         ).toBeVisible().then(() => true)
       )
     ).catch(() => false);

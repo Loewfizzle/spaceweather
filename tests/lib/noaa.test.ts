@@ -105,7 +105,7 @@ describe('getTonightOutlook', () => {
 
   it('returns Low or Quiet for weak conditions', () => {
     const result = getTonightOutlook(2, -2, 5, baseCme, baseFlare)
-    expect(['Low', 'Quiet']).toContain(result.status)
+    expect(['Low', 'very low']).toContain(result.status)
   })
 
   it('includes driver string with Kp, Bz, and speed when provided', () => {
@@ -1123,9 +1123,9 @@ describe('getTonightOutlook — additional tier paths', () => {
     expect(result.status).toBe('Low')
   })
 
-  it('Quiet for truly calm conditions (kp=1, bz neutral, low prob)', () => {
+  it('very low for truly calm conditions (kp=1, bz neutral, low prob)', () => {
     const result = getTonightOutlook(1, -2, 5, noCmes, noFlare)
-    expect(result.status).toBe('Quiet')
+    expect(result.status).toBe('very low')
     expect(result.accentColor).toBe('#64748b')
   })
 
@@ -1327,11 +1327,11 @@ describe('getAuroraGuidance — delegates base message to getTonightOutlook', ()
     expect(guidance.startsWith(outlook.message)).toBe(true)
   })
 
-  it('Quiet conditions: guidance starts with getTonightOutlook message', () => {
+  it('very low conditions: guidance starts with getTonightOutlook message', () => {
     const kp = 1, bz = -2, prob = 5
     const guidance = getAuroraGuidance(kp, prob, bz)
     const outlook = getTonightOutlook(kp, bz, prob, [], null)
-    expect(outlook.status).toBe('Quiet')
+    expect(outlook.status).toBe('very low')
     expect(guidance.startsWith(outlook.message)).toBe(true)
   })
 

@@ -64,13 +64,13 @@ describe('HeroOutlook', () => {
   it('renders the loading skeleton when status is Loading', () => {
     render(<HeroOutlook outlook={loadingOutlook} />);
     // Status label should NOT be present while loading
-    expect(screen.queryByText('Good')).not.toBeInTheDocument();
-    expect(screen.queryByText('Quiet')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Current indicators show/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/very low/)).not.toBeInTheDocument();
   });
 
-  it('renders the status label when data is present', () => {
+  it('renders the status sentence when data is present', () => {
     render(<HeroOutlook outlook={goodOutlook} />);
-    expect(screen.getByText('Good')).toBeInTheDocument();
+    expect(screen.getByText(/Current indicators show good chance/i)).toBeInTheDocument();
   });
 
   it('renders the drivers string when provided', () => {

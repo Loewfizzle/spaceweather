@@ -7,7 +7,7 @@ test.describe('Accessibility', () => {
     await mockNoaaApis(page);
     await page.goto('/');
     // Wait for the page to exit the initial Loading skeleton
-    await page.getByRole('heading', { name: /Quiet|Good|Moderate|Excellent/i }).waitFor();
+    await page.getByRole('heading', { name: /very low|low|good|moderate|excellent/i }).waitFor();
   });
 
   test('no critical or serious axe violations on homepage', async ({ page }) => {

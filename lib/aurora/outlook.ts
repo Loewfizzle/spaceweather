@@ -9,7 +9,7 @@ export interface CityAuroraProb {
 }
 
 export interface TonightOutlook {
-  status: 'Excellent' | 'Good' | 'Moderate' | 'Low' | 'Quiet' | 'Loading';
+  status: 'Excellent' | 'Good' | 'Moderate' | 'Low' | 'very low' | 'Loading';
   message: string;
   reasons: string[];
   accentColor: string;
@@ -159,7 +159,7 @@ export function getTonightOutlook(
     accentColor = AURORA_TIERS.moderate.color;
     if (isFavorableBz) reasons.push('Southward Bz provides some opportunity');
   } else {
-    status = 'Quiet';
+    status = 'very low';
     message = 'Very low chance tonight.';
     accentColor = '#64748b';
   }
