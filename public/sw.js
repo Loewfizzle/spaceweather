@@ -53,39 +53,48 @@ async function checkAurora() {
 
     const raw = await res.json();
 
-    // NOAA returns string[][] (header row + data rows); find the Kp column index
-    // from the header then read the last (most-recent) data row.
-    // MIRROR of lib/utils/swKpParsing.ts — SW has no module imports.
-    // KEEP IN SYNC: any change to parseKpFromTabular in swKpParsing.ts must be
-    // replicated here. Canonical signature: parseKpFromTabular(raw: unknown): number | null
-    function parseKpFromTabular(data) {
-      if (!Array.isArray(data) || data.length < 2) return null;
-      const headers = data[0];
-      if (!Array.isArray(headers)) return null;
-      const kpColIdx = headers.indexOf('Kp');
-      if (kpColIdx === -1) return null;
-      const lastRow = data[data.length - 1];
-      if (!Array.isArray(lastRow)) return null;
-      const kp = parseFloat(String(lastRow[kpColIdx]));
-      return isNaN(kp) ? null : kp;
-    }
+    // <INLINE_START>
+/**
+ * Shared service-worker helpers — plain JavaScript, no imports.
+ * Inlined into public/sw.js at build time by scripts/inlineSwFunctions.js.
+ * Also imported by TypeScript modules (swKpParsing.ts, swNotifications.ts).
+ */
+
+/**
+ * @param {unknown} data
+ * @returns {number | null}
+ */
+function parseKpFromTabular(data) {
+  if (!Array.isArray(data) || data.length < 2) return null;
+  const headers = data[0];
+  if (!Array.isArray(headers)) return null;
+  const kpColIdx = headers.indexOf('Kp');
+  if (kpColIdx === -1) return null;
+  const lastRow = data[data.length - 1];
+  if (!Array.isArray(lastRow)) return null;
+  const kp = parseFloat(String(lastRow[kpColIdx]));
+  return isNaN(kp) ? null : kp;
+}
+
+/**
+ * @param {number | null} kp
+ * @param {{ kp: number; prob: number }} prefs
+ * @param {number | null} cachedBz
+ * @param {number | null} cachedMaxProb
+ * @returns {boolean}
+ */
+function shouldTriggerNotification(kp, prefs, cachedBz, cachedMaxProb) {
+  if (kp === null) return false;
+  const kpHit   = kp >= prefs.kp;
+  const probHit = cachedMaxProb !== null && cachedMaxProb >= prefs.prob;
+  const bzHit   = cachedBz !== null && cachedBz <= -5;
+  return kpHit || probHit || bzHit;
+}
+// <INLINE_END>
 
     const kp = parseKpFromTabular(raw);
     if (kp === null) return;
 
-    // Multi-factor trigger check.
-    // MIRROR of lib/utils/swNotifications.ts — SW has no module imports.
-    // KEEP IN SYNC: any change to shouldTriggerNotification in swNotifications.ts must be
-    // replicated here. Canonical signature:
-    //   shouldTriggerNotification(kp: number|null, prefs: {kp:number,prob:number},
-    //                             cachedBz: number|null, cachedMaxProb: number|null): boolean
-    function shouldTriggerNotification(kpVal, userPrefs, bz, maxProb) {
-      if (kpVal === null) return false;
-      const kpHit   = kpVal >= userPrefs.kp;
-      const probHit = maxProb !== null && maxProb >= userPrefs.prob;
-      const bzHit   = bz !== null && bz <= -5;
-      return kpHit || probHit || bzHit;
-    }
     if (!shouldTriggerNotification(kp, prefs, cachedBz, cachedMaxProb)) return;
 
     const kpHit   = kp >= prefs.kp;

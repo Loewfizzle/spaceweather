@@ -5,7 +5,7 @@
   "description": "Premium real-time aurora visibility and space weather dashboard for the United States and northern North America. Live NOAA SWPC data.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/inlineSwFunctions.js && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
