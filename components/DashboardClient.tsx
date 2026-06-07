@@ -155,6 +155,7 @@ function DashboardInner() {
           kpTime={kpTime}
           solarWindError={solarWindError}
           ovationProcessed={ovationProcessed}
+          userLocationProb={userLocationProb}
         />
       </SectionErrorBoundary>
 
