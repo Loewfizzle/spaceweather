@@ -108,7 +108,7 @@ export function DashboardClient() {
     <>
       {/* Hero outlook card — lives below the server-rendered h1 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
-        <ErrorBoundary fallback={<ErrorState message="Outlook unavailable — check back shortly." />}>
+        <ErrorBoundary fallback={(reset) => <ErrorState message="Outlook unavailable — check back shortly." onRetry={reset} />}>
           <HeroOutlook
             outlook={tonightOutlook}
             error={error}
@@ -126,35 +126,46 @@ export function DashboardClient() {
         </ErrorBoundary>
       </div>
 
-      <ViewingWindow
-        kpForecast={kpForecastQuery.data ?? []}
-        kpHistory={kpHistory}
-        cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
-        cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
-        locationGranted={geoState.status === "granted"}
-        isLoading={isLoading || kpForecastQuery.isLoading}
-      />
+      <ErrorBoundary fallback={(reset) => (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+          <ErrorState message="Forecast window unavailable." onRetry={reset} />
+        </div>
+      )}>
+        <ViewingWindow
+          kpForecast={kpForecastQuery.data ?? []}
+          kpHistory={kpHistory}
+          cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
+          cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
+          locationGranted={geoState.status === "granted"}
+          isLoading={isLoading || kpForecastQuery.isLoading}
+        />
+      </ErrorBoundary>
 
-      <CurrentConditions
-        solarWindSpeed={solarWindSpeed}
-        solarWindDensity={solarWindDensity}
-        bz={bz}
-        kp={kp}
-        maxAuroraProbNA={maxAuroraProbNA}
-        isLoading={isLoading}
-        latestGlobalUpdate={latestGlobalUpdate}
-        kpTime={kpTime}
-        solarWindError={solarWindError}
-        ovationProcessed={ovationProcessed}
-      />
+      <ErrorBoundary fallback={(reset) => (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+          <ErrorState message="Current conditions data unavailable." onRetry={reset} />
+        </div>
+      )}>
+        <CurrentConditions
+          solarWindSpeed={solarWindSpeed}
+          solarWindDensity={solarWindDensity}
+          bz={bz}
+          kp={kp}
+          maxAuroraProbNA={maxAuroraProbNA}
+          isLoading={isLoading}
+          latestGlobalUpdate={latestGlobalUpdate}
+          kpTime={kpTime}
+          solarWindError={solarWindError}
+          ovationProcessed={ovationProcessed}
+        />
+      </ErrorBoundary>
 
       <ErrorBoundary
-        fallback={
-          <ErrorState
-            message="Aurora map unavailable. Try refreshing."
-            className="max-w-7xl mx-auto px-4 sm:px-6 pb-12"
-          />
-        }
+        fallback={(reset) => (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+            <ErrorState message="Aurora map unavailable." onRetry={reset} />
+          </div>
+        )}
       >
         <Suspense fallback={<MapSectionSkeleton />}>
           {/* Pass pre-computed geo state so AuroraMap can render the user pin
@@ -168,12 +179,11 @@ export function DashboardClient() {
       </ErrorBoundary>
 
       <ErrorBoundary
-        fallback={
-          <ErrorState
-            message="Kp forecast unavailable."
-            className="max-w-7xl mx-auto px-4 sm:px-6 pb-12"
-          />
-        }
+        fallback={(reset) => (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+            <ErrorState message="Kp forecast unavailable." onRetry={reset} />
+          </div>
+        )}
       >
         <Suspense fallback={<KpOutlookSkeleton />}>
           <KpForecast michiganGuidance={michiganGuidance} />
@@ -181,12 +191,11 @@ export function DashboardClient() {
       </ErrorBoundary>
 
       <ErrorBoundary
-        fallback={
-          <ErrorState
-            message="Solar activity data unavailable."
-            className="max-w-7xl mx-auto px-4 sm:px-6 pb-10"
-          />
-        }
+        fallback={(reset) => (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+            <ErrorState message="Solar activity data unavailable." onRetry={reset} />
+          </div>
+        )}
       >
         <Suspense fallback={<SolarActivitySkeleton />}>
           <SolarActivity />
@@ -194,12 +203,11 @@ export function DashboardClient() {
       </ErrorBoundary>
 
       <ErrorBoundary
-        fallback={
-          <ErrorState
-            message="Meteor activity data unavailable."
-            className="max-w-7xl mx-auto px-4 sm:px-6 pb-12"
-          />
-        }
+        fallback={(reset) => (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+            <ErrorState message="Meteor activity data unavailable." onRetry={reset} />
+          </div>
+        )}
       >
         <MeteorActivity />
       </ErrorBoundary>
@@ -207,12 +215,11 @@ export function DashboardClient() {
       <DataUnderstanding />
 
       <ErrorBoundary
-        fallback={
-          <ErrorState
-            message="Alerts unavailable."
-            className="max-w-7xl mx-auto px-4 sm:px-6 pb-12"
-          />
-        }
+        fallback={(reset) => (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+            <ErrorState message="Alerts unavailable." onRetry={reset} />
+          </div>
+        )}
       >
         <AlertsPanel
           riskLevel={riskLevel}

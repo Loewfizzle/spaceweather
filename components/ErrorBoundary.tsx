@@ -5,7 +5,7 @@ import { logDataError } from "../lib/utils/retry";
 
 interface Props {
   children: ReactNode;
-  fallback?: ReactNode;
+  fallback?: ReactNode | ((resetError: () => void) => ReactNode);
 }
 
 interface State {
@@ -13,10 +13,6 @@ interface State {
   error?: Error;
 }
 
-/**
- * Top-level Error Boundary for the dashboard.
- * Catches render errors in child components (e.g. map, charts) gracefully.
- */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -33,21 +29,26 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const resetError = () => this.setState({ hasError: false });
+
+      if (typeof this.props.fallback === 'function') {
+        return this.props.fallback(resetError);
+      }
+
+      if (this.props.fallback != null) {
+        return this.props.fallback;
+      }
+
       return (
-        this.props.fallback || (
-          <div className="card p-8 text-center">
-            <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-            <p className="text-[#94a3b8] mb-4 text-sm">
-              The dashboard encountered an unexpected error. Please refresh the page.
-            </p>
-            <button
-              onClick={() => this.setState({ hasError: false })}
-              className="button"
-            >
-              Try again
-            </button>
-          </div>
-        )
+        <div className="card p-8 text-center">
+          <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+          <p className="text-[#94a3b8] mb-4 text-sm">
+            The dashboard encountered an unexpected error. Please refresh the page.
+          </p>
+          <button onClick={resetError} className="button">
+            Try again
+          </button>
+        </div>
       );
     }
 

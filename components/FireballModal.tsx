@@ -36,6 +36,11 @@ function resolveLocationFallback(fireball: Fireball): string {
 
 export function FireballModal({ fireball, onClose }: FireballModalProps) {
   const [location, setLocation] = useState<string | null>(null);
+  // True while the geocode request is in flight — prevents the raw coordinate
+  // string from flashing before the city name resolves.
+  const [isLoadingLocation, setIsLoadingLocation] = useState(
+    fireball.lat != null && fireball.lon != null
+  );
 
   // Lock body scroll while modal is open
   useEffect(() => {
@@ -51,19 +56,38 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Geocode on open
+  // Geocode on open — abort on unmount or if coordinates change
   useEffect(() => {
     if (fireball.lat == null || fireball.lon == null) return;
     let cancelled = false;
-    fetch(`/api/geocode?lat=${fireball.lat}&lon=${fireball.lon}`)
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8_000);
+
+    fetch(`/api/geocode?lat=${fireball.lat}&lon=${fireball.lon}`, {
+      signal: controller.signal,
+    })
       .then((r) => r.json())
-      .then((data) => { if (!cancelled) setLocation(data.location || null); })
-      .catch(() => { if (!cancelled) setLocation(null); });
-    return () => { cancelled = true; };
+      .then((data) => {
+        if (!cancelled) {
+          setLocation(data.location || null);
+          setIsLoadingLocation(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsLoadingLocation(false);
+      });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [fireball.lat, fireball.lon]);
 
   const hasMap = fireball.lat != null && fireball.lon != null;
-  const locationDisplay = location ?? resolveLocationFallback(fireball);
+  const locationDisplay = isLoadingLocation
+    ? "Locating…"
+    : (location ?? resolveLocationFallback(fireball));
 
   return (
     <div
