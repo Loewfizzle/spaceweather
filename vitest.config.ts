@@ -26,21 +26,25 @@ export default defineConfig({
         'next.config.ts',
       ],
       thresholds: {
-        // Global floor: measured baseline minus 5 pp, rounded down.
-        // Metric       measured   threshold   calculation
-        // statements   33.06      28          33.06 - 5 = 28.06 → 28
-        // branches     89.17      84          89.17 - 5 = 84.17 → 84
-        // functions    86.30      81          86.30 - 5 = 81.30 → 81
-        // lines        33.06      28          33.06 - 5 = 28.06 → 28
-        statements: 28,
-        branches: 84,
-        functions: 81,
-        lines: 28,
+        // Global floor — raised after adding component tests.
+        // Functions baseline dropped slightly vs prior baseline because the new
+        // useAutoAlert.ts and swCacheSync.ts hooks add client-side code that is
+        // intentionally not unit-tested in isolation.
+        statements: 38,
+        lines: 38,
+        branches: 86,
+        functions: 80,
         // Critical pure-logic files: lock in high existing coverage
         'lib/aurora/kp.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
         // branches at 85.71% actual; threshold set 5 pp below that
         'lib/aurora/ovation.ts': { statements: 90, branches: 80, functions: 90, lines: 90 },
         'lib/utils/retry.ts': { statements: 85, branches: 85, functions: 85, lines: 85 },
+        // New component tests — minimum coverage floors.
+        // CurrentConditions: the MetricInfoModal code paths (4 card types) are
+        // partially covered; functions/branches stay below 70% because many
+        // modal code paths require separate opens per card.
+        'components/CurrentConditions.tsx': { statements: 70, branches: 38, functions: 45, lines: 70 },
+        'components/ViewingWindow.tsx': { statements: 70, branches: 60, functions: 70, lines: 70 },
       },
     },
   },

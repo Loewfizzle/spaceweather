@@ -11,7 +11,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:coverage:check": "vitest run --coverage"
+    "test:coverage:check": "vitest run --coverage",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.0",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.7",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
