@@ -90,10 +90,7 @@ export function HeroOutlook({
             {displayedCities.length > 0 && (
               <div className="flex items-center gap-1.5 border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
                 <span className="text-[11px] text-[#64748b]">Aurora chances now</span>
-                <span className="inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] font-semibold tracking-widest px-1.5 py-0.5 rounded-full">
-                  <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                  LIVE
-                </span>
+                <span className="text-[9px] font-semibold tracking-widest text-emerald-400">LIVE</span>
               </div>
             )}
             {/* User location row — same structure as city rows; differentiated by color + weight only */}
