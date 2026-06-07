@@ -260,9 +260,10 @@ export interface EarthImpactAssessment {
  * Ignores CMEs older than 5 days — by then they've already arrived or missed.
  */
 export function assessEarthImpact(recentCmes: CmeSummary[]): EarthImpactAssessment {
-  const fresh = recentCmes.filter(
-    (c) => Date.now() - new Date(c.time).getTime() < 1000 * 60 * 60 * 24 * 5
-  );
+  const fresh = recentCmes.filter((c) => {
+    const t = new Date(c.time).getTime();
+    return isFinite(t) && Date.now() - t < 1000 * 60 * 60 * 24 * 5;
+  });
 
   const likely = fresh.find((c) => c.earthImpact === "Likely Earth impact");
   if (likely) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Sun, TrendingUp, Zap, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
@@ -188,7 +188,7 @@ function FlareModal({
   const duration = flareDuration(flare.begin_time, flare.end_time);
   const peakTime = flare.max_time || flare.time_tag;
   const [goesState, setGoesState] = useState<"loading" | "loaded" | "failed">("loading");
-  const impact = assessEarthImpact(recentCmes);
+  const impact = useMemo(() => assessEarthImpact(recentCmes), [recentCmes]);
 
   const timingRows = [
     { label: "Begin", time: flare.begin_time },

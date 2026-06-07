@@ -186,14 +186,15 @@ export function useCurrentConditions() {
   }, [ovationData, maxProbNA, latestKp]);
 
   // Observability: expose fetching state and separate non-critical errors for UI indicators
-  const criticalError = kpQuery.error || ovationQuery.error;
+  const kpError = kpQuery.error;
+  const ovationError = ovationQuery.error;
+  const criticalError = kpError || ovationError;
   const nonCriticalError = solarWind.error;
 
   useEffect(() => {
-    if (criticalError) {
-      logDataError('Critical data (Kp/OVATION)', criticalError, ['useCurrentConditions'], true);
-    }
-  }, [criticalError]);
+    if (kpError) logDataError('Critical data (Kp)', kpError, ['useCurrentConditions'], true);
+    if (ovationError) logDataError('Critical data (OVATION)', ovationError, ['useCurrentConditions'], true);
+  }, [kpError, ovationError]);
 
   const currentBz = solarWind.current.bz;
   const currentSpeed = solarWind.current.speed;
@@ -256,8 +257,10 @@ export function useCurrentConditions() {
       kpQuery.isLoading ||
       ovationQuery.isLoading ||
       solarWind.isLoading,
-    // Critical error for hero (only Kp/OVATION)
+    // Critical error for hero (only Kp/OVATION); also exposed individually for diagnostics
     error: criticalError,
+    kpError,
+    ovationError,
     // For partial data UI (e.g. show subtle note in Current Conditions when solar wind delayed)
     solarWindError: nonCriticalError,
     isFetching: kpQuery.isFetching || ovationQuery.isFetching || solarWind.plasma.isFetching || solarWind.mag.isFetching,

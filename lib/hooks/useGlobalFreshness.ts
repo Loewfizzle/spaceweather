@@ -12,7 +12,7 @@ import { useMemo } from "react";
 // "2026-06-05 23:00:00.000" (space-sep, no Z), "2026-06-05T23:00:00Z" (already correct), "2026-06-05" (date-only, parses as UTC natively).
 // Normalize to unambiguous UTC before constructing Date objects.
 function parseNoaaTimestamp(s: string): Date {
-  const normalized = s.replace(' ', 'T');
+  const normalized = s.replaceAll(' ', 'T');
   const hasOffset = /Z$|[+-]\d{2}:?\d{2}$/.test(normalized);
   return new Date(hasOffset ? normalized : normalized + 'Z');
 }

@@ -90,13 +90,16 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
 
   const stormDays = useStormDays(kpForecastData);
 
-  const trend =
-    kpHistory.length > 1
-      ? (kpHistory[kpHistory.length - 1].Kp ?? 0) >
-        (kpHistory[kpHistory.length - 2].Kp ?? 0)
-        ? "Rising — elevated activity possible if trend continues."
-        : "Stable or declining — conditions quieting."
-      : "Based on current solar wind and Bz.";
+  const trend = (() => {
+    if (kpHistory.length < 4) return "Based on current solar wind and Bz.";
+    const avg = (entries: typeof kpHistory) =>
+      entries.reduce((s, e) => s + (e.Kp ?? 0), 0) / entries.length;
+    const recent = avg(kpHistory.slice(-3));
+    const prior  = avg(kpHistory.slice(-6, -3));
+    return recent > prior
+      ? "Rising — elevated activity possible if trend continues."
+      : "Stable or declining — conditions quieting.";
+  })();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
