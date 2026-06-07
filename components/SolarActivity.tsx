@@ -652,38 +652,31 @@ export function SolarActivity() {
             <div className="flex items-center gap-2 text-[#64748b] text-xs">
               <Sun className="w-4 h-4" /> SUNSPOTS
             </div>
-            {solarActivity.sunspotNumber !== null && (
-              <button
-                onClick={() => setShowSunspotModal(true)}
-                className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
-              >
-                Details <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Prominent sunspot number — focal point of the card header */}
-          <div className="px-4 py-5 border-b border-[#1e2937] flex flex-col items-center">
-            {sunCtx !== null && solarActivity.sunspotNumber !== null ? (
-              <>
-                <div
-                  className="text-5xl font-bold tracking-tighter tabular-nums leading-none"
-                  style={{ color: sunCtx.color }}
+            <div className="flex items-center gap-3">
+              {sunCtx !== null && solarActivity.sunspotNumber !== null ? (
+                <div className="flex items-baseline gap-1.5">
+                  <span
+                    className="text-base font-bold tabular-nums leading-none"
+                    style={{ color: sunCtx.color }}
+                  >
+                    {solarActivity.sunspotNumber}
+                  </span>
+                  <span className="text-[10px]" style={{ color: sunCtx.color }}>
+                    {sunCtx.label}
+                  </span>
+                </div>
+              ) : solarActivity.regionsError ? (
+                <span className="text-[10px] text-amber-400/70">data delayed</span>
+              ) : null}
+              {solarActivity.sunspotNumber !== null && (
+                <button
+                  onClick={() => setShowSunspotModal(true)}
+                  className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
                 >
-                  {solarActivity.sunspotNumber}
-                </div>
-                <div className="text-xs mt-1.5 font-medium" style={{ color: sunCtx.color }}>
-                  {sunCtx.label}
-                </div>
-              </>
-            ) : solarActivity.regionsError ? (
-              <span className="text-xs text-amber-400/70">data delayed</span>
-            ) : (
-              <div className="space-y-2">
-                <div className="h-10 w-14 mx-auto rounded animate-pulse bg-[#1e2937]" />
-                <div className="h-3 w-20 mx-auto rounded animate-pulse bg-[#1e2937]" />
-              </div>
-            )}
+                  Details <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
           <SdoImage
