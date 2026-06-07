@@ -67,11 +67,11 @@ const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }>
       {
         heading: "Visibility by latitude",
         rows: [
-          { kp: "Kp 3–4", cities: "Fairbanks AK, Whitehorse YT",               lat: ">60°N"    },
-          { kp: "Kp 5",   cities: "Minneapolis MN, Seattle WA, Montreal QC",   lat: "~45–50°N" },
-          { kp: "Kp 6",   cities: "Chicago IL, Detroit MI, Portland OR",        lat: "~42–45°N" },
-          { kp: "Kp 7",   cities: "Denver CO, Indianapolis IN, New York NY",    lat: "~40–43°N" },
-          { kp: "Kp 8–9", cities: "Dallas TX, Atlanta GA, Los Angeles CA",      lat: "~30–35°N" },
+          { kp: "Kp 3–4", cities: "Fairbanks, Whitehorse",                 lat: ">60°N"    },
+          { kp: "Kp 5",   cities: "Minneapolis, Seattle, Montreal",       lat: "~45–50°N" },
+          { kp: "Kp 6",   cities: "Chicago, Detroit, Portland",           lat: "~42–45°N" },
+          { kp: "Kp 7",   cities: "Denver, Indianapolis, New York",       lat: "~40–43°N" },
+          { kp: "Kp 8–9", cities: "Dallas, Atlanta, Los Angeles",         lat: "~30–35°N" },
         ],
       },
       {
