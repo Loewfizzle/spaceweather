@@ -210,9 +210,10 @@ export function CurrentConditions({
           <span
             className="animate-pulse block rounded-full flex-shrink-0"
             style={{ width: '7px', height: '7px', backgroundColor: dotColor }}
+            title={dotColor === '#22c55e' ? 'Data feed live' : dotColor === '#eab308' ? 'Data delayed' : 'Feed error'}
           />
         )}
-        CURRENT CONDITIONS
+        LIVE CONDITIONS
       </div>
       {isLoading ? (
         <LoadingSkeleton variant="metrics" count={4} />

@@ -6,9 +6,9 @@ test.describe('AuroraWatch smoke tests', () => {
     expect(response?.status()).toBe(200);
   });
 
-  test('CURRENT CONDITIONS section is visible', async ({ page }) => {
+  test('LIVE CONDITIONS section is visible', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('div.section-title', { hasText: 'CURRENT CONDITIONS' }).first()).toBeVisible();
+    await expect(page.locator('div.section-title', { hasText: 'LIVE CONDITIONS' }).first()).toBeVisible();
   });
 
   test('hero status heading is present', async ({ page }) => {

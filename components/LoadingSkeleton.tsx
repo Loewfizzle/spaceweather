@@ -59,7 +59,7 @@ export function LoadingSkeleton({
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-          <div className="section-title">CURRENT CONDITIONS</div>
+          <div className="section-title">LIVE CONDITIONS</div>
           <LoadingSkeleton variant="metrics" count={4} />
         </div>
 
