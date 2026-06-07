@@ -45,7 +45,8 @@ export function LoadingSkeleton({
             </div>
             <div className={`${base} h-5 w-72`} />
           </div>
-          <div className="mt-8 card p-6 max-w-3xl">
+          <div className="section-title">AURORA OUTLOOK</div>
+          <div className="mt-0 card p-6 max-w-3xl">
             <div className={`${base} h-2.5 w-40 mb-3`} />
             <div className={`${base} h-8 w-32 mb-3`} />
             <div className={`${base} h-4 w-full mb-1`} />
