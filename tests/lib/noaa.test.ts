@@ -264,7 +264,7 @@ describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
   })
 
   it('computes max probability in North America using 0-360 coordinates', () => {
-    const max = maxOvationNorthAmerica(mockOvation)
+    const max = maxOvationNorthAmerica(filterOvationCoordinates(mockOvation.coordinates, 0))
     expect(max).toBe(55)
   })
 
@@ -385,20 +385,20 @@ describe('getAuroraGuidance', () => {
 // ============================================
 describe('getCityAuroraProbabilities', () => {
   it('returns 6 cities', () => {
-    const result = getCityAuroraProbabilities(null, null, null)
+    const result = getCityAuroraProbabilities([], null, null)
     expect(result).toHaveLength(6)
     expect(result[0].name).toBe('Fairbanks')
     expect(result[5].name).toBe('Presque Isle')
   })
 
   it('returns 0 for all cities when no data and no kp', () => {
-    const result = getCityAuroraProbabilities(null, null, null)
+    const result = getCityAuroraProbabilities([], null, null)
     result.forEach(c => expect(c.prob).toBe(0))
   })
 
-  it('uses Kp-based fallback when ovation is null', () => {
+  it('uses Kp-based fallback when points are empty', () => {
     // Kp 6 should give Fairbanks (65°N) a meaningful probability
-    const result = getCityAuroraProbabilities(null, 6, null)
+    const result = getCityAuroraProbabilities([], 6, null)
     expect(result[0].state).toBe('AK')
     expect(result[0].prob).toBeGreaterThan(0)
     // All 6 cities are at high latitudes; verify all have non-negative probs
@@ -415,21 +415,21 @@ describe('getCityAuroraProbabilities', () => {
         [268, 47, 70],   // near Duluth
       ],
     }
-    const result = getCityAuroraProbabilities(ovation, 5, null)
+    const result = getCityAuroraProbabilities(filterOvationCoordinates(ovation.coordinates, 0), 5, null)
     expect(result[0].prob).toBe(80)   // Fairbanks → high-latitude point
     expect(result[2].prob).toBe(70)   // Duluth → mid-latitude point
   })
 
   it('applies Bz boost when bz <= -5', () => {
-    const base = getCityAuroraProbabilities(null, 5, null)
-    const boosted = getCityAuroraProbabilities(null, 5, -8)
+    const base = getCityAuroraProbabilities([], 5, null)
+    const boosted = getCityAuroraProbabilities([], 5, -8)
     // bz=-8: abs(-8+5)*1.5 = 4.5 → round to 5, so boosted >= base
     boosted.forEach((c, i) => expect(c.prob).toBeGreaterThanOrEqual(base[i].prob))
   })
 
   it('clamps probability to 0–99', () => {
     // Very high Kp + very negative Bz should not exceed 99
-    const result = getCityAuroraProbabilities(null, 9, -30)
+    const result = getCityAuroraProbabilities([], 9, -30)
     result.forEach(c => {
       expect(c.prob).toBeGreaterThanOrEqual(0)
       expect(c.prob).toBeLessThanOrEqual(99)
@@ -696,12 +696,12 @@ describe('getNearestCityName', () => {
 // ============================================
 describe('getLocationAuroraProb', () => {
   it('returns 0 with no OVATION data and kp=null', () => {
-    expect(getLocationAuroraProb(44.0, -85.0, null, null, null)).toBe(0)
+    expect(getLocationAuroraProb(44.0, -85.0, [], null, null)).toBe(0)
   })
 
-  it('uses Kp-based fallback when OVATION is null', () => {
+  it('uses Kp-based fallback when points are empty', () => {
     // High Kp should give a meaningful probability at a northern latitude
-    const prob = getLocationAuroraProb(46.0, -87.0, null, 7, null)
+    const prob = getLocationAuroraProb(46.0, -87.0, [], 7, null)
     expect(prob).toBeGreaterThan(0)
     expect(prob).toBeLessThanOrEqual(99)
   })
@@ -713,18 +713,18 @@ describe('getLocationAuroraProb', () => {
         [260, 46, 5],   // lon 260 → -100°, far from query point
       ],
     }
-    const prob = getLocationAuroraProb(44.0, -85.0, ovation, 5, null)
+    const prob = getLocationAuroraProb(44.0, -85.0, filterOvationCoordinates(ovation.coordinates, 0), 5, null)
     expect(prob).toBe(60)
   })
 
   it('applies Bz boost for strongly southward Bz', () => {
-    const base = getLocationAuroraProb(44.0, -85.0, null, 5, null)
-    const boosted = getLocationAuroraProb(44.0, -85.0, null, 5, -8)
+    const base = getLocationAuroraProb(44.0, -85.0, [], 5, null)
+    const boosted = getLocationAuroraProb(44.0, -85.0, [], 5, -8)
     expect(boosted).toBeGreaterThan(base)
   })
 
   it('clamps result to 0–99', () => {
-    const prob = getLocationAuroraProb(60.0, -100.0, null, 9, -30)
+    const prob = getLocationAuroraProb(60.0, -100.0, [], 9, -30)
     expect(prob).toBeGreaterThanOrEqual(0)
     expect(prob).toBeLessThanOrEqual(99)
   })

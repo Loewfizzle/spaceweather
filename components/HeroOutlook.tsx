@@ -4,8 +4,8 @@ import { useState } from "react";
 import { MapPin, Loader2, Cloud, Navigation } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
-import type { LocationSource } from "../lib/hooks/useUserLocation";
 import { cloudCoverColor, getAuroraColor } from "../lib/noaa";
+import { useUserLocationContext } from "../lib/context/UserLocationContext";
 import { ShareButton } from "./ShareButton";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { InstallPrompt } from "./InstallPrompt";
@@ -17,13 +17,6 @@ interface HeroOutlookProps {
   error?: Error | null;
   isFetching?: boolean;
   userLocationProb?: number | null;
-  userLocationLabel?: string | null;
-  locationSource?: LocationSource | null;
-  onRequestLocation?: () => void;
-  isLocating?: boolean;
-  locationTimedOut?: boolean;
-  onSetManualLocation?: (lat: number, lon: number, label: string) => void;
-  onClearLocation?: () => void;
   cloudCoverPct?: number | null;
   cloudCoverLabel?: string | null;
   kp?: number | null;
@@ -34,18 +27,20 @@ export function HeroOutlook({
   error,
   isFetching,
   userLocationProb,
-  userLocationLabel,
-  locationSource,
-  onRequestLocation,
-  isLocating,
-  locationTimedOut,
-  onSetManualLocation,
-  onClearLocation,
   cloudCoverPct,
   cloudCoverLabel,
   kp,
   latestUpdate,
 }: HeroOutlookProps) {
+  const {
+    userLocationLabel,
+    locationSource,
+    onRequestLocation,
+    isLocating,
+    locationTimedOut,
+    setManualLocation: onSetManualLocation,
+    clearLocation: onClearLocation,
+  } = useUserLocationContext();
   const [showPicker, setShowPicker] = useState(false);
 
   const displayedCities = outlook.cityProbs?.slice(0, 6) ?? [];

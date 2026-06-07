@@ -25,6 +25,7 @@ import {
 import {
   latest,
   maxOvationNorthAmerica,
+  filterOvationCoordinates,
   parseRecentCmes,
   currentSunspotNumber,
   getTonightOutlook,
@@ -145,10 +146,17 @@ export function useCurrentConditions() {
   const latestKp = kpQuery.data ? latest(kpQuery.data) : null;
   const ovationData = ovationQuery.data;
 
-  // maxOvationNorthAmerica walks the full OVATION grid (~65k entries); memoize on data identity.
-  const maxProbNA = useMemo(
-    () => (ovationData ? maxOvationNorthAmerica(ovationData) : null),
+  // filterOvationCoordinates walks the full OVATION grid (~65k entries); memoize once so
+  // maxOvationNorthAmerica, getCityAuroraProbabilities, and getLocationAuroraProb all share
+  // the same filtered array rather than each paying the full scan cost independently.
+  const ovationPoints = useMemo(
+    () => (ovationData ? filterOvationCoordinates(ovationData.coordinates, 0) : []),
     [ovationData]
+  );
+
+  const maxProbNA = useMemo(
+    () => (ovationData ? maxOvationNorthAmerica(ovationPoints) : null),
+    [ovationData, ovationPoints]
   );
 
   // True when the NOAA fetch itself succeeded — even if the aurora oval happened
@@ -188,9 +196,8 @@ export function useCurrentConditions() {
   }, [criticalError]);
 
   const cityProbs = useMemo(
-    () => getCityAuroraProbabilities(ovationData ?? null, latestKp?.Kp ?? null, solarWind.current.bz),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ovationData, latestKp?.Kp, solarWind.current.bz]
+    () => getCityAuroraProbabilities(ovationPoints, latestKp?.Kp ?? null, solarWind.current.bz),
+    [ovationPoints, latestKp?.Kp, solarWind.current.bz]
   );
 
   // Peak Kp within tonight's northern US aurora viewing window (8pm–6am ET).
@@ -206,6 +213,7 @@ export function useCurrentConditions() {
     kpTime: latestKp?.time_tag ?? null,
     kpHistory: kpQuery.data ?? [],
     maxAuroraProbNA: maxProbNA,
+    ovationPoints,
     ovationProcessed,  // true when the NOAA fetch succeeded — empty coordinates are a valid quiet-sun result, not a failure
     cityProbs,
     solarWindSpeed: solarWind.current.speed,

@@ -4,6 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { useOvationData } from "../lib/use-noaa-data";
+import { useUserLocationContext } from "../lib/context/UserLocationContext";
 
 const AuroraMap = dynamic(() => import("./AuroraMap"), {
   ssr: false,
@@ -11,10 +12,6 @@ const AuroraMap = dynamic(() => import("./AuroraMap"), {
 });
 
 interface AuroraMapSectionProps {
-  /** Granted geolocation latitude — null when permission not yet given. */
-  userLat?: number | null;
-  /** Granted geolocation longitude — null when permission not yet given. */
-  userLon?: number | null;
   /** Pre-computed aurora probability at the user's location (0–100, or null). */
   userProb?: number | null;
 }
@@ -31,7 +28,8 @@ function formatObsTime(iso?: string): string | null {
   }
 }
 
-export function AuroraMapSection({ userLat, userLon, userProb }: AuroraMapSectionProps) {
+export function AuroraMapSection({ userProb }: AuroraMapSectionProps) {
+  const { userLat, userLon } = useUserLocationContext();
   // Lazy initializer: read persisted minProb once on mount.
   // Falls back to default (3%) if localStorage is unavailable or the saved
   // value is outside the valid 0–50 range.

@@ -18,9 +18,11 @@ interface PersistedLocation {
   lon: number;
   label: string;
   source: LocationSource;
+  savedAt?: number;
 }
 
 const LS_KEY = "user-location";
+const GPS_EXPIRY_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 function readSaved(): Extract<UserLocationState, { status: "set" }> | null {
   if (typeof window === "undefined") return null;
@@ -34,14 +36,15 @@ function readSaved(): Extract<UserLocationState, { status: "set" }> | null {
       typeof p.label === "string" &&
       (p.source === "gps" || p.source === "manual")
     ) {
+      if (p.source === "gps" && Date.now() - (p.savedAt ?? 0) > GPS_EXPIRY_MS) return null;
       return { status: "set", lat: p.lat, lon: p.lon, label: p.label, source: p.source };
     }
   } catch {}
   return null;
 }
 
-function persist(loc: PersistedLocation) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(loc)); } catch {}
+function persist(loc: Omit<PersistedLocation, "savedAt">) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ ...loc, savedAt: Date.now() })); } catch {}
 }
 
 function clear() {

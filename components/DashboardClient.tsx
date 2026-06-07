@@ -4,14 +4,13 @@ import { Suspense, useMemo, useEffect } from "react";
 import {
   useCurrentConditions,
   useSolarActivity,
-  useOvationData,
   useKpForecast,
   getTonightOutlook,
 } from "../lib/use-noaa-data";
 import { getLocationAuroraProb } from "../lib/noaa";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
-import { useUserLocation } from "../lib/hooks/useUserLocation";
 import { useCloudCover } from "../lib/hooks/useCloudCover";
+import { UserLocationProvider, useUserLocationContext } from "../lib/context/UserLocationContext";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { HeroOutlook } from "./HeroOutlook";
 import { CurrentConditions } from "./CurrentConditions";
@@ -35,17 +34,17 @@ const SolarActivitySkeleton = () => (
   <LoadingSkeleton variant="metrics" count={4} className="max-w-7xl mx-auto px-4 sm:px-6 pb-10" />
 );
 
-export function DashboardClient() {
+function DashboardInner() {
   const conditions = useCurrentConditions();
   const solarActivity = useSolarActivity();
-  const { data: ovationData } = useOvationData();
-  const { state: locationState, requestGpsLocation, setManualLocation, clearLocation } = useUserLocation();
+  const { state: locationState, userLat, userLon } = useUserLocationContext();
 
   const {
     kp,
     kpTime,
     kpHistory,
     maxAuroraProbNA,
+    ovationPoints,
     ovationProcessed,
     solarWindSpeed,
     solarWindDensity,
@@ -81,16 +80,10 @@ export function DashboardClient() {
     [kp, bz, maxAuroraProbNA, solarActivity.recentCmes, solarActivity.latestFlare, solarWindSpeed, cityProbs]
   );
 
-  const userLat = locationState.status === "set" ? locationState.lat : null;
-  const userLon = locationState.status === "set" ? locationState.lon : null;
-
   const userLocationProb = useMemo(() => {
     if (locationState.status !== "set") return null;
-    return getLocationAuroraProb(locationState.lat, locationState.lon, ovationData ?? null, kp, bz);
-  }, [locationState, ovationData, kp, bz]);
-
-  const userLocationLabel = locationState.status === "set" ? locationState.label : null;
-  const locationSource = locationState.status === "set" ? locationState.source : null;
+    return getLocationAuroraProb(locationState.lat, locationState.lon, ovationPoints, kp, bz);
+  }, [locationState, ovationPoints, kp, bz]);
 
   const cloudCoverQuery = useCloudCover(userLat, userLon);
   const kpForecastQuery = useKpForecast();
@@ -113,19 +106,6 @@ export function DashboardClient() {
             error={error}
             isFetching={isFetching}
             userLocationProb={userLocationProb}
-            userLocationLabel={userLocationLabel}
-            locationSource={locationSource}
-            onRequestLocation={
-              locationState.status === "idle" ||
-              locationState.status === "gps-timeout" ||
-              locationState.status === "gps-unavailable"
-                ? requestGpsLocation
-                : undefined
-            }
-            isLocating={locationState.status === "gps-loading"}
-            locationTimedOut={locationState.status === "gps-timeout"}
-            onSetManualLocation={setManualLocation}
-            onClearLocation={clearLocation}
             cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
             cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
             kp={kp}
@@ -176,13 +156,7 @@ export function DashboardClient() {
         )}
       >
         <Suspense fallback={<MapSectionSkeleton />}>
-          {/* Pass pre-computed geo state so AuroraMap can render the user pin
-              without duplicating the geolocation hook or permission flow. */}
-          <AuroraMapSection
-            userLat={userLat}
-            userLon={userLon}
-            userProb={userLocationProb}
-          />
+          <AuroraMapSection userProb={userLocationProb} />
         </Suspense>
       </ErrorBoundary>
 
@@ -240,5 +214,13 @@ export function DashboardClient() {
         />
       </ErrorBoundary>
     </>
+  );
+}
+
+export function DashboardClient() {
+  return (
+    <UserLocationProvider>
+      <DashboardInner />
+    </UserLocationProvider>
   );
 }

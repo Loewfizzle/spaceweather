@@ -18,7 +18,6 @@ import type {
   Alert,
   Fireball,
   CmeSummary,
-  OvationResponse,
   SolarRegion,
   XrayFlare,
 } from "./api/schemas";
@@ -140,13 +139,10 @@ export function filterOvationCoordinates(
   return results;
 }
 
-// Compute max aurora probability in the North America region.
-// Uses reduce (not spread) — real OVATION grids yield thousands of points in NA bounds.
-export function maxOvationNorthAmerica(data: OvationResponse | null): number {
-  if (!data || !Array.isArray(data.coordinates) || data.coordinates.length === 0) return 0;
-  const relevant = filterOvationCoordinates(data.coordinates, 0);
-  if (relevant.length === 0) return 0;
-  return relevant.reduce((max, p) => Math.max(max, p.prob), 0);
+// Compute max aurora probability across a pre-filtered set of OVATION points.
+export function maxOvationNorthAmerica(points: OvationPoint[]): number {
+  if (points.length === 0) return 0;
+  return points.reduce((max, p) => Math.max(max, p.prob), 0);
 }
 
 // ── Canonical 4-tier aurora color palette ─────────────────────────────────
@@ -436,39 +432,45 @@ function estimateProbFromKp(kp: number, lat: number): number {
   return Math.max(0, Math.round(((margin + 15) / 15) * peak));
 }
 
+// Shared nearest-cell lookup + Kp fallback + Bz boost.
+// Accepts pre-filtered OvationPoint[]; empty array triggers the Kp fallback.
+function resolveProb(
+  lat: number,
+  lon: number,
+  points: OvationPoint[],
+  kp: number | null,
+  bz: number | null
+): number {
+  let prob = 0;
+  if (points.length > 0) {
+    let nearestDist = Infinity;
+    for (const p of points) {
+      const d = (p.lat - lat) ** 2 + (p.lon - lon) ** 2;
+      if (d < nearestDist) { nearestDist = d; prob = p.prob; }
+    }
+  } else if (kp !== null) {
+    prob = estimateProbFromKp(kp, lat);
+  }
+  if (bz !== null && bz <= -5) {
+    prob = Math.min(99, prob + Math.round(Math.min(8, Math.abs(bz + 5) * 1.5)));
+  }
+  return Math.round(Math.max(0, Math.min(99, prob)));
+}
+
 /**
  * Returns tonight's aurora viewing probability (0–99) for each watch city.
- * Primary: nearest OVATION grid point. Fallback: Kp + latitude formula.
- * Strong southward Bz (≤ −5 nT) adds a small boost not yet reflected in OVATION.
+ * Accepts pre-filtered OvationPoint[] (empty = no OVATION data → Kp fallback).
  */
 export function getCityAuroraProbabilities(
-  ovationData: OvationResponse | null,
+  points: OvationPoint[],
   kp: number | null,
   bz: number | null
 ): CityAuroraProb[] {
-  const points = ovationData
-    ? filterOvationCoordinates(ovationData.coordinates, 0)
-    : [];
-
-  return AURORA_WATCH_CITIES.map((city) => {
-    let prob = 0;
-
-    if (points.length > 0) {
-      let nearestDist = Infinity;
-      for (const p of points) {
-        const d = (p.lat - city.lat) ** 2 + (p.lon - city.lon) ** 2;
-        if (d < nearestDist) { nearestDist = d; prob = p.prob; }
-      }
-    } else if (kp !== null) {
-      prob = estimateProbFromKp(kp, city.lat);
-    }
-
-    if (bz !== null && bz <= -5) {
-      prob = Math.min(99, prob + Math.round(Math.min(8, Math.abs(bz + 5) * 1.5)));
-    }
-
-    return { name: city.name, state: city.state, prob: Math.round(Math.max(0, Math.min(99, prob))) };
-  });
+  return AURORA_WATCH_CITIES.map((city) => ({
+    name: city.name,
+    state: city.state,
+    prob: resolveProb(city.lat, city.lon, points, kp, bz),
+  }));
 }
 
 /**
@@ -487,34 +489,16 @@ export function getNearestCityName(lat: number, lon: number): string {
 
 /**
  * Compute aurora probability for an arbitrary user-provided lat/lon.
- * Used for the geolocation "My location" feature in HeroOutlook.
- * Same nearest-OVATION-cell logic as getCityAuroraProbabilities.
+ * Accepts pre-filtered OvationPoint[] (empty = no OVATION data → Kp fallback).
  */
 export function getLocationAuroraProb(
   lat: number,
   lon: number,
-  ovationData: OvationResponse | null,
+  points: OvationPoint[],
   kp: number | null,
   bz: number | null
 ): number {
-  const points = ovationData ? filterOvationCoordinates(ovationData.coordinates, 0) : [];
-  let prob = 0;
-
-  if (points.length > 0) {
-    let nearestDist = Infinity;
-    for (const p of points) {
-      const d = (p.lat - lat) ** 2 + (p.lon - lon) ** 2;
-      if (d < nearestDist) { nearestDist = d; prob = p.prob; }
-    }
-  } else if (kp !== null) {
-    prob = estimateProbFromKp(kp, lat);
-  }
-
-  if (bz !== null && bz <= -5) {
-    prob = Math.min(99, prob + Math.round(Math.min(8, Math.abs(bz + 5) * 1.5)));
-  }
-
-  return Math.round(Math.max(0, Math.min(99, prob)));
+  return resolveProb(lat, lon, points, kp, bz);
 }
 
 // Meteor shower calendar helpers
