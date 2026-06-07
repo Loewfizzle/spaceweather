@@ -104,7 +104,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
       <div className="section-title">KP INDEX &amp; OUTLOOK</div>
-      <div className="card p-6">
+      <div className="card p-5">
         <div className="h-56">
           {kpIsLoading ? (
             <div className="h-full animate-pulse bg-[#1e2937] rounded" />

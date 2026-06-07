@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Loader2, Cloud, Navigation } from "lucide-react";
+import { MapPin, Loader2, Cloud, Navigation, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
 import { cloudCoverColor } from "../lib/aurora/kp";
 import { getAuroraColor } from "../lib/aurora/ovation";
 import { useUserLocationContext } from "../lib/context/UserLocationContext";
 import { ShareButton } from "./ShareButton";
+import { CurrentConditionsModal } from "./solar/CurrentConditionsModal";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { InstallPrompt } from "./InstallPrompt";
 import { LocationPicker } from "./LocationPicker";
@@ -21,6 +22,10 @@ interface HeroOutlookProps {
   cloudCoverPct?: number | null;
   cloudCoverLabel?: string | null;
   kp?: number | null;
+  bz?: number | null;
+  solarWindSpeed?: number | null;
+  maxAuroraProbNA?: number | null;
+  ovationProcessed?: boolean;
 }
 
 export function HeroOutlook({
@@ -31,6 +36,10 @@ export function HeroOutlook({
   cloudCoverPct,
   cloudCoverLabel,
   kp,
+  bz,
+  solarWindSpeed,
+  maxAuroraProbNA,
+  ovationProcessed,
   latestUpdate,
 }: HeroOutlookProps) {
   const {
@@ -43,20 +52,27 @@ export function HeroOutlook({
     clearLocation: onClearLocation,
   } = useUserLocationContext();
   const [showPicker, setShowPicker] = useState(false);
+  const [showConditionsModal, setShowConditionsModal] = useState(false);
 
   const displayedCities = outlook.cityProbs?.slice(0, 6) ?? [];
   const locationIsSet = locationSource != null;
 
   return (
     <div
-      className="card p-6 max-w-3xl border-l-4"
+      className="card p-5 max-w-3xl border-l-4"
       style={{ borderLeftColor: outlook.accentColor }}
     >
       <div>
-        <div className="mb-1">
+        <div className="flex items-center justify-between mb-1">
           <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
             CURRENT DATA SUGGESTS
           </span>
+          <button
+            onClick={() => setShowConditionsModal(true)}
+            className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+          >
+            Details <ChevronRight className="h-3.5 w-3.5" />
+          </button>
         </div>
         <p className="text-[11px] text-[#475569] mb-3">
           Solar wind and Kp · live OVATION model
@@ -255,6 +271,18 @@ export function HeroOutlook({
             />
           )}
         </div>
+      )}
+
+      {showConditionsModal && (
+        <CurrentConditionsModal
+          kp={kp ?? null}
+          bz={bz ?? null}
+          solarWindSpeed={solarWindSpeed ?? null}
+          maxAuroraProbNA={maxAuroraProbNA ?? null}
+          ovationProcessed={ovationProcessed}
+          userLocationProb={userLocationProb}
+          onClose={() => setShowConditionsModal(false)}
+        />
       )}
     </div>
   );

@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Wind, Zap, Activity, Satellite, Info, X, ChevronRight } from "lucide-react";
+import { Wind, Zap, Activity, Satellite, Info, X } from "lucide-react";
 import { getKpTier, AURORA_TIERS } from "../lib/aurora/kp";
 import { LoadingSkeleton } from "./LoadingSkeleton";
-import { CurrentConditionsModal } from "./solar/CurrentConditionsModal";
 
 // ── Metric info modal ─────────────────────────────────────────────────────────
 
@@ -178,7 +177,6 @@ interface CurrentConditionsProps {
   kpTime?: string | null;
   solarWindError?: unknown;
   ovationProcessed?: boolean;
-  userLocationProb?: number | null;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -192,11 +190,9 @@ export function CurrentConditions({
   isLoading,
   solarWindError,
   ovationProcessed,
-  userLocationProb,
 }: CurrentConditionsProps) {
   const [openCard, setOpenCard] = useState<CardId | null>(null);
   const closeCard = useCallback(() => setOpenCard(null), []);
-  const [showSectionModal, setShowSectionModal] = useState(false);
 
   // Dot: null = hidden during initial load, red = feed down, yellow = partial/stale, green = fresh
   const dotColor = (() => {
@@ -209,23 +205,15 @@ export function CurrentConditions({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-      <div className="section-title flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {dotColor && (
-            <span
-              className="animate-pulse block rounded-full flex-shrink-0"
-              style={{ width: '7px', height: '7px', backgroundColor: dotColor }}
-              title={dotColor === '#22c55e' ? 'Data feed live' : dotColor === '#eab308' ? 'Data delayed' : 'Feed error'}
-            />
-          )}
-          LIVE CONDITIONS
-        </div>
-        <button
-          onClick={() => setShowSectionModal(true)}
-          className="text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5 normal-case tracking-normal font-normal text-[11px]"
-        >
-          Details <ChevronRight className="h-3.5 w-3.5" />
-        </button>
+      <div className="section-title flex items-center gap-2">
+        {dotColor && (
+          <span
+            className="animate-pulse block rounded-full flex-shrink-0"
+            style={{ width: '7px', height: '7px', backgroundColor: dotColor }}
+            title={dotColor === '#22c55e' ? 'Data feed live' : dotColor === '#eab308' ? 'Data delayed' : 'Feed error'}
+          />
+        )}
+        LIVE CONDITIONS
       </div>
       {isLoading ? (
         <LoadingSkeleton variant="metrics" count={4} />
@@ -341,18 +329,6 @@ export function CurrentConditions({
 
       {openCard && (
         <MetricInfoModal card={openCard} onClose={closeCard} />
-      )}
-
-      {showSectionModal && (
-        <CurrentConditionsModal
-          kp={kp}
-          bz={bz}
-          solarWindSpeed={solarWindSpeed}
-          maxAuroraProbNA={maxAuroraProbNA}
-          ovationProcessed={ovationProcessed}
-          userLocationProb={userLocationProb}
-          onClose={() => setShowSectionModal(false)}
-        />
       )}
     </div>
   );

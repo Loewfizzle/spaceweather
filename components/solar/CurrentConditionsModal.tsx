@@ -126,8 +126,7 @@ export function CurrentConditionsModal({
               <p className="text-[12px] text-[#64748b] leading-relaxed">
                 <span className="text-[#94a3b8] font-semibold">Live Conditions</span> is the real-time
                 feed — data from NOAA satellites updated minute by minute, like looking out the window
-                right now.{" "}
-                <span className="text-[#94a3b8] font-semibold">Tonight&apos;s Forecast</span> is the
+                right now.{" "}<span className="text-[#94a3b8] font-semibold">Tonight&apos;s Forecast</span> is the
                 big-picture prediction for the night ahead — a 36-hour outlook that tells you when
                 conditions might peak after sunset. Both matter; this section is about what&apos;s happening
                 this instant.
@@ -163,7 +162,7 @@ export function CurrentConditionsModal({
               <div className="text-[11px] text-[#475569] mb-1.5">{kpData.status}</div>
               <p className="text-[12px] text-[#64748b] leading-relaxed">
                 Kp is a 0–9 scale of how disturbed Earth&apos;s magnetic field is right now, averaged
-                from stations worldwide. This is the <span className="text-[#94a3b8]">current live reading</span> —
+                from stations worldwide. This is the <span className="text-[#94a3b8]">current live reading</span>{" "}—
                 different from the forecasted Kp in Tonight&apos;s Forecast, which looks ahead. Higher
                 Kp means aurora reaches further south.{" "}
                 {kpData.body}
@@ -176,7 +175,7 @@ export function CurrentConditionsModal({
               <p className="text-[12px] text-[#64748b] leading-relaxed mb-2">
                 OVATION is a scientific model from NOAA that analyses live solar wind data and calculates
                 where the aurora oval is and how intense it is right now. The percentage shown on the
-                card is the <span className="text-[#94a3b8]">peak model output anywhere in North America</span> —
+                card is the <span className="text-[#94a3b8]">peak model output anywhere in North America</span>{" "}—
                 not a simple &ldquo;chance of seeing aurora.&rdquo; Think of it more like a radar return:
                 0% means the oval is well above Canada; 50%+ means a major aurora event is in progress
                 over the continent.

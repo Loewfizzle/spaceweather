@@ -114,6 +114,10 @@ function DashboardInner() {
             cloudCoverPct={cloudCoverPct}
             cloudCoverLabel={cloudCoverLabel}
             kp={kp}
+            bz={bz}
+            solarWindSpeed={solarWindSpeed}
+            maxAuroraProbNA={maxAuroraProbNA}
+            ovationProcessed={ovationProcessed}
             latestUpdate={latestGlobalUpdate}
           />
         </SectionErrorBoundary>
@@ -155,7 +159,6 @@ function DashboardInner() {
           kpTime={kpTime}
           solarWindError={solarWindError}
           ovationProcessed={ovationProcessed}
-          userLocationProb={userLocationProb}
         />
       </SectionErrorBoundary>
 
