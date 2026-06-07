@@ -1,3 +1,24 @@
+/**
+ * inlineSwFunctions.js — Build-time code generator
+ *
+ * Problem: Service workers run in a separate browser global scope where ES module
+ * `import` syntax is unavailable. Yet we want the shared helper functions
+ * (parseKpFromTabular, shouldTriggerNotification) to live in a single file so
+ * unit tests and the service worker always use the same implementation.
+ *
+ * Solution: lib/utils/swShared.js is the canonical source for these functions.
+ * This script strips the `export` keywords and splices the bare declarations into
+ * the region between // <INLINE_START> and // <INLINE_END> in public/sw.js,
+ * replacing whatever was previously between those markers.
+ *
+ * When it runs: automatically as the first step of `npm run build` (see package.json).
+ * To run manually: node scripts/inlineSwFunctions.js
+ *
+ * Files involved:
+ *   lib/utils/swShared.js        — canonical source; edit here, not in sw.js
+ *   public/sw.js                 — service worker; the INLINE region is auto-generated
+ *   scripts/inlineSwFunctions.js — this script
+ */
 'use strict';
 
 const fs   = require('fs');

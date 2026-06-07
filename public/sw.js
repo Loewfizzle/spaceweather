@@ -53,11 +53,17 @@ async function checkAurora() {
 
     const raw = await res.json();
 
+    // DO NOT EDIT between INLINE_START and INLINE_END — this section is overwritten
+    // by scripts/inlineSwFunctions.js during build (npm run build).
     // <INLINE_START>
 /**
- * Shared service-worker helpers — plain JavaScript, no imports.
- * Inlined into public/sw.js at build time by scripts/inlineSwFunctions.js.
- * Also imported by TypeScript modules (swKpParsing.ts, swNotifications.ts).
+ * Shared service-worker helpers — plain JavaScript, no ES module imports.
+ *
+ * CANONICAL SOURCE: lib/utils/swShared.js — edit there, not in public/sw.js.
+ * An auto-generated copy is inlined into public/sw.js at build time by
+ * scripts/inlineSwFunctions.js, because service workers cannot use ES module imports.
+ *
+ * Also imported as ESM by: swKpParsing.ts, swNotifications.ts.
  */
 
 /**
