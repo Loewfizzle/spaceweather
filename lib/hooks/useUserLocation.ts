@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { getNearestCityName } from "../noaa";
 
 export type LocationSource = "gps" | "manual";
@@ -52,13 +52,7 @@ function clear() {
 }
 
 export function useUserLocation() {
-  const [state, setState] = useState<UserLocationState>({ status: "idle" });
-
-  // Hydrate from localStorage after mount (avoids SSR hydration mismatch)
-  useEffect(() => {
-    const saved = readSaved();
-    if (saved) setState(saved);
-  }, []);
+  const [state, setState] = useState<UserLocationState>(() => readSaved() ?? { status: "idle" });
 
   const requestGpsLocation = useCallback(() => {
     if (!("geolocation" in navigator)) {

@@ -69,9 +69,10 @@ export function MeteorActivity() {
   const fireballsQuery = useFireballs();
   const nextMeteor = getNextMeteorShower();
   const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
+  const [now] = useState(Date.now);
 
   const showerDays = nextMeteor
-    ? Math.ceil((nextMeteor.peakDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    ? Math.ceil((nextMeteor.peakDate.getTime() - now) / (1000 * 60 * 60 * 24))
     : null;
   const showerColor = nextMeteor ? activityColor(nextMeteor.shower.activityLevel) : "#64748b";
 
