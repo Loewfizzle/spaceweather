@@ -404,7 +404,6 @@ export function getTonightOutlook(
 
 const AURORA_WATCH_CITIES = [
   { name: "Fairbanks",    state: "AK", lat: 64.84, lon: -147.72 },
-  { name: "Anchorage",    state: "AK", lat: 61.22, lon: -149.90 },
   { name: "Seattle",      state: "WA", lat: 47.61, lon: -122.33 },
   { name: "Duluth",       state: "MN", lat: 46.79, lon: -92.10  },
   { name: "Marquette",    state: "MI", lat: 46.54, lon: -87.40  },

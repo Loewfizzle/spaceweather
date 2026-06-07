@@ -3,7 +3,7 @@
 import { MapPin, Loader2, Cloud } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
-import { cloudCoverColor } from "../lib/noaa";
+import { cloudCoverColor, getAuroraColor } from "../lib/noaa";
 import { ShareButton } from "./ShareButton";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { InstallPrompt } from "./InstallPrompt";
@@ -38,7 +38,7 @@ export function HeroOutlook({
   latestUpdate,
 }: HeroOutlookProps) {
   // Show at most 4 pre-defined cities — enough for the north→south gradient without crowding
-  const displayedCities = outlook.cityProbs?.slice(0, 5) ?? [];
+  const displayedCities = outlook.cityProbs?.slice(0, 6) ?? [];
 
   return (
     <div
@@ -103,7 +103,10 @@ export function HeroOutlook({
                 <span className="flex-1 text-[15px] font-semibold text-white leading-tight">
                   {userLocationLabel ?? "Your location"}
                 </span>
-                <span className="tabular-nums font-semibold text-white w-10 text-right whitespace-nowrap">
+                <span
+                  className="tabular-nums font-semibold w-10 text-right whitespace-nowrap"
+                  style={{ color: getAuroraColor(userLocationProb) }}
+                >
                   {userLocationProb > 0 ? `${userLocationProb}%` : "< 1%"}
                 </span>
               </div>
@@ -114,7 +117,10 @@ export function HeroOutlook({
               <div key={idx} className="flex items-center gap-2 py-0.5">
                 <span className="block h-1.5 w-1.5 rounded-full bg-slate-600 flex-shrink-0" />
                 <span className="flex-1 text-sm text-[#94a3b8]">{city.name}, {city.state}</span>
-                <span className="tabular-nums font-medium text-[#cbd5e1] w-10 text-right whitespace-nowrap">
+                <span
+                  className="tabular-nums font-medium w-10 text-right whitespace-nowrap"
+                  style={{ color: getAuroraColor(city.prob) }}
+                >
                   {city.prob > 0 ? `${city.prob}%` : "< 1%"}
                 </span>
               </div>
