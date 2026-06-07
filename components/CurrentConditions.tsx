@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { Wind, Zap, Activity, Satellite, Info, X } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
 import { getKpTier, AURORA_TIERS } from "../lib/aurora/kp";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 
@@ -189,7 +188,6 @@ export function CurrentConditions({
   kp,
   maxAuroraProbNA,
   isLoading,
-  kpTime,
   solarWindError,
   ovationProcessed,
 }: CurrentConditionsProps) {
@@ -198,12 +196,7 @@ export function CurrentConditions({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-      <div className="section-title flex items-baseline justify-between">
-        <span>CURRENT CONDITIONS</span>
-        <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
-          {kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : "syncing…"} • auto
-        </span>
-      </div>
+      <div className="section-title">CURRENT CONDITIONS</div>
       {isLoading ? (
         <LoadingSkeleton variant="metrics" count={4} />
       ) : (
@@ -232,6 +225,7 @@ export function CurrentConditions({
                 • {solarWindDensity !== null ? solarWindDensity.toFixed(1) : "—"} p/cm³
               </span>
             </div>
+            <div className="text-[10px] text-[#475569] mt-0.5">1-min cadence</div>
             {!!solarWindError && (
               <div className="text-[9px] text-amber-400 mt-0.5">data delayed</div>
             )}
@@ -257,6 +251,7 @@ export function CurrentConditions({
             <div className="text-sm text-[#64748b] -mt-1">
               nT <span className="text-xs ml-1">• Southward = favorable</span>
             </div>
+            <div className="text-[10px] text-[#475569] mt-0.5">1-min cadence</div>
           </div>
 
           {/* Planetary Kp */}
@@ -277,7 +272,7 @@ export function CurrentConditions({
               {kp !== null ? kp.toFixed(1) : "—"}
             </div>
             <div className="text-sm text-[#64748b] -mt-1">
-              Latest 3-hour • {kp !== null ? AURORA_TIERS[getKpTier(kp)].label : "—"}
+              3-hour average · {kp !== null ? AURORA_TIERS[getKpTier(kp)].label : "—"}
             </div>
           </div>
 
@@ -305,6 +300,7 @@ export function CurrentConditions({
                 ? "Quiet — aurora oval outside NA"
                 : "Max probability (North America)"}
             </div>
+            <div className="text-[10px] text-[#475569] mt-0.5">2-min cadence</div>
           </div>
 
         </div>
