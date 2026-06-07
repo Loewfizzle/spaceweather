@@ -8,12 +8,9 @@ import {
   saveSensitivity,
   type AlertSensitivity,
 } from "../lib/hooks/useNotifications";
+import { registerPeriodicSync } from "../lib/utils/registerPeriodicSync";
 
 type Phase = "prompt" | "picking" | "done";
-
-type WithPeriodicSync = ServiceWorkerRegistration & {
-  periodicSync: { register(tag: string, opts: { minInterval: number }): Promise<void> };
-};
 
 interface NotificationPromptProps {
   accentColor?: string;
@@ -54,17 +51,7 @@ export function NotificationPrompt({ accentColor = "#38bdf8" }: NotificationProm
                 localStorage.setItem("aw_alerts_enabled", "1");
               }
               await saveSensitivity(p.key);
-              if ("serviceWorker" in navigator) {
-                try {
-                  const reg = await navigator.serviceWorker.ready;
-                  if ("periodicSync" in reg) {
-                    await (reg as WithPeriodicSync).periodicSync.register(
-                      "aurora-check",
-                      { minInterval: 30 * 60 * 1000 },
-                    );
-                  }
-                } catch {}
-              }
+              await registerPeriodicSync();
               try {
                 const thresh = ALERT_THRESHOLDS[p.key];
                 new Notification("AuroraWatch", {
