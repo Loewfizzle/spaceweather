@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { getTonightOutlook } from '@/lib/aurora/outlook';
 
 export const alt = "AuroraWatch — Tonight's Aurora Outlook";
 export const size = { width: 1200, height: 630 };
@@ -45,14 +46,8 @@ async function fetchBz(): Promise<number | null> {
 
 // ── Derived values ─────────────────────────────────────────────────────────────
 
-function outlookFromKp(kp: number): string {
-  if (kp >= 7) return 'Excellent';
-  if (kp >= 5) return 'Good';
-  if (kp >= 4) return 'Moderate';
-  if (kp >= 3) return 'Low';
-  return 'Quiet';
-}
-
+// OG-specific: maps kp to a visibility-likelihood color (green = aurora likely).
+// Distinct from AURORA_TIERS, which uses green for geomagnetically quiet conditions.
 function colorFromKp(kp: number): string {
   if (kp >= 5) return '#22c55e'; // green — aurora is likely
   if (kp >= 4) return '#eab308'; // yellow — moderate
@@ -60,22 +55,15 @@ function colorFromKp(kp: number): string {
   return '#64748b';               // gray — quiet
 }
 
-function messageFromKp(kp: number): string {
-  if (kp >= 7) return 'Strong chance across the northern tier, reaching well into the Great Lakes region.';
-  if (kp >= 5) return 'Good chance for northern-tier states and the Great Lakes region.';
-  if (kp >= 4) return 'Possible across northern states under dark skies.';
-  if (kp >= 3) return 'Low probability across the northern US tonight.';
-  return 'Very low activity. Quiet geomagnetic conditions across the northern US.';
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default async function OGImage() {
   const [kp, bz] = await Promise.all([fetchKp(), fetchBz()]);
 
-  const label = kp !== null ? outlookFromKp(kp) : 'No Data';
+  const outlook = kp !== null ? getTonightOutlook(kp, null, null) : null;
+  const label = outlook?.status ?? 'No Data';
   const accent = kp !== null ? colorFromKp(kp) : '#64748b';
-  const message = kp !== null ? messageFromKp(kp) : 'Real-time aurora visibility for the northern United States.';
+  const message = outlook?.message ?? 'Real-time aurora visibility for the northern United States.';
 
   // Aurora curtain bands: bottom (bright + thick) → top (faint + thin)
   const bands: Array<{ y: number; amp: number; sw: number; op: number }> = [
