@@ -232,7 +232,7 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
     const dirMatch = msg.match(/Earth-directed|Earth-facing|full halo|partial halo|halo CME/i);
     const isDirectHit = /Earth-directed|Earth-facing|will reach Earth|geomagnetic storm|full halo|halo CME/i.test(msg);
     const isGlancing = !isDirectHit && /partial halo|glancing/i.test(msg);
-    const impactNote = isDirectHit ? "Expected Earth impact" : isGlancing ? "Glancing impact possible" : "Monitor for effects";
+    const impactNote = isDirectHit ? "Likely Earth impact" : isGlancing ? "Glancing impact possible" : "Monitor for effects";
     const lines = msg.split("\n").filter(Boolean);
     const joined = lines.slice(0, 3).join(" ").replace(/\s+/g, " ");
     const shortNote = joined.length > 140 ? joined.substring(0, 140) + "…" : joined;
