@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import type { DataSource } from '../../lib/utils/retry'
 
 // The health store lives in module-level state inside retry.ts.
 // Re-importing a fresh module before each test guarantees an empty store.

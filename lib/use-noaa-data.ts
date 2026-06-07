@@ -195,9 +195,10 @@ export function useCurrentConditions() {
     }
   }, [criticalError]);
 
+  const currentBz = solarWind.current.bz;
   const cityProbs = useMemo(
-    () => getCityAuroraProbabilities(ovationPoints, latestKp?.Kp ?? null, solarWind.current.bz),
-    [ovationPoints, latestKp?.Kp, solarWind.current.bz]
+    () => getCityAuroraProbabilities(ovationPoints, latestKp?.Kp ?? null, currentBz),
+    [ovationPoints, latestKp?.Kp, currentBz]
   );
 
   // Tonight's viewing window — computed once and shared with both getAuroraGuidance (for forecast

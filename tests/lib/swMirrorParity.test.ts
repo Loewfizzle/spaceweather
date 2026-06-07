@@ -33,7 +33,6 @@ function extractSwFn(name: string): (...args: unknown[]) => unknown {
     else if (SW_SOURCE[i] === '}') { if (--depth === 0) break }
   }
   const funcText = SW_SOURCE.slice(m.index, i + 1)
-  // eslint-disable-next-line no-new-func, @typescript-eslint/no-implied-eval
   return eval(`(${funcText})`)
 }
 
