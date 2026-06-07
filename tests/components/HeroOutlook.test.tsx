@@ -68,9 +68,9 @@ describe('HeroOutlook', () => {
     expect(screen.queryByText(/very low/)).not.toBeInTheDocument();
   });
 
-  it('renders the status sentence when data is present', () => {
+  it('renders the status label when data is present', () => {
     render(<HeroOutlook outlook={goodOutlook} />);
-    expect(screen.getByText(/Current indicators show good chance/i)).toBeInTheDocument();
+    expect(screen.getByText('Good')).toBeInTheDocument();
   });
 
   it('renders the drivers string when provided', () => {
