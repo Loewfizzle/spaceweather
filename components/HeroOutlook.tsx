@@ -59,7 +59,7 @@ export function HeroOutlook({
           </span>
         </div>
         <p className="text-[11px] text-[#475569] mb-3">
-          Solar wind and Kp · tonight&apos;s forecast below
+          Solar wind and Kp · live OVATION model
         </p>
 
         {outlook.status === "Loading" ? (
@@ -93,8 +93,8 @@ export function HeroOutlook({
         {outlook.status !== "Loading" && (
           <div className="space-y-1 mb-2">
             {displayedCities.length > 0 && (
-              <div className="flex items-center gap-1.5 border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
-                <span className="text-[11px] text-[#64748b]">Aurora chances tonight</span>
+              <div className="border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
+                <span className="text-[11px] text-[#64748b]">Aurora in the sky right now</span>
               </div>
             )}
 
