@@ -10,10 +10,11 @@ import { LoadingSkeleton } from "./LoadingSkeleton";
 
 type CardId = "wind" | "bz" | "kp" | "ovation";
 
-const MODAL_CONTENT: Record<CardId, {
-  title: string;
-  sections: { heading: string; body: string }[];
-}> = {
+type ModalSection =
+  | { heading: string; body: string }
+  | { heading: string; rows: { kp: string; cities: string; lat: string }[] };
+
+const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }> = {
   wind: {
     title: "Solar Wind",
     sections: [
@@ -65,7 +66,13 @@ const MODAL_CONTENT: Record<CardId, {
       },
       {
         heading: "Visibility by latitude",
-        body: "Kp 4 is typically visible above 60°N, Kp 5 reaches ~55°N, Kp 6 reaches ~50°N, Kp 7 can reach 45°N, and Kp 8–9 can push aurora to 40°N and below. Viewers at higher latitudes need lower Kp to see aurora. Dark skies away from light pollution are essential regardless of Kp.",
+        rows: [
+          { kp: "Kp 3–4", cities: "Fairbanks AK, Whitehorse YT",               lat: ">60°N"    },
+          { kp: "Kp 5",   cities: "Minneapolis MN, Seattle WA, Montreal QC",   lat: "~45–50°N" },
+          { kp: "Kp 6",   cities: "Chicago IL, Detroit MI, Portland OR",        lat: "~42–45°N" },
+          { kp: "Kp 7",   cities: "Denver CO, Indianapolis IN, New York NY",    lat: "~40–43°N" },
+          { kp: "Kp 8–9", cities: "Dallas TX, Atlanta GA, Los Angeles CA",      lat: "~30–35°N" },
+        ],
       },
       {
         heading: "It lags real-time conditions",
@@ -142,10 +149,25 @@ function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void 
             </button>
           </div>
           <div className="px-5 pb-5 pt-4 space-y-4">
-            {content.sections.map(({ heading, body }) => (
-              <div key={heading}>
-                <div className="text-xs font-medium text-[#94a3b8] mb-1">{heading}</div>
-                <p className="text-[12px] text-[#64748b] leading-relaxed">{body}</p>
+            {content.sections.map((section) => (
+              <div key={section.heading}>
+                <div className="text-xs font-medium text-[#94a3b8] mb-1.5">{section.heading}</div>
+                {"rows" in section ? (
+                  <div className="space-y-1.5">
+                    {section.rows.map(({ kp, cities, lat }) => (
+                      <div key={kp} className="flex items-baseline gap-2">
+                        <span className="text-[12px] font-medium text-[#cbd5e1] tabular-nums w-14 flex-shrink-0">{kp}</span>
+                        <span className="text-[11px] text-[#64748b] leading-snug">{cities}</span>
+                        <span className="text-[10px] text-[#475569] flex-shrink-0 ml-auto">{lat}</span>
+                      </div>
+                    ))}
+                    <p className="text-[11px] text-[#475569] leading-relaxed pt-1">
+                      Higher latitudes need lower Kp. Dark skies away from light pollution are essential at any Kp.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-[#64748b] leading-relaxed">{section.body}</p>
+                )}
               </div>
             ))}
           </div>
