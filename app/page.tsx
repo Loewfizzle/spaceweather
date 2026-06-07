@@ -50,11 +50,10 @@ export default function AuroraWatch() {
             LIVE • NOAA SWPC DATA
           </div>
           <h1 className="text-6xl sm:text-7xl font-semibold tracking-tighter leading-[0.92] mb-5">
-            Aurora &amp; space<br />weather for the<br />United States
+            Space &amp; Sky Events
           </h1>
           <p className="text-2xl text-[#94a3b8] tracking-tight max-w-2xl">
-            Real-time OVATION aurora forecasts and planetary K-index.
-            Particularly strong coverage for the Great Lakes region and the northern United States.
+            Live aurora forecasts, solar weather, meteor activity, and more across the United States.
           </p>
         </div>
       </div>
@@ -79,7 +78,7 @@ export default function AuroraWatch() {
               . OVATION, planetary K-index, and real-time solar wind.
             </div>
             <div className="text-[#475569]">
-              Not for navigation • Updates every few minutes • Built for northern US aurora chasers
+              Not for navigation • Updates every few minutes
             </div>
           </div>
           <div className="mt-4 text-[#475569] text-[10px]">AuroraWatch v0.1.0</div>
