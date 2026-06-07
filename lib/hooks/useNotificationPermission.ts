@@ -17,17 +17,15 @@ interface UseNotificationPermissionReturn {
  *    explicit requestPermission() call from any one of them.
  */
 export function useNotificationPermission(): UseNotificationPermissionReturn {
-  const [permission, setPermission] = useState<NotificationPermission>(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      return Notification.permission;
-    }
-    return "default";
-  });
+  // Start with "default" so server and client render identically on first pass.
+  // The effect below syncs the real value after hydration.
+  const [permission, setPermission] = useState<NotificationPermission>("default");
 
   useEffect(() => {
     function syncPermission() {
       if ("Notification" in window) setPermission(Notification.permission);
     }
+    syncPermission();
     function onPermissionChanged(e: Event) {
       setPermission((e as CustomEvent<NotificationPermission>).detail);
     }
