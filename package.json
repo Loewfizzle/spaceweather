@@ -5,7 +5,7 @@
   "description": "Premium real-time aurora visibility and space weather dashboard for the United States and northern North America. Live NOAA SWPC data.",
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/inlineSwFunctions.js && next build",
+    "build": "node scripts/buildSw.js && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
@@ -41,6 +41,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-v8": "^3.2.6",
+    "esbuild": "^0.28.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "jsdom": "^26.0.0",
