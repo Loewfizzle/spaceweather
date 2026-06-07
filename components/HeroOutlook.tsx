@@ -144,12 +144,6 @@ export function HeroOutlook({
         </div>
       )}
 
-      {outlook.status !== "Loading" && !error && latestUpdate && (
-        <div className="mt-3 text-[10px] text-[#334155]">
-          Data as of {formatDistanceToNow(latestUpdate, { addSuffix: true })} · Kp updates every 3 hrs
-        </div>
-      )}
-
       {outlook.status !== "Loading" && (
         <div className="mt-2 pt-3 border-t border-[#1e2937]">
 
