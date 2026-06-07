@@ -1,3 +1,5 @@
+import { getTonightOutlook } from './outlook';
+
 // Kp activity tiers — used by getKpTier and ViewingWindow.
 // Kp cutoffs: quiet <4 · moderate 4–4.9 · active 5–5.9 · storm ≥6
 export const AURORA_TIERS = {
@@ -42,6 +44,8 @@ export function getAuroraRiskLevel(
 
 /**
  * Plain-English aurora guidance for the northern US, incorporating Kp + OVATION prob + Bz.
+ * Derives tier and base message from getTonightOutlook (CME/flare-aware), then appends
+ * Bz/speed/prob suffix notes and the forecastPeakKp note.
  */
 export function getAuroraGuidance(
   kp: number | null,
@@ -51,19 +55,10 @@ export function getAuroraGuidance(
   forecastPeakKp?: number | null
 ): string {
   if (kp === null) return "Data loading...";
-  const highSpeed = solarWindSpeed != null && solarWindSpeed > 600;
   const effectiveKp = forecastPeakKp != null ? Math.max(kp, forecastPeakKp) : kp;
+  const highSpeed = solarWindSpeed != null && solarWindSpeed > 600;
 
-  let text: string;
-  if (effectiveKp >= 7) {
-    text = "High probability of aurora visible across the northern United States, including areas well south of the Great Lakes.";
-  } else if (effectiveKp >= 5 || (effectiveKp >= 3 && highSpeed)) {
-    text = "Good chance across northern-tier states; possible in the Great Lakes region with clear dark skies.";
-  } else if (effectiveKp >= 4) {
-    text = "Possible across the northern states. Farther south unlikely unless skies are very dark and clear.";
-  } else {
-    text = "Low probability across the northern US. Best chances remain at the highest latitudes.";
-  }
+  let text = getTonightOutlook(effectiveKp, bz, maxProb, [], null, solarWindSpeed ?? null).message;
 
   if (bz !== null && bz <= -5) {
     text += " Strong southward Bz currently boosting chances.";

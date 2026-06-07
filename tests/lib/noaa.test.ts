@@ -318,9 +318,11 @@ describe('getAuroraGuidance', () => {
     expect(getAuroraGuidance(null, null, null)).toBe('Data loading...')
   })
 
-  it('returns high-confidence text for kp >= 7', () => {
+  it('returns Excellent-tier text for kp >= 7', () => {
     const result = getAuroraGuidance(7, 10, -3)
-    expect(result).toContain('northern United States')
+    // Delegates to getTonightOutlook Excellent: "Strong chance across the northern tier..."
+    expect(result).toContain('northern tier')
+    expect(result).toContain('Great Lakes')
   })
 
   it('returns northern-tier text for kp 5-6', () => {
@@ -345,9 +347,11 @@ describe('getAuroraGuidance', () => {
     expect(result).not.toContain('probabilities across North America')
   })
 
-  it('elevates to northern-tier text when kp >= 3 and speed > 600', () => {
+  it('shows Moderate-tier text with solar wind note when kp=3 and speed > 600', () => {
+    // getTonightOutlook routes kp=3+speed to Moderate (not Good — requires favorable Bz too)
     const result = getAuroraGuidance(3, 5, -2, 650)
-    expect(result).toContain('northern-tier')
+    expect(result).toContain('northern states')
+    expect(result).toContain('solar wind speed')
   })
 
   it('appends solar wind note when speed > 600 and Bz not favorable', () => {
@@ -1254,5 +1258,59 @@ describe('createGoogleCalendarLink', () => {
     // Perseids has peakEndDay = 13 → span = 2 → end = Aug 14
     const url = createGoogleCalendarLink(perseids, new Date(2026, 7, 12))
     expect(url).toContain('dates=20260812/20260814')
+  })
+})
+
+// ============================================
+// getAuroraGuidance — delegates base message to getTonightOutlook
+// ============================================
+describe('getAuroraGuidance — delegates base message to getTonightOutlook', () => {
+  it('Excellent conditions: guidance starts with getTonightOutlook message', () => {
+    const kp = 7, bz = -8, prob = 25
+    const guidance = getAuroraGuidance(kp, prob, bz)
+    const outlook = getTonightOutlook(kp, bz, prob, [], null)
+    expect(outlook.status).toBe('Excellent')
+    expect(guidance.startsWith(outlook.message)).toBe(true)
+  })
+
+  it('Good conditions: guidance starts with getTonightOutlook message', () => {
+    const kp = 5, bz = -3, prob = 10
+    const guidance = getAuroraGuidance(kp, prob, bz)
+    const outlook = getTonightOutlook(kp, bz, prob, [], null)
+    expect(outlook.status).toBe('Good')
+    expect(guidance.startsWith(outlook.message)).toBe(true)
+  })
+
+  it('Moderate conditions: guidance starts with getTonightOutlook message', () => {
+    const kp = 4, bz = -2, prob = 5
+    const guidance = getAuroraGuidance(kp, prob, bz)
+    const outlook = getTonightOutlook(kp, bz, prob, [], null)
+    expect(outlook.status).toBe('Moderate')
+    expect(guidance.startsWith(outlook.message)).toBe(true)
+  })
+
+  it('Low conditions: guidance starts with getTonightOutlook message', () => {
+    const kp = 3, bz = -2, prob = 5
+    const guidance = getAuroraGuidance(kp, prob, bz)
+    const outlook = getTonightOutlook(kp, bz, prob, [], null)
+    expect(outlook.status).toBe('Low')
+    expect(guidance.startsWith(outlook.message)).toBe(true)
+  })
+
+  it('Quiet conditions: guidance starts with getTonightOutlook message', () => {
+    const kp = 1, bz = -2, prob = 5
+    const guidance = getAuroraGuidance(kp, prob, bz)
+    const outlook = getTonightOutlook(kp, bz, prob, [], null)
+    expect(outlook.status).toBe('Quiet')
+    expect(guidance.startsWith(outlook.message)).toBe(true)
+  })
+
+  it('forecastPeakKp elevates effectiveKp passed to getTonightOutlook', () => {
+    // kp=3 alone → Low; forecastPeakKp=7 → effectiveKp=7 → Excellent (kp>=7 unconditional)
+    const guidance = getAuroraGuidance(3, 5, -2, null, 7)
+    const elevated = getTonightOutlook(7, -2, 5, [], null)
+    expect(elevated.status).toBe('Excellent')
+    expect(guidance.startsWith(elevated.message)).toBe(true)
+    expect(guidance).toContain('Kp 7.0 forecast as tonight')
   })
 })
