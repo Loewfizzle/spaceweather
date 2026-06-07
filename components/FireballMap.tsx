@@ -16,6 +16,7 @@ export default function FireballMap({ lat, lon }: FireballMapProps) {
       zoom={4}
       style={{ height: "100%", width: "100%", background: "#05070f" }}
       scrollWheelZoom={false}
+      zoomControl={false}
       className="z-0"
     >
       <TileLayer

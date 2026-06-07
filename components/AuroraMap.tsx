@@ -369,7 +369,7 @@ export default function AuroraMap({
           zoom={mapInitialState.zoom}
           style={{ height: "100%", width: "100%", background: "#05070f" }}
           className="z-0"
-          zoomControl={true}
+          zoomControl={false}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
