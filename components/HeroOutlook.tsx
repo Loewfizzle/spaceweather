@@ -53,14 +53,13 @@ export function HeroOutlook({
       style={{ borderLeftColor: outlook.accentColor }}
     >
       <div>
-        <div className="flex items-center gap-2 mb-1">
+        <div className="mb-1">
           <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
             CURRENT CONDITIONS
           </span>
-          <span className="text-[9px] font-semibold text-emerald-500 tracking-wide">LIVE</span>
         </div>
         <p className="text-[11px] text-[#475569] mb-3">
-          Live solar wind readings — tonight&apos;s forecast is shown below
+          Solar wind and Kp · tonight&apos;s forecast below
         </p>
 
         {outlook.status === "Loading" ? (
@@ -95,8 +94,7 @@ export function HeroOutlook({
           <div className="space-y-1 mb-2">
             {displayedCities.length > 0 && (
               <div className="flex items-center gap-1.5 border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
-                <span className="text-[11px] text-[#64748b]">Aurora chances now</span>
-                <span className="text-[9px] font-semibold tracking-widest text-emerald-400">LIVE</span>
+                <span className="text-[11px] text-[#64748b]">Aurora chances tonight</span>
               </div>
             )}
 
@@ -148,7 +146,7 @@ export function HeroOutlook({
 
       {outlook.status !== "Loading" && !error && latestUpdate && (
         <div className="mt-3 text-[10px] text-[#334155]">
-          Updated {formatDistanceToNow(latestUpdate, { addSuffix: true })}
+          Data as of {formatDistanceToNow(latestUpdate, { addSuffix: true })} · Kp updates every 3 hrs
         </div>
       )}
 
