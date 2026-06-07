@@ -8,9 +8,9 @@ import {
   useKpForecast,
   getTonightOutlook,
 } from "../lib/use-noaa-data";
-import { getLocationAuroraProb, getNearestCityName } from "../lib/noaa";
+import { getLocationAuroraProb } from "../lib/noaa";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
-import { useGeolocation } from "../lib/hooks/useGeolocation";
+import { useUserLocation } from "../lib/hooks/useUserLocation";
 import { useCloudCover } from "../lib/hooks/useCloudCover";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { HeroOutlook } from "./HeroOutlook";
@@ -39,7 +39,7 @@ export function DashboardClient() {
   const conditions = useCurrentConditions();
   const solarActivity = useSolarActivity();
   const { data: ovationData } = useOvationData();
-  const { geoState, requestLocation } = useGeolocation();
+  const { state: locationState, requestGpsLocation, setManualLocation, clearLocation } = useUserLocation();
 
   const {
     kp,
@@ -81,19 +81,18 @@ export function DashboardClient() {
     [kp, bz, maxAuroraProbNA, solarActivity.recentCmes, solarActivity.latestFlare, solarWindSpeed, cityProbs]
   );
 
+  const userLat = locationState.status === "set" ? locationState.lat : null;
+  const userLon = locationState.status === "set" ? locationState.lon : null;
+
   const userLocationProb = useMemo(() => {
-    if (geoState.status !== "granted") return null;
-    return getLocationAuroraProb(geoState.lat, geoState.lon, ovationData ?? null, kp, bz);
-  }, [geoState, ovationData, kp, bz]);
+    if (locationState.status !== "set") return null;
+    return getLocationAuroraProb(locationState.lat, locationState.lon, ovationData ?? null, kp, bz);
+  }, [locationState, ovationData, kp, bz]);
 
-  const userLocationLabel = useMemo(() => {
-    if (geoState.status !== "granted") return null;
-    return getNearestCityName(geoState.lat, geoState.lon);
-  }, [geoState]);
+  const userLocationLabel = locationState.status === "set" ? locationState.label : null;
+  const locationSource = locationState.status === "set" ? locationState.source : null;
 
-  const geoLat = geoState.status === "granted" ? geoState.lat : null;
-  const geoLon = geoState.status === "granted" ? geoState.lon : null;
-  const cloudCoverQuery = useCloudCover(geoLat, geoLon);
+  const cloudCoverQuery = useCloudCover(userLat, userLon);
   const kpForecastQuery = useKpForecast();
 
   // Dynamic page title — shows live Kp so users can see conditions in the tab bar
@@ -115,9 +114,18 @@ export function DashboardClient() {
             isFetching={isFetching}
             userLocationProb={userLocationProb}
             userLocationLabel={userLocationLabel}
-            onRequestLocation={geoState.status !== "denied" ? requestLocation : undefined}
-            isLocating={geoState.status === "loading"}
-            locationTimedOut={geoState.status === "timeout"}
+            locationSource={locationSource}
+            onRequestLocation={
+              locationState.status === "idle" ||
+              locationState.status === "gps-timeout" ||
+              locationState.status === "gps-unavailable"
+                ? requestGpsLocation
+                : undefined
+            }
+            isLocating={locationState.status === "gps-loading"}
+            locationTimedOut={locationState.status === "gps-timeout"}
+            onSetManualLocation={setManualLocation}
+            onClearLocation={clearLocation}
             cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
             cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
             kp={kp}
@@ -136,7 +144,7 @@ export function DashboardClient() {
           kpHistory={kpHistory}
           cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
           cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
-          locationGranted={geoState.status === "granted"}
+          locationGranted={locationState.status === "set"}
           isLoading={isLoading || kpForecastQuery.isLoading}
         />
       </ErrorBoundary>
@@ -171,8 +179,8 @@ export function DashboardClient() {
           {/* Pass pre-computed geo state so AuroraMap can render the user pin
               without duplicating the geolocation hook or permission flow. */}
           <AuroraMapSection
-            userLat={geoLat}
-            userLon={geoLon}
+            userLat={userLat}
+            userLon={userLon}
             userProb={userLocationProb}
           />
         </Suspense>

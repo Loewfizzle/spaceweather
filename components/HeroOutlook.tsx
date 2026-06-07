@@ -1,12 +1,15 @@
 "use client";
 
-import { MapPin, Loader2, Cloud } from "lucide-react";
+import { useState } from "react";
+import { MapPin, Loader2, Cloud, Navigation, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
+import type { LocationSource } from "../lib/hooks/useUserLocation";
 import { cloudCoverColor, getAuroraColor } from "../lib/noaa";
 import { ShareButton } from "./ShareButton";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { InstallPrompt } from "./InstallPrompt";
+import { LocationPicker } from "./LocationPicker";
 
 interface HeroOutlookProps {
   outlook: TonightOutlook;
@@ -15,9 +18,12 @@ interface HeroOutlookProps {
   isFetching?: boolean;
   userLocationProb?: number | null;
   userLocationLabel?: string | null;
+  locationSource?: LocationSource | null;
   onRequestLocation?: () => void;
   isLocating?: boolean;
   locationTimedOut?: boolean;
+  onSetManualLocation?: (lat: number, lon: number, label: string) => void;
+  onClearLocation?: () => void;
   cloudCoverPct?: number | null;
   cloudCoverLabel?: string | null;
   kp?: number | null;
@@ -29,16 +35,23 @@ export function HeroOutlook({
   isFetching,
   userLocationProb,
   userLocationLabel,
+  locationSource,
   onRequestLocation,
   isLocating,
   locationTimedOut,
+  onSetManualLocation,
+  onClearLocation,
   cloudCoverPct,
   cloudCoverLabel,
   kp,
   latestUpdate,
 }: HeroOutlookProps) {
-  // Show at most 4 pre-defined cities — enough for the north→south gradient without crowding
+  const [showPicker, setShowPicker] = useState(false);
+
+  // Show at most 6 pre-defined cities
   const displayedCities = outlook.cityProbs?.slice(0, 6) ?? [];
+
+  const locationIsSet = locationSource != null;
 
   return (
     <div
@@ -86,14 +99,14 @@ export function HeroOutlook({
 
         {outlook.status !== "Loading" && (
           <div className="space-y-1 mb-2">
-            {/* Section divider + live label */}
             {displayedCities.length > 0 && (
               <div className="flex items-center gap-1.5 border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
                 <span className="text-[11px] text-[#64748b]">Aurora chances now</span>
                 <span className="text-[9px] font-semibold tracking-widest text-emerald-400">LIVE</span>
               </div>
             )}
-            {/* User location row — same structure as city rows; differentiated by color + weight only */}
+
+            {/* User location row — shown when probability is available */}
             {userLocationProb != null && (
               <div className="flex items-center gap-2 py-0.5">
                 <span
@@ -148,44 +161,111 @@ export function HeroOutlook({
       )}
 
       {outlook.status !== "Loading" && (
-        <div className="mt-2 pt-3 border-t border-[#1e2937] flex items-center justify-between">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            {userLocationProb == null && onRequestLocation && (
-              <button
-                onClick={onRequestLocation}
-                disabled={isLocating}
-                style={{ color: outlook.accentColor }}
-                className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
-                title="Get aurora probability for your current location"
-              >
-                {isLocating ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <MapPin className="h-3.5 w-3.5" />
-                )}
-                {isLocating ? "Locating…" : locationTimedOut ? "Try again" : "Use my location"}
-              </button>
+        <div className="mt-2 pt-3 border-t border-[#1e2937]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 min-w-0">
 
+              {/* ── Location controls ── */}
+              {locationIsSet ? (
+                /* Location is set — show label with source icon + change/clear */
+                <div className="flex items-center gap-1.5 text-xs">
+                  {locationSource === "gps" ? (
+                    <Navigation
+                      className="h-3.5 w-3.5 shrink-0"
+                      style={{ color: outlook.accentColor }}
+                    />
+                  ) : (
+                    <MapPin
+                      className="h-3.5 w-3.5 shrink-0"
+                      style={{ color: outlook.accentColor }}
+                    />
+                  )}
+                  <span className="font-medium" style={{ color: outlook.accentColor }}>
+                    {userLocationLabel ?? "Your location"}
+                  </span>
+                  <span className="text-[#2d3748]">·</span>
+                  <button
+                    onClick={() => setShowPicker(!showPicker)}
+                    className="text-[#475569] hover:text-[#94a3b8] transition-colors"
+                  >
+                    {showPicker ? "Cancel" : "Change"}
+                  </button>
+                  {onClearLocation && (
+                    <button
+                      onClick={() => { onClearLocation(); setShowPicker(false); }}
+                      className="text-[#475569] hover:text-[#94a3b8] transition-colors"
+                      aria-label="Clear saved location"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                /* No location set — GPS button and/or manual entry */
+                !showPicker && (
+                  <>
+                    {onRequestLocation && (
+                      <button
+                        onClick={onRequestLocation}
+                        disabled={isLocating}
+                        style={{ color: outlook.accentColor }}
+                        className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
+                        title="Get aurora probability for your current location"
+                      >
+                        {isLocating ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Navigation className="h-3.5 w-3.5" />
+                        )}
+                        {isLocating ? "Locating…" : locationTimedOut ? "Try again" : "Use my location"}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowPicker(true)}
+                      className="flex items-center gap-1.5 text-xs text-[#475569] hover:text-[#94a3b8] transition-colors"
+                    >
+                      <MapPin className="h-3.5 w-3.5" />
+                      {onRequestLocation ? "Enter manually" : "Set location"}
+                    </button>
+                  </>
+                )
+              )}
+
+              {/* Cloud cover — hidden while picker is open to keep it tidy */}
+              {!showPicker && cloudCoverPct != null && (
+                <div className="flex items-center gap-1.5 text-xs text-[#64748b]">
+                  <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>Cloud cover:</span>
+                  <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>
+                    {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
+                  </span>
+                </div>
+              )}
+
+              {!showPicker && <NotificationPrompt accentColor={outlook.accentColor} />}
+              {!showPicker && <InstallPrompt accentColor={outlook.accentColor} />}
+            </div>
+
+            {!showPicker && (
+              <ShareButton
+                status={outlook.status}
+                kp={kp ?? null}
+                cityProbs={outlook.cityProbs ?? []}
+                accentColor={outlook.accentColor}
+              />
             )}
-            {/* Cloud cover lives in the footer so it shares a line with the Share button */}
-            {cloudCoverPct != null && (
-              <div className="flex items-center gap-1.5 text-xs text-[#64748b]">
-                <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
-                <span>Cloud cover:</span>
-                <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>
-                  {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
-                </span>
-              </div>
-            )}
-            <NotificationPrompt accentColor={outlook.accentColor} />
-            <InstallPrompt accentColor={outlook.accentColor} />
           </div>
-          <ShareButton
-            status={outlook.status}
-            kp={kp ?? null}
-            cityProbs={outlook.cityProbs ?? []}
-            accentColor={outlook.accentColor}
-          />
+
+          {/* Inline location picker */}
+          {showPicker && onSetManualLocation && (
+            <LocationPicker
+              onConfirm={(lat, lon, label) => {
+                onSetManualLocation(lat, lon, label);
+                setShowPicker(false);
+              }}
+              onCancel={() => setShowPicker(false)}
+            />
+          )}
         </div>
       )}
     </div>
