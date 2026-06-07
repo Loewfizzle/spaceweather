@@ -1,19 +1,22 @@
 import { getTonightOutlook } from './outlook';
 
 // Kp activity tiers — used by getKpTier and ViewingWindow.
-// Kp cutoffs: quiet <4 · moderate 4–4.9 · active 5–5.9 · storm ≥6
+// Kp cutoffs: quiet <4 · moderate 4–4.9 · active 5–5.9 · strong 6–6.9 · storm ≥7
+// Gray = nothing to see; warm colors reserved for when aurora is actually possible.
 export const AURORA_TIERS = {
-  quiet:    { color: '#22c55e', label: 'Quiet'    },
-  moderate: { color: '#eab308', label: 'Moderate' },
-  active:   { color: '#f97316', label: 'Active'   },
-  storm:    { color: '#a78bfa', label: 'Storm'    },
+  quiet:    { color: '#64748b', label: 'Quiet'    },  // Kp < 4  — gray
+  moderate: { color: '#22c55e', label: 'Moderate' },  // Kp 4–4.9 — green, northern tier possible
+  active:   { color: '#eab308', label: 'Active'   },  // Kp 5–5.9 — yellow, Great Lakes region
+  strong:   { color: '#f97316', label: 'Strong'   },  // Kp 6–6.9 — orange
+  storm:    { color: '#a78bfa', label: 'Storm'    },  // Kp 7+    — violet
 } as const;
 
 export type AuroraTier = keyof typeof AURORA_TIERS;
 
 /** Map a Kp index (0–9) to the canonical activity tier. */
 export function getKpTier(kp: number): AuroraTier {
-  if (kp >= 6) return 'storm';
+  if (kp >= 7) return 'storm';
+  if (kp >= 6) return 'strong';
   if (kp >= 5) return 'active';
   if (kp >= 4) return 'moderate';
   return 'quiet';

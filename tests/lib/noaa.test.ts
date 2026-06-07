@@ -298,12 +298,12 @@ describe('getAuroraColor', () => {
     // quiet  (<15%)    → gray
     expect(getAuroraColor(0)).toBe('#64748b')
     expect(getAuroraColor(14)).toBe('#64748b')
-    // low    (15–34%)  → amber
-    expect(getAuroraColor(15)).toBe('#eab308')
-    expect(getAuroraColor(34)).toBe('#eab308')
-    // moderate (35–59%) → green
-    expect(getAuroraColor(35)).toBe('#22c55e')
-    expect(getAuroraColor(59)).toBe('#22c55e')
+    // low    (15–34%)  → green
+    expect(getAuroraColor(15)).toBe('#22c55e')
+    expect(getAuroraColor(34)).toBe('#22c55e')
+    // moderate (35–59%) → yellow
+    expect(getAuroraColor(35)).toBe('#eab308')
+    expect(getAuroraColor(59)).toBe('#eab308')
     // high   (≥60%)    → violet
     expect(getAuroraColor(60)).toBe('#a78bfa')
     expect(getAuroraColor(100)).toBe('#a78bfa')
@@ -975,14 +975,14 @@ describe('getAuroraColor', () => {
     expect(getAuroraColor(14)).toBe('#64748b')
   })
 
-  it('returns low color (amber) for prob 15–34', () => {
-    expect(getAuroraColor(15)).toBe('#eab308')
-    expect(getAuroraColor(34)).toBe('#eab308')
+  it('returns low color (green) for prob 15–34', () => {
+    expect(getAuroraColor(15)).toBe('#22c55e')
+    expect(getAuroraColor(34)).toBe('#22c55e')
   })
 
-  it('returns moderate color (green) for prob 35–59', () => {
-    expect(getAuroraColor(35)).toBe('#22c55e')
-    expect(getAuroraColor(59)).toBe('#22c55e')
+  it('returns moderate color (yellow) for prob 35–59', () => {
+    expect(getAuroraColor(35)).toBe('#eab308')
+    expect(getAuroraColor(59)).toBe('#eab308')
   })
 
   it('returns high color (violet) for prob >= 60', () => {
@@ -1027,8 +1027,13 @@ describe('getKpTier', () => {
     expect(getKpTier(5.9)).toBe('active')
   })
 
-  it('returns storm for kp >= 6', () => {
-    expect(getKpTier(6)).toBe('storm')
+  it('returns strong for kp 6–6.9', () => {
+    expect(getKpTier(6)).toBe('strong')
+    expect(getKpTier(6.9)).toBe('strong')
+  })
+
+  it('returns storm for kp >= 7', () => {
+    expect(getKpTier(7)).toBe('storm')
     expect(getKpTier(9)).toBe('storm')
   })
 })

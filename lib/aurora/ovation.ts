@@ -14,10 +14,10 @@ export const NORTH_AMERICA_BOUNDS = {
 // Probability display tiers — used by getProbTier, getAuroraColor, and city/location rows.
 // Prob cutoffs: quiet <15% · low 15–34% · moderate 35–59% · high ≥60%
 export const PROB_TIERS = {
-  quiet:    { color: '#64748b', label: 'Quiet'    },
-  low:      { color: '#eab308', label: 'Low'      },
-  moderate: { color: '#22c55e', label: 'Moderate' },
-  high:     { color: '#a78bfa', label: 'High'     },
+  quiet:    { color: '#64748b', label: 'Quiet'    },  // <15%  — gray
+  low:      { color: '#22c55e', label: 'Low'      },  // 15–34% — green
+  moderate: { color: '#eab308', label: 'Moderate' },  // 35–59% — yellow
+  high:     { color: '#a78bfa', label: 'High'     },  // ≥60%  — violet
 } as const;
 
 export type ProbTier = keyof typeof PROB_TIERS;

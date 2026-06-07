@@ -14,9 +14,9 @@
   --text-subtle: #475569;
 
   /* Aurora-inspired restrained accents */
-  --accent-green: #22c55e;   /* good visibility / low Kp */
-  --accent-yellow: #eab308;  /* moderate */
-  --accent-purple: #a78bfa;  /* high / storm */
+  --accent-green: #22c55e;   /* moderate Kp (4–4.9) — northern tier possible */
+  --accent-yellow: #eab308;  /* active Kp (5–5.9) — Great Lakes region */
+  --accent-purple: #a78bfa;  /* storm Kp (7+) */
   --accent-blue: #3b82f6;
   --accent-cyan: #22d3ee;
 }
@@ -57,18 +57,24 @@ body {
 }
 
 .kp-quiet {
+  background-color: rgba(100, 116, 139, 0.1);
+  color: #64748b;
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+.kp-moderate {
   background-color: rgba(34, 197, 94, 0.1);
   color: var(--accent-green);
   border-color: rgba(34, 197, 94, 0.3);
 }
 
-.kp-moderate {
+.kp-active {
   background-color: rgba(234, 179, 8, 0.1);
   color: var(--accent-yellow);
   border-color: rgba(234, 179, 8, 0.3);
 }
 
-.kp-active {
+.kp-strong {
   background-color: rgba(249, 115, 22, 0.1);
   color: #f97316;
   border-color: rgba(249, 115, 22, 0.3);

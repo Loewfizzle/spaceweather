@@ -46,13 +46,13 @@ async function fetchBz(): Promise<number | null> {
 
 // ── Derived values ─────────────────────────────────────────────────────────────
 
-// OG-specific: maps kp to a visibility-likelihood color (green = aurora likely).
-// Distinct from AURORA_TIERS, which uses green for geomagnetically quiet conditions.
+// Maps kp to visibility-likelihood color matching the app's AURORA_TIERS scale.
 function colorFromKp(kp: number): string {
-  if (kp >= 5) return '#22c55e'; // green — aurora is likely
-  if (kp >= 4) return '#eab308'; // yellow — moderate
-  if (kp >= 3) return '#f97316'; // orange — low
-  return '#64748b';               // gray — quiet
+  if (kp >= 7) return '#a78bfa'; // storm
+  if (kp >= 6) return '#f97316'; // strong
+  if (kp >= 5) return '#eab308'; // active
+  if (kp >= 4) return '#22c55e'; // moderate
+  return '#64748b';               // quiet
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

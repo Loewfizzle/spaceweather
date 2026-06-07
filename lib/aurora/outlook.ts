@@ -142,21 +142,21 @@ export function getTonightOutlook(
   } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || (kp >= 4 && highSpeed) || (kp >= 3 && highSpeed && isFavorableBz) || highProb) {
     status = 'Good';
     message = 'Good chance tonight for northern-tier states and the Great Lakes region.';
-    accentColor = AURORA_TIERS.active.color;
+    accentColor = AURORA_TIERS.strong.color;
     if (isFavorableBz) reasons.push('Southward Bz currently favorable');
     if (highSpeed && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) enhancing coupling`);
     if (highProb && !highSpeed) reasons.push('High aurora probabilities across NA');
   } else if (kp >= 4 || (kp >= 3 && isFavorableBz) || moderateProb || hasEarthCme || highSpeed) {
     status = 'Moderate';
     message = 'Possible across northern states under dark skies.';
-    accentColor = AURORA_TIERS.moderate.color;
+    accentColor = AURORA_TIERS.active.color;
     if (isFavorableBz) reasons.push('Favorable Bz may enhance activity');
     if (hasEarthCme) reasons.push('Recent Earth-directed CME may increase chances');
     if (highSpeed && !isFavorableBz && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) — watch for Bz to turn south`);
   } else if (kp >= 3 || isFavorableBz || significantFlare) {
     status = 'Low';
     message = 'Low probability across the northern US.';
-    accentColor = AURORA_TIERS.quiet.color;
+    accentColor = AURORA_TIERS.moderate.color;
     if (isFavorableBz) reasons.push('Southward Bz provides some opportunity');
   } else {
     status = 'Quiet';
