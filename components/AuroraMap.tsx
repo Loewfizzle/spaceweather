@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { Home } from "lucide-react";
 import { useOvationData } from "../lib/use-noaa-data";
 import { filterOvationCoordinates } from "../lib/noaa";
 
@@ -267,6 +268,20 @@ function MapStateTracker() {
   return null;
 }
 
+function ResetViewButton() {
+  const map = useMap();
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); map.setView([48, -100], 3); }}
+      className="absolute bottom-3 left-3 z-[20] flex items-center justify-center rounded-lg border border-[#1e2937] bg-[#0f1425]/95 p-1.5 shadow backdrop-blur-sm hover:bg-[#1e2937] transition-colors"
+      title="Reset view"
+      aria-label="Reset map view"
+    >
+      <Home className="h-3.5 w-3.5 text-[#cbd5e1]" />
+    </button>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function AuroraMap({
@@ -379,6 +394,7 @@ export default function AuroraMap({
           <OvationCanvasLayer points={safePoints} />
           {/* Persist center/zoom so the map remembers the user's last view */}
           <MapStateTracker />
+          <ResetViewButton />
           {/* User location pin — only rendered when geolocation has been granted */}
           {hasUserLocation && (
             <UserLocationMarker
