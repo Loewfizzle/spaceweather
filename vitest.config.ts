@@ -26,7 +26,12 @@ export default defineConfig({
         'next.config.ts',
       ],
       thresholds: {
-        // Global floor — 5 pp below observed baseline (33/89/86/33)
+        // Global floor: measured baseline minus 5 pp, rounded down.
+        // Metric       measured   threshold   calculation
+        // statements   33.06      28          33.06 - 5 = 28.06 → 28
+        // branches     89.17      84          89.17 - 5 = 84.17 → 84
+        // functions    86.30      81          86.30 - 5 = 81.30 → 81
+        // lines        33.06      28          33.06 - 5 = 28.06 → 28
         statements: 28,
         branches: 84,
         functions: 81,
