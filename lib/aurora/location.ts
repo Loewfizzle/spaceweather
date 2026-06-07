@@ -16,171 +16,101 @@ export function getNearestCityName(lat: number, lon: number): string {
   return `${best.name}, ${best.state}`;
 }
 
-interface RegionEntry {
+// ── Region rules ──────────────────────────────────────────────────────────────
+//
+// Each rule has an explicit `priority` field that encodes the evaluation tier:
+//   1 — Bering Sea (antimeridian special case; must fire before any bbox lookup)
+//   2 — Enclosed seas (before Greenland/NA so Gulf of Mexico, Caribbean, etc.
+//       are not shadowed by the broad North America bbox)
+//   3 — Greenland + North America (before the Arctic Ocean polar guard so
+//       high-latitude land resolves to land rather than ocean)
+//   4 — Arctic Ocean polar guard (lat > 67°N)
+//   5 — Southern Ocean polar guard (lat < −60°S)
+//   6 — Other landmasses (after polar guards so Arctic beats Europe/Russia)
+//   7 — Open-ocean catch-alls (Pacific listed first so shared lon boundaries
+//       resolve to Pacific rather than Atlantic/Indian)
+//
+// Within each priority tier, array order determines first-match precedence.
+
+interface RegionRule {
   name: string;
-  minLat: number;
-  maxLat: number;
-  minLon: number;
-  maxLon: number;
+  priority: number;
+  match: (lat: number, lon: number) => boolean;
 }
 
-/**
- * Geographic regions grouped into four named evaluation tiers.
- *
- * ENCLOSED_SEAS (tier 1)
- *   Checked before Greenland / North America so the Gulf of Mexico, Caribbean Sea, etc.
- *   are not shadowed by the broad North America bbox. Within this tier, array order matters:
- *   Black Sea must precede Mediterranean because its bbox is entirely contained within it.
- *
- * GREENLAND_AND_NORTH_AMERICA (tier 2)
- *   Checked before the Arctic Ocean polar guard so that high-latitude land — Greenland,
- *   the Canadian Arctic Archipelago, northern Alaska — resolves to land rather than ocean.
- *
- * OTHER_LANDMASSES (tier 3)
- *   Checked after the polar guards, so lat=70 lon=0 returns "Arctic Ocean" (the guard fires
- *   first) rather than "Europe", and lat=68 lon=90 returns "Arctic Ocean" rather than
- *   "Russia / N. Asia".
- *
- * OPEN_OCEAN (tier 4)
- *   Catch-alls covering the remaining ocean surface. Pacific rules are listed before
- *   Atlantic/Indian so that shared longitude boundaries (lon=120, lon=−75) resolve to
- *   Pacific, matching the original evaluation order.
- */
-const REGIONS: {
-  ENCLOSED_SEAS: RegionEntry[];
-  GREENLAND_AND_NORTH_AMERICA: RegionEntry[];
-  OTHER_LANDMASSES: RegionEntry[];
-  OPEN_OCEAN: RegionEntry[];
-} = {
-  ENCLOSED_SEAS: [
-    // Black Sea before Mediterranean — its bbox is entirely inside Mediterranean's
-    { name: "Black Sea",         minLat:  41, maxLat:  47, minLon:  27, maxLon:  42 },
-    { name: "Mediterranean Sea", minLat:  30, maxLat:  47, minLon:  -6, maxLon:  42 },
-    { name: "Red Sea",           minLat:  22, maxLat:  32, minLon:  32, maxLon:  45 },
-    { name: "Persian Gulf",      minLat:  22, maxLat:  30, minLon:  47, maxLon:  57 },
-    { name: "Gulf of Mexico",    minLat:  18, maxLat:  31, minLon: -98, maxLon: -80 },
-    { name: "Caribbean Sea",     minLat:  10, maxLat:  24, minLon: -88, maxLon: -60 },
-    { name: "Gulf of Guinea",    minLat:  -5, maxLat:  10, minLon:  -5, maxLon:  10 },
-  ],
-
-  GREENLAND_AND_NORTH_AMERICA: [
-    { name: "Greenland",     minLat:  60, maxLat:  90, minLon:  -73, maxLon:  -12 },
-    { name: "North America", minLat:  54, maxLat:  90, minLon: -168, maxLon: -130 }, // Alaska band
-    { name: "North America", minLat:  15, maxLat:  85, minLon: -130, maxLon:  -52 }, // main continent
-  ],
-
-  OTHER_LANDMASSES: [
-    { name: "Central America",  minLat:   7, maxLat:  15, minLon:  -93, maxLon:  -77 },
-    { name: "South America",    minLat: -56, maxLat:  13, minLon:  -82, maxLon:  -34 },
-    { name: "Europe",           minLat:  35, maxLat:  72, minLon:  -12, maxLon:   40 },
-    { name: "Africa",           minLat: -35, maxLat:  38, minLon:  -18, maxLon:   52 },
-    { name: "Middle East",      minLat:  12, maxLat:  38, minLon:   34, maxLon:   62 },
-    { name: "South Asia",       minLat:   5, maxLat:  50, minLon:   60, maxLon:   92 },
-    { name: "Russia / N. Asia", minLat:  50, maxLat:  78, minLon:   30, maxLon:  190 },
-    { name: "East Asia",        minLat:  18, maxLat:  55, minLon:  100, maxLon:  145 },
-    { name: "SE Asia",          minLat: -10, maxLat:  25, minLon:   95, maxLon:  155 },
-    { name: "Australia",        minLat: -45, maxLat: -10, minLon:  112, maxLon:  155 },
-  ],
-
-  OPEN_OCEAN: [
-    // Pacific before Atlantic/Indian so shared lon boundaries resolve to Pacific
-    { name: "North Pacific Ocean",  minLat:   0, maxLat:  90, minLon:  120, maxLon:  180 },
-    { name: "North Pacific Ocean",  minLat:   0, maxLat:  90, minLon: -180, maxLon:  -75 },
-    { name: "South Pacific Ocean",  minLat: -90, maxLat:   0, minLon:  120, maxLon:  180 },
-    { name: "South Pacific Ocean",  minLat: -90, maxLat:   0, minLon: -180, maxLon:  -75 },
-    { name: "North Atlantic Ocean", minLat:   0, maxLat:  90, minLon:  -75, maxLon:   25 },
-    { name: "South Atlantic Ocean", minLat: -90, maxLat:   0, minLon:  -75, maxLon:   25 },
-    { name: "Indian Ocean",         minLat: -90, maxLat:  90, minLon:   25, maxLon:  120 },
-  ],
-};
-
-// ── Special-case predicates ───────────────────────────────────────────────────
-// These three regions cannot be expressed as a single bounding box or have
-// evaluation-order requirements that place them outside the normal tier system.
-
-/**
- * The Bering Sea straddles the antimeridian and cannot be expressed as a single bbox.
- * Must be checked before any REGIONS lookup because the Russia / N. Asia bbox (lon 30–190)
- * would otherwise capture the Russia side of the Bering Sea first.
- */
-function isBeringSeaCoord(lat: number, lon: number): boolean {
-  return lat >= 50 && lat <= 65 && (lon >= 155 || lon <= -168);
+/** Inline bbox predicate — avoids repeating the comparison pattern. */
+function bbox(minLat: number, maxLat: number, minLon: number, maxLon: number) {
+  return (lat: number, lon: number) =>
+    lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
 }
 
-/**
- * Arctic Ocean polar guard. Applied after GREENLAND_AND_NORTH_AMERICA (tier 2) so that
- * the Canadian Arctic Archipelago and Greenland resolve to land rather than ocean,
- * but before OTHER_LANDMASSES (tier 3) so that lat=70 lon=0 returns "Arctic Ocean"
- * rather than "Europe".
- */
-function isArcticOcean(lat: number): boolean {
-  return lat > 67;
-}
+const RULES: RegionRule[] = [
+  // ── Priority 1: Bering Sea ───────────────────────────────────────────────────
+  // Straddles the antimeridian; expressed as two half-strips rather than a single
+  // bbox. Checked first so the Russia / N. Asia bbox (lon 30–190) cannot capture
+  // the Russia side of the Bering Sea.
+  { name: "Bering Sea", priority: 1, match: (lat, lon) => lat >= 50 && lat <= 65 && (lon >= 155 || lon <= -168) },
 
-/**
- * Southern Ocean polar guard. Applied alongside isArcticOcean so that no tier-3
- * land-mass bbox can claim a point at lat < −60°.
- */
-function isSouthernOcean(lat: number): boolean {
-  return lat < -60;
-}
+  // ── Priority 2: Enclosed seas ────────────────────────────────────────────────
+  // Black Sea before Mediterranean — its bbox is entirely inside Mediterranean's.
+  { name: "Black Sea",         priority: 2, match: bbox( 41,  47,  27,  42) },
+  { name: "Mediterranean Sea", priority: 2, match: bbox( 30,  47,  -6,  42) },
+  { name: "Red Sea",           priority: 2, match: bbox( 22,  32,  32,  45) },
+  { name: "Persian Gulf",      priority: 2, match: bbox( 22,  30,  47,  57) },
+  { name: "Gulf of Mexico",    priority: 2, match: bbox( 18,  31, -98, -80) },
+  { name: "Caribbean Sea",     priority: 2, match: bbox( 10,  24, -88, -60) },
+  { name: "Gulf of Guinea",    priority: 2, match: bbox( -5,  10,  -5,  10) },
 
-/** Returns the first rule in `rules` whose bbox contains (lat, lon), or null. */
-function findFirst(rules: RegionEntry[], lat: number, lon: number): RegionEntry | null {
-  for (const rule of rules) {
-    if (lat >= rule.minLat && lat <= rule.maxLat && lon >= rule.minLon && lon <= rule.maxLon) {
-      return rule;
-    }
-  }
-  return null;
-}
+  // ── Priority 3: Greenland + North America ─────────────────────────────────────
+  // Checked before the Arctic Ocean guard so that high-latitude land — Greenland,
+  // the Canadian Arctic Archipelago, northern Alaska — resolves to land not ocean.
+  { name: "Greenland",     priority: 3, match: bbox( 60,  90,  -73,  -12) },
+  { name: "North America", priority: 3, match: bbox( 54,  90, -168, -130) }, // Alaska band
+  { name: "North America", priority: 3, match: bbox( 15,  85, -130,  -52) }, // main continent
+
+  // ── Priority 4: Arctic Ocean polar guard ─────────────────────────────────────
+  // Applied after tier 3 so Canadian Arctic / Greenland resolves to land; before
+  // tier 6 so lat=70 lon=0 returns "Arctic Ocean" rather than "Europe".
+  { name: "Arctic Ocean",   priority: 4, match: (lat) => lat > 67 },
+
+  // ── Priority 5: Southern Ocean polar guard ────────────────────────────────────
+  { name: "Southern Ocean", priority: 5, match: (lat) => lat < -60 },
+
+  // ── Priority 6: Other landmasses ─────────────────────────────────────────────
+  // After polar guards, so lat=68 lon=90 → "Arctic Ocean" (not "Russia / N. Asia").
+  { name: "Central America",  priority: 6, match: bbox(  7,  15,  -93,  -77) },
+  { name: "South America",    priority: 6, match: bbox(-56,  13,  -82,  -34) },
+  { name: "Europe",           priority: 6, match: bbox( 35,  72,  -12,   40) },
+  { name: "Africa",           priority: 6, match: bbox(-35,  38,  -18,   52) },
+  { name: "Middle East",      priority: 6, match: bbox( 12,  38,   34,   62) },
+  { name: "South Asia",       priority: 6, match: bbox(  5,  50,   60,   92) },
+  { name: "Russia / N. Asia", priority: 6, match: bbox( 50,  78,   30,  190) },
+  { name: "East Asia",        priority: 6, match: bbox( 18,  55,  100,  145) },
+  { name: "SE Asia",          priority: 6, match: bbox(-10,  25,   95,  155) },
+  { name: "Australia",        priority: 6, match: bbox(-45, -10,  112,  155) },
+
+  // ── Priority 7: Open-ocean catch-alls ────────────────────────────────────────
+  // Pacific listed before Atlantic/Indian so shared longitude boundaries
+  // (lon=120, lon=−75) resolve to Pacific, matching the original evaluation order.
+  { name: "North Pacific Ocean",  priority: 7, match: bbox(  0, 90,  120,  180) },
+  { name: "North Pacific Ocean",  priority: 7, match: bbox(  0, 90, -180,  -75) },
+  { name: "South Pacific Ocean",  priority: 7, match: bbox(-90,  0,  120,  180) },
+  { name: "South Pacific Ocean",  priority: 7, match: bbox(-90,  0, -180,  -75) },
+  { name: "North Atlantic Ocean", priority: 7, match: bbox(  0, 90,  -75,   25) },
+  { name: "South Atlantic Ocean", priority: 7, match: bbox(-90,  0,  -75,   25) },
+  { name: "Indian Ocean",         priority: 7, match: bbox(-90, 90,   25,  120) },
+];
 
 /**
  * Maps a lat/lon pair to a plain-English location name.
  *
- * Evaluation order — each step takes precedence over all later steps:
- *
- *   1. Bering Sea — antimeridian special case; must precede all bbox lookups
- *      because Russia / N. Asia (lon 30–190) would capture the Russia side first.
- *   2. Enclosed seas (REGIONS.ENCLOSED_SEAS) — before Greenland / North America
- *      so the Gulf of Mexico, Caribbean Sea, etc. are not shadowed by the broad NA bbox.
- *   3. Greenland + North America (REGIONS.GREENLAND_AND_NORTH_AMERICA) — before the
- *      Arctic Ocean polar guard so high-latitude land resolves to land, not ocean.
- *   4. Arctic Ocean polar guard (lat > 67°N).
- *   5. Southern Ocean polar guard (lat < −60°S).
- *   6. Other land masses (REGIONS.OTHER_LANDMASSES) — after polar guards so "Arctic Ocean"
- *      beats "Europe" at lat=70 and "Russia / N. Asia" at lat=68 lon=90.
- *   7. Open-ocean catch-alls (REGIONS.OPEN_OCEAN) — Pacific listed before Atlantic/Indian
- *      so shared longitude boundaries resolve to Pacific.
- *
- * Returns "" when no region matches — callers should fall back to coordinates.
+ * Iterates RULES in array order (rules are pre-sorted by ascending priority,
+ * with ties broken by array position). Returns "" when no rule matches —
+ * callers should fall back to coordinates.
  */
 export function approximateLocation(lat: number, lon: number): string {
-  // 1. Bering Sea — antimeridian special case, before all bbox lookups
-  if (isBeringSeaCoord(lat, lon)) return "Bering Sea";
-
-  // 2. Enclosed seas — before Greenland / North America so the Gulf of Mexico,
-  //    Caribbean Sea, etc. are not shadowed by the broad NA bbox
-  const seaMatch = findFirst(REGIONS.ENCLOSED_SEAS, lat, lon);
-  if (seaMatch) return seaMatch.name;
-
-  // 3. Greenland + North America — before the Arctic Ocean polar guard so
-  //    the Canadian Arctic Archipelago and Greenland resolve to land, not ocean
-  const naMatch = findFirst(REGIONS.GREENLAND_AND_NORTH_AMERICA, lat, lon);
-  if (naMatch) return naMatch.name;
-
-  // 4–5. Polar guards — between tier-2 and tier-3 land masses so that
-  //      lat=70 lon=0 → "Arctic Ocean" (not "Europe"), and
-  //      lat=68 lon=90 → "Arctic Ocean" (not "Russia / N. Asia")
-  if (isArcticOcean(lat))   return "Arctic Ocean";
-  if (isSouthernOcean(lat)) return "Southern Ocean";
-
-  // 6. Other land masses — first match in array order wins within this tier
-  const landMatch = findFirst(REGIONS.OTHER_LANDMASSES, lat, lon);
-  if (landMatch) return landMatch.name;
-
-  // 7. Open-ocean catch-alls — Pacific listed first so lon=120 and lon=−75
-  //    resolve to Pacific rather than Atlantic/Indian
-  const oceanMatch = findFirst(REGIONS.OPEN_OCEAN, lat, lon);
-  return oceanMatch?.name ?? "";
+  for (const rule of RULES) {
+    if (rule.match(lat, lon)) return rule.name;
+  }
+  return "";
 }

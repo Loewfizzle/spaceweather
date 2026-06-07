@@ -1226,6 +1226,31 @@ describe('approximateLocation — additional land masses', () => {
 })
 
 // ============================================
+// approximateLocation — priority-field regression tests
+// ============================================
+describe('approximateLocation — priority-field regression', () => {
+  it('lat=43 lon=-86 returns North America (Great Lakes, not an enclosed sea)', () => {
+    expect(approximateLocation(43, -86)).toBe('North America')
+  })
+
+  it('lat=22 lon=-84 returns Gulf of Mexico (Gulf bbox fires before Caribbean for this coord)', () => {
+    expect(approximateLocation(22, -84)).toBe('Gulf of Mexico')
+  })
+
+  it('lat=47 lon=-88 returns North America (Lake Superior area, not Gulf of Mexico)', () => {
+    expect(approximateLocation(47, -88)).toBe('North America')
+  })
+
+  it('lat=-5 lon=5 returns Gulf of Guinea (boundary inclusive)', () => {
+    expect(approximateLocation(-5, 5)).toBe('Gulf of Guinea')
+  })
+
+  it('lat=32 lon=36 returns Mediterranean Sea (Mediterranean bbox fires first at lat=32)', () => {
+    expect(approximateLocation(32, 36)).toBe('Mediterranean Sea')
+  })
+})
+
+// ============================================
 // createGoogleCalendarLink
 // ============================================
 describe('createGoogleCalendarLink', () => {
