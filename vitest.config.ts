@@ -18,6 +18,7 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'tests/',
+        'e2e/',
         '.next/',
         'public/sw.js',
         'scripts/',
@@ -26,12 +27,12 @@ export default defineConfig({
         'next.config.ts',
       ],
       thresholds: {
-        // Global floor — raised after adding component tests.
-        // Functions baseline dropped slightly vs prior baseline because the new
-        // useAutoAlert.ts and swCacheSync.ts hooks add client-side code that is
-        // intentionally not unit-tested in isolation.
-        statements: 38,
-        lines: 38,
+        // Global floor — raised after adding hook tests for useUserLocation + useAutoAlert.
+        // Actuals as of this commit: ~41.9% stmt/lines, ~87% branches, ~80.8% functions.
+        // Functions actual is capped by the many "use client" hooks/components that are
+        // legitimately hard to unit-test in jsdom; threshold set 1 pp below actual.
+        statements: 41,
+        lines: 41,
         branches: 86,
         functions: 80,
         // Critical pure-logic files: lock in high existing coverage
@@ -45,6 +46,8 @@ export default defineConfig({
         // modal code paths require separate opens per card.
         'components/CurrentConditions.tsx': { statements: 70, branches: 38, functions: 45, lines: 70 },
         'components/ViewingWindow.tsx': { statements: 70, branches: 60, functions: 70, lines: 70 },
+        // Hook tests added — lock in the coverage these tests provide
+        'lib/hooks/useUserLocation.ts': { statements: 80, branches: 70, functions: 85, lines: 80 },
       },
     },
   },
