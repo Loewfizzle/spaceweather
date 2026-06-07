@@ -3,6 +3,22 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { ViewingWindow } from '../../components/ViewingWindow';
 import type { ViewingWindowData } from '../../lib/utils/viewingWindow';
 
+vi.mock('../../lib/context/UserLocationContext', () => ({
+  useUserLocationContext: () => ({
+    userLat: null,
+    userLon: null,
+    userLocationLabel: null,
+    state: { status: 'idle' },
+    requestGpsLocation: vi.fn(),
+    setManualLocation: vi.fn(),
+    clearLocation: vi.fn(),
+    locationSource: null,
+    isLocating: false,
+    locationTimedOut: false,
+    onRequestLocation: undefined,
+  }),
+}));
+
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 const activeWindow: ViewingWindowData = {

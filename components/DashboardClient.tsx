@@ -131,6 +131,7 @@ function DashboardInner() {
           locationGranted={locationState.status === "set"}
           isLoading={isLoading || kpForecastQuery.isLoading}
           viewingWindow={viewingWindow}
+          kp={kp}
         />
       </SectionErrorBoundary>
 
