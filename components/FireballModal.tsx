@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useModal } from "../lib/hooks/useModal";
 import dynamic from "next/dynamic";
 import type { Fireball } from "../lib/use-noaa-data";
 import { formatFireballDate, formatFireballLocation, formatFireballEnergy, approximateLocation } from "../lib/use-noaa-data";
@@ -42,19 +43,7 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
     fireball.lat != null && fireball.lon != null
   );
 
-  // Lock body scroll while modal is open
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
-  }, []);
-
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  useModal(onClose);
 
   // Geocode on open — abort on unmount or if coordinates change
   useEffect(() => {

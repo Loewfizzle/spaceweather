@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useModal } from "../lib/hooks/useModal";
 import { Sun, TrendingUp, Zap, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
@@ -190,20 +191,7 @@ function FlareModal({
   const [goesState, setGoesState] = useState<"loading" | "loaded" | "failed">("loading");
   const impact = assessEarthImpact(recentCmes);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  useModal(onClose);
 
   const timingRows = [
     { label: "Begin", time: flare.begin_time },
@@ -388,16 +376,7 @@ function CmeModal({
   recentCmes: CmeSummary[];
   onClose: () => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, []);
+  useModal(onClose);
 
   return (
     <div
@@ -552,16 +531,7 @@ function SunspotModal({
     0
   );
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, []);
+  useModal(onClose);
 
   return (
     <div
@@ -669,9 +639,8 @@ function SunspotModal({
 
 export function SolarActivity() {
   const solarActivity = useSolarActivity();
-  const [showFlareModal, setShowFlareModal] = useState(false);
-  const [showCmeModal, setShowCmeModal] = useState(false);
-  const [showSunspotModal, setShowSunspotModal] = useState(false);
+  const [openModal, setOpenModal] = useState<"flare" | "cme" | "sunspot" | null>(null);
+  const closeModal = useCallback(() => setOpenModal(null), []);
   const sunCtx = solarActivity.sunspotNumber !== null ? sunspotContext(solarActivity.sunspotNumber) : null;
 
   const latestFlare = solarActivity.latestFlare;
@@ -699,7 +668,7 @@ export function SolarActivity() {
           {/* Latest Flare — clickable when data is available */}
           <button
             className="metric text-left w-full hover:border-[#293548] transition-colors group disabled:cursor-default"
-            onClick={() => latestFlare && setShowFlareModal(true)}
+            onClick={() => latestFlare && setOpenModal("flare")}
             disabled={!latestFlare}
           >
             <div className="flex items-center justify-between mb-2.5">
@@ -757,7 +726,7 @@ export function SolarActivity() {
                   </span>
                 )}
                 <button
-                  onClick={() => setShowCmeModal(true)}
+                  onClick={() => setOpenModal("cme")}
                   className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
                 >
                   Details <ChevronRight className="h-3.5 w-3.5" />
@@ -831,7 +800,7 @@ export function SolarActivity() {
               ) : null}
               {solarActivity.sunspotNumber !== null && (
                 <button
-                  onClick={() => setShowSunspotModal(true)}
+                  onClick={() => setOpenModal("sunspot")}
                   className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
                 >
                   Details <ChevronRight className="h-3.5 w-3.5" />
@@ -918,23 +887,23 @@ export function SolarActivity() {
         )}
       </div>
 
-      {showFlareModal && latestFlare && (
+      {openModal === "flare" && latestFlare && (
         <FlareModal
           flare={latestFlare}
           recentCmes={solarActivity.recentCmes}
-          onClose={() => setShowFlareModal(false)}
+          onClose={closeModal}
         />
       )}
-      {showCmeModal && (
+      {openModal === "cme" && (
         <CmeModal
           recentCmes={solarActivity.recentCmes}
-          onClose={() => setShowCmeModal(false)}
+          onClose={closeModal}
         />
       )}
-      {showSunspotModal && solarActivity.sunspotNumber !== null && (
+      {openModal === "sunspot" && solarActivity.sunspotNumber !== null && (
         <SunspotModal
           sunspotNumber={solarActivity.sunspotNumber}
-          onClose={() => setShowSunspotModal(false)}
+          onClose={closeModal}
         />
       )}
     </div>
