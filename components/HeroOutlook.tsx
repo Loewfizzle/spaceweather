@@ -47,13 +47,29 @@ export function HeroOutlook({
   const displayedCities = outlook.cityProbs?.slice(0, 6) ?? [];
   const locationIsSet = locationSource != null;
 
+  // Dot: null = hidden (loading), red = feed down, yellow = stale/error with cached data, green = fresh
+  const dotColor = (() => {
+    if (outlook.status === 'Loading') return null;
+    if (error && kp == null) return '#ef4444';
+    if (error) return '#eab308';
+    if (!latestUpdate) return '#eab308';
+    const ageMin = (Date.now() - latestUpdate.getTime()) / 60000;
+    return ageMin > 10 ? '#eab308' : '#22c55e';
+  })();
+
   return (
     <div
       className="mt-8 card p-6 max-w-3xl border-l-4"
       style={{ borderLeftColor: outlook.accentColor }}
     >
       <div>
-        <div className="mb-1">
+        <div className="flex items-center gap-1.5 mb-1">
+          {dotColor && (
+            <span
+              className="animate-pulse block rounded-full flex-shrink-0"
+              style={{ width: '7px', height: '7px', backgroundColor: dotColor }}
+            />
+          )}
           <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
             CURRENT CONDITIONS
           </span>
