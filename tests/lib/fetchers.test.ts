@@ -1,5 +1,21 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { parseStringArrayRows, fetchFireballs } from '../../lib/api/fetchers'
+import {
+  parseStringArrayRows,
+  fetchFireballs,
+  fetchOvation,
+  fetchKpIndex,
+  fetchKpForecast,
+  fetchPlasma,
+  fetchMag,
+  fetchXrayFlaresLatest,
+  fetchAlerts,
+  fetchSolarRegions,
+} from '../../lib/api/fetchers'
+
+vi.mock('@/lib/utils/retry', () => ({
+  logDataError: vi.fn(),
+  recordDataSuccess: vi.fn(),
+}))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -141,5 +157,167 @@ describe('fetchFireballs', () => {
     stubFetch({ fields: sparseFields, data: sparseData })
     const result = await fetchFireballs(1)
     expect(result[0].impactE).toBeNull() // field not in fields list → col() returns null
+  })
+})
+
+// ============================================
+// fetchKpIndex
+// ============================================
+describe('fetchKpIndex', () => {
+  it('returns parsed Kp entries on success', async () => {
+    stubFetch([{ time_tag: '2024-01-15 12:00:00', Kp: 3.0, a_running: 10, station_count: 12 }])
+    const result = await fetchKpIndex()
+    expect(result).toHaveLength(1)
+    expect(result[0].Kp).toBe(3.0)
+    expect(result[0].time_tag).toBe('2024-01-15 12:00:00')
+  })
+
+  it('throws on network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')))
+    await expect(fetchKpIndex()).rejects.toThrow()
+  })
+})
+
+// ============================================
+// fetchKpForecast
+// ============================================
+describe('fetchKpForecast', () => {
+  it('returns parsed forecast entries on success', async () => {
+    stubFetch([{ time_tag: '2024-01-16 00:00:00', kp: 4.0, observed: 'predicted', noaa_scale: 'G0' }])
+    const result = await fetchKpForecast()
+    expect(result).toHaveLength(1)
+    expect(result[0].kp).toBe(4.0)
+  })
+
+  it('returns empty array when upstream returns invalid shape (safeParse failure)', async () => {
+    stubFetch('not an array')
+    const result = await fetchKpForecast()
+    expect(result).toEqual([])
+  })
+
+  it('throws on network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('timeout')))
+    await expect(fetchKpForecast()).rejects.toThrow()
+  })
+})
+
+// ============================================
+// fetchOvation
+// ============================================
+describe('fetchOvation', () => {
+  it('returns parsed OVATION data on success', async () => {
+    stubFetch({ 'Forecast Time': '2024-01-15T12:00:00Z', coordinates: [[240, 55, 18]] })
+    const result = await fetchOvation()
+    expect(result.coordinates).toHaveLength(1)
+  })
+
+  it('returns { coordinates: [] } fallback when upstream returns invalid shape', async () => {
+    stubFetch(null) // null fails z.object() safeParse
+    const result = await fetchOvation()
+    expect(result).toEqual({ coordinates: [] })
+  })
+
+  it('throws on network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('connection refused')))
+    await expect(fetchOvation()).rejects.toThrow()
+  })
+})
+
+// ============================================
+// fetchPlasma
+// ============================================
+describe('fetchPlasma', () => {
+  it('returns parsed plasma entries on success', async () => {
+    stubFetch([
+      ['time_tag', 'density', 'speed', 'temperature'],
+      ['2024-01-15 12:00:00', '5.2', '420.1', '90000'],
+    ])
+    const result = await fetchPlasma()
+    expect(result).toHaveLength(1)
+    expect(result[0].speed).toBe(420.1)
+  })
+
+  it('throws on network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')))
+    await expect(fetchPlasma()).rejects.toThrow()
+  })
+})
+
+// ============================================
+// fetchMag
+// ============================================
+describe('fetchMag', () => {
+  it('returns parsed mag entries on success', async () => {
+    stubFetch([
+      ['time_tag', 'bx_gsm', 'by_gsm', 'bz_gsm', 'lon_gsm', 'lat_gsm', 'bt'],
+      ['2024-01-15 12:00:00', '1.2', '-3.4', '-5.6', '45.0', '12.0', '6.7'],
+    ])
+    const result = await fetchMag()
+    expect(result).toHaveLength(1)
+    expect(result[0].bz_gsm).toBe(-5.6)
+  })
+
+  it('throws on network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')))
+    await expect(fetchMag()).rejects.toThrow()
+  })
+})
+
+// ============================================
+// fetchXrayFlaresLatest
+// ============================================
+describe('fetchXrayFlaresLatest', () => {
+  it('returns parsed flare entries on success', async () => {
+    stubFetch([{ time_tag: '2024-01-15T12:00:00Z', satellite: 18, max_class: 'M2.5' }])
+    const result = await fetchXrayFlaresLatest()
+    expect(result).toHaveLength(1)
+    expect(result[0].max_class).toBe('M2.5')
+  })
+
+  it('returns empty array when upstream returns invalid shape', async () => {
+    stubFetch({ not: 'an array' })
+    const result = await fetchXrayFlaresLatest()
+    expect(result).toEqual([])
+  })
+})
+
+// ============================================
+// fetchAlerts
+// ============================================
+describe('fetchAlerts', () => {
+  it('returns parsed alerts on success', async () => {
+    stubFetch([{ product_id: 'WATA07', issue_datetime: '2024-01-15 12:00:00', message: 'Geomagnetic storm watch' }])
+    const result = await fetchAlerts()
+    expect(result).toHaveLength(1)
+    expect(result[0].product_id).toBe('WATA07')
+  })
+
+  it('returns empty array when upstream returns invalid shape', async () => {
+    stubFetch('bad')
+    const result = await fetchAlerts()
+    expect(result).toEqual([])
+  })
+})
+
+// ============================================
+// fetchSolarRegions
+// ============================================
+describe('fetchSolarRegions', () => {
+  it('returns parsed solar regions on success', async () => {
+    stubFetch([{ observed_date: '2024-01-15', region: 3800, number_spots: 42 }])
+    const result = await fetchSolarRegions()
+    expect(result).toHaveLength(1)
+    expect(result[0].number_spots).toBe(42)
+  })
+
+  it('returns empty array when upstream returns invalid shape', async () => {
+    stubFetch(null)
+    const result = await fetchSolarRegions()
+    expect(result).toEqual([])
+  })
+
+  it('throws on network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('timeout')))
+    await expect(fetchSolarRegions()).rejects.toThrow()
   })
 })

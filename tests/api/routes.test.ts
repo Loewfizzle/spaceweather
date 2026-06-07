@@ -156,6 +156,63 @@ describe('GET /api/geocode', () => {
 });
 
 // ============================================
+// GET /api/cloud-cover
+// ============================================
+describe('GET /api/cloud-cover', () => {
+  afterEach(() => vi.resetAllMocks());
+
+  async function cloudCover(params: Record<string, string> = {}) {
+    const { GET } = await import('../../app/api/cloud-cover/route');
+    return GET(makeReq('/api/cloud-cover', params));
+  }
+
+  it('returns 400 when lat and lon are missing', async () => {
+    const res = await cloudCover({});
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for out-of-range lat (> 90)', async () => {
+    const res = await cloudCover({ lat: '95', lon: '0' });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for non-numeric lat', async () => {
+    const res = await cloudCover({ lat: 'abc', lon: '0' });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 200 with Cache-Control header on success', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ current: { cloud_cover: 45 } }),
+    });
+    const res = await cloudCover({ lat: '42.33', lon: '-83.04' });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Cache-Control')).toContain('s-maxage=300');
+  });
+
+  it('passes upstream JSON body through unchanged', async () => {
+    const upstream = { current: { cloud_cover: 20 }, hourly: { cloud_cover: [10, 15] } };
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => upstream });
+    const res = await cloudCover({ lat: '42', lon: '-83' });
+    const body = await res.json();
+    expect(body).toEqual(upstream);
+  });
+
+  it('returns 502 when upstream returns non-ok', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 503 });
+    const res = await cloudCover({ lat: '42', lon: '-83' });
+    expect(res.status).toBe(502);
+  });
+
+  it('returns 500 on network error', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('timeout'));
+    const res = await cloudCover({ lat: '42', lon: '-83' });
+    expect(res.status).toBe(500);
+  });
+});
+
+// ============================================
 // GET /api/fireballs
 // ============================================
 describe('GET /api/fireballs', () => {

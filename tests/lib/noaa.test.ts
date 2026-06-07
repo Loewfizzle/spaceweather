@@ -23,6 +23,8 @@ import {
   formatFireballLocation,
   approximateLocation,
   assessEarthImpact,
+  createGoogleCalendarLink,
+  MAJOR_METEOR_SHOWERS,
 } from '../../lib/noaa'
 import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse, MeteorShower } from '../../lib/api/schemas'
 
@@ -1195,5 +1197,41 @@ describe('approximateLocation — additional land masses', () => {
     // in practice. Verify a few extreme points resolve to something.
     expect(approximateLocation(0, 180)).not.toBe('')
     expect(approximateLocation(-45, 0)).not.toBe('')
+  })
+})
+
+// ============================================
+// createGoogleCalendarLink
+// ============================================
+describe('createGoogleCalendarLink', () => {
+  const quadrantids = MAJOR_METEOR_SHOWERS.find((s) => s.name === 'Quadrantids')!
+  const perseids    = MAJOR_METEOR_SHOWERS.find((s) => s.name === 'Perseids')!
+
+  it('returns a Google Calendar render URL', () => {
+    const url = createGoogleCalendarLink(quadrantids, new Date(2026, 0, 3))
+    expect(url).toMatch(/^https:\/\/calendar\.google\.com\/calendar\/render/)
+  })
+
+  it('text param contains the URL-encoded shower name', () => {
+    const url = createGoogleCalendarLink(quadrantids, new Date(2026, 0, 3))
+    // "Meteor Shower Peak: Quadrantids" URL-encoded
+    expect(url).toContain('text=Meteor%20Shower%20Peak%3A%20Quadrantids')
+  })
+
+  it('start date is formatted as YYYYMMDD', () => {
+    const url = createGoogleCalendarLink(quadrantids, new Date(2026, 0, 3)) // Jan 3
+    expect(url).toContain('dates=20260103/')
+  })
+
+  it('single-day shower: end date is peak + 1 day', () => {
+    // Quadrantids has no peakEndDay → span = 1 → end = Jan 4
+    const url = createGoogleCalendarLink(quadrantids, new Date(2026, 0, 3))
+    expect(url).toContain('/20260104')
+  })
+
+  it('multi-day shower: end date is peak + 2 days', () => {
+    // Perseids has peakEndDay = 13 → span = 2 → end = Aug 14
+    const url = createGoogleCalendarLink(perseids, new Date(2026, 7, 12))
+    expect(url).toContain('dates=20260812/20260814')
   })
 })
