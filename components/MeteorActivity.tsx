@@ -184,14 +184,9 @@ export function MeteorActivity() {
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
-              <div className="text-right">
-                <div className="text-[10px] text-[#475569] tabular-nums">
-                  NASA JPL · {fireballsQuery.fireballs.length} events · most recent first
-                </div>
-                <div className="text-[10px] text-[#475569]">
-                  Historical · analysis may lag weeks
-                </div>
-              </div>
+              <span className="text-[10px] text-[#475569] tabular-nums">
+                NASA JPL · {fireballsQuery.fireballs.length} events
+              </span>
             )}
           </div>
 
