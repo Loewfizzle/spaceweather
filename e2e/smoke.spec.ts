@@ -8,37 +8,44 @@ test.describe('AuroraWatch smoke tests', () => {
 
   test('CURRENT CONDITIONS section is visible', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('CURRENT CONDITIONS')).toBeVisible();
+    await expect(page.locator('div.section-title', { hasText: 'CURRENT CONDITIONS' }).first()).toBeVisible();
   });
 
   test('hero status heading is present', async ({ page }) => {
     await page.goto('/');
-    // Any valid status: Quiet / Good / Moderate / Excellent / Loading
     const statusTexts = ['Quiet', 'Good', 'Moderate', 'Excellent', 'Loading'];
     const found = await Promise.any(
-      statusTexts.map((t) => expect(page.getByRole('heading', { name: t, exact: false })).toBeVisible().then(() => true))
+      statusTexts.map((t) =>
+        expect(
+          page.locator('div.tracking-tighter', { hasText: t }).first()
+        ).toBeVisible().then(() => true)
+      )
     ).catch(() => false);
     expect(found).toBe(true);
   });
 
   test('SOLAR ACTIVITY section is visible', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('SOLAR ACTIVITY')).toBeVisible();
+    await expect(page.locator('div.section-title', { hasText: 'SOLAR ACTIVITY' })).toBeVisible();
   });
 
   test('metric cards are visible (Solar Wind, IMF Bz)', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('SOLAR WIND')).toBeVisible();
-    await expect(page.getByText('IMF Bz')).toBeVisible();
+    await expect(
+      page.locator('div.metric').filter({ hasText: 'SOLAR WIND' }).first()
+    ).toBeVisible();
+    await expect(
+      page.locator('div.metric').filter({ hasText: 'IMF Bz' }).first()
+    ).toBeVisible();
   });
 
   test('METEOR ACTIVITY section is visible', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('METEOR ACTIVITY')).toBeVisible();
+    await expect(page.locator('div.section-title', { hasText: 'METEOR ACTIVITY' })).toBeVisible();
   });
 
   test('AURORA ALERTS section is visible', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('AURORA ALERTS')).toBeVisible();
+    await expect(page.locator('div.section-title', { hasText: 'AURORA ALERTS' })).toBeVisible();
   });
 });
