@@ -26,7 +26,7 @@ test.describe('AuroraWatch smoke tests', () => {
 
   test('SOLAR ACTIVITY section is visible', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('div.section-title', { hasText: 'SOLAR ACTIVITY' })).toBeVisible();
+    await expect(page.locator('div.section-title', { hasText: 'SOLAR ACTIVITY' }).first()).toBeVisible();
   });
 
   test('metric cards are visible (Solar Wind, IMF Bz)', async ({ page }) => {
