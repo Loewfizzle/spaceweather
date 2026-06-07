@@ -1,15 +1,7 @@
 import { Zap } from "lucide-react";
 import { LiveHeader } from "../components/LiveHeader";
 import { LiveIndicator } from "../components/LiveIndicator";
-import dynamic from "next/dynamic";
-
-// ssr: false — DashboardClient reads localStorage for location state on first render.
-// Disabling SSR ensures server and client both start from the same empty state,
-// eliminating the hydration mismatch. Dashboard data is all API-fetched anyway.
-const DashboardClient = dynamic(
-  () => import("../components/DashboardClient").then((m) => ({ default: m.DashboardClient })),
-  { ssr: false }
-);
+import { DashboardClient } from "../components/DashboardClient";
 
 // No "use client" — this is a Server Component.
 // Static shell (header branding, h1 hero copy, footer) is server-rendered for LCP + SEO.
