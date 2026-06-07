@@ -4,21 +4,19 @@ interface ErrorStateProps {
   message?: string;
   onRetry?: () => void;
   className?: string;
+  standalone?: boolean;
 }
 
-/**
- * Reusable error state component with optional retry.
- * Consistent calm error presentation across the dashboard.
- */
 export function ErrorState({
   message = "Something went wrong while loading data.",
   onRetry,
   className = "",
+  standalone = true,
 }: ErrorStateProps) {
-  return (
-    <div className={`card p-6 text-center ${className}`}>
-      <div className="text-red-400 text-sm mb-2">Error</div>
-      <p className="text-[#cbd5e1] text-sm mb-4">{message}</p>
+  const content = (
+    <>
+      <div className="text-amber-400/70 text-xs mb-1.5">Unable to load</div>
+      <p className="text-[#94a3b8] text-sm mb-4">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}
@@ -28,6 +26,20 @@ export function ErrorState({
           Try again
         </button>
       )}
+    </>
+  );
+
+  if (standalone) {
+    return (
+      <div className={`card p-6 text-center ${className}`}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`py-6 text-center ${className}`}>
+      {content}
     </div>
   );
 }

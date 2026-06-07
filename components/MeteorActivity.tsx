@@ -87,7 +87,7 @@ export function MeteorActivity() {
           {nextMeteor && showerDays !== null ? (
             <>
               <div className="flex items-center justify-between mb-3">
-                <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">
+                <div className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
                   NEXT METEOR SHOWER
                 </div>
                 {/* Tinted countdown badge — matches energy/activity badge pattern */}
@@ -164,12 +164,13 @@ export function MeteorActivity() {
             </>
           ) : (
             <>
-              <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-3">
+              <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
                 NEXT METEOR SHOWER
               </div>
               <EmptyState
                 title="No upcoming shower data"
                 description="No major meteor shower peaks in the near future."
+                standalone={false}
               />
             </>
           )}
@@ -178,7 +179,7 @@ export function MeteorActivity() {
         {/* ── Fireball Tracker ───────────────────────────────────────────── */}
         <div className="card p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b]">
+            <div className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
@@ -194,11 +195,13 @@ export function MeteorActivity() {
             <ErrorState
               message="Unable to load recent fireball reports right now."
               onRetry={fireballsQuery.refetch}
+              standalone={false}
             />
           ) : fireballsQuery.fireballs.length === 0 ? (
             <EmptyState
               title="No recent fireballs reported"
               description="NASA JPL has not recorded any notable fireballs recently."
+              standalone={false}
             />
           ) : (
             <>

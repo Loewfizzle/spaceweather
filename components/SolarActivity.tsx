@@ -460,7 +460,7 @@ export function SolarActivity() {
                 <TrendingUp className="w-4 h-4" /> RECENT CMEs
               </div>
               {solarActivity.recentCmes.length > 0 && (
-                <span className="text-[10px] text-[#334155] tabular-nums">
+                <span className="text-[10px] text-[#475569] tabular-nums">
                   {solarActivity.recentCmes.length} detected
                 </span>
               )}

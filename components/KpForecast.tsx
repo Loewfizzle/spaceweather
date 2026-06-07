@@ -108,6 +108,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
             <ErrorState
               message="Unable to load Kp data right now."
               onRetry={kpQuery.refetch}
+              standalone={false}
             />
           ) : kpHistory.length > 0 ? (
             <Line
