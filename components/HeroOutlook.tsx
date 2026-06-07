@@ -164,21 +164,12 @@ export function HeroOutlook({
                 /* Active location — icon, truncated label, Change, Clear */
                 <div className="flex items-center gap-1.5 min-w-0 text-xs">
                   {locationSource === "gps" ? (
-                    <Navigation
-                      className="h-3.5 w-3.5 shrink-0"
-                      style={{ color: outlook.accentColor }}
-                    />
+                    <Navigation className="h-3.5 w-3.5 shrink-0 text-[#94a3b8]" />
                   ) : (
-                    <MapPin
-                      className="h-3.5 w-3.5 shrink-0"
-                      style={{ color: outlook.accentColor }}
-                    />
+                    <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94a3b8]" />
                   )}
                   {/* truncate here — all siblings are shrink-0 so this is what gives */}
-                  <span
-                    className="font-medium truncate min-w-0 flex-1"
-                    style={{ color: outlook.accentColor }}
-                  >
+                  <span className="font-medium truncate min-w-0 flex-1 text-[#94a3b8]">
                     {userLocationLabel ?? "Your location"}
                   </span>
                   <span className="text-[#2d3748] shrink-0">·</span>
@@ -204,29 +195,27 @@ export function HeroOutlook({
                 </div>
               ) : !showPicker ? (
                 /* No location — GPS button and/or manual entry */
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 gap-2">
                   {onRequestLocation && (
-                    <>
-                      <button
-                        onClick={onRequestLocation}
-                        disabled={isLocating}
-                        style={{ color: outlook.accentColor }}
-                        className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
-                        title="Get aurora probability for your current location"
-                      >
-                        {isLocating ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Navigation className="h-3.5 w-3.5" />
-                        )}
-                        {isLocating ? "Locating…" : locationTimedOut ? "Try again" : "Use my location"}
-                      </button>
-                      <span className="text-[#334155] text-xs shrink-0">·</span>
-                    </>
+                    <button
+                      onClick={onRequestLocation}
+                      disabled={isLocating}
+                      style={{ color: '#94a3b8' }}
+                      className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
+                      title="Get aurora probability for your current location"
+                    >
+                      {isLocating ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Navigation className="h-3.5 w-3.5" />
+                      )}
+                      {isLocating ? "Locating…" : locationTimedOut ? "Try again" : "Use my location"}
+                    </button>
                   )}
                   <button
                     onClick={() => setShowPicker(true)}
-                    className="flex items-center gap-1.5 text-xs text-[#475569] hover:text-[#94a3b8] transition-colors"
+                    style={{ color: '#94a3b8' }}
+                    className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-colors"
                   >
                     <MapPin className="h-3.5 w-3.5" />
                     {onRequestLocation ? "Enter manually" : "Set location"}
@@ -238,7 +227,7 @@ export function HeroOutlook({
             {/* Right (desktop) / Row 2 (mobile): Share */}
             {!showPicker && (
               <div className="pt-2 sm:pt-0">
-                <ShareButton accentColor={outlook.accentColor} />
+                <ShareButton />
               </div>
             )}
           </div>
