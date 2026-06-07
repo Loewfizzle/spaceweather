@@ -203,7 +203,7 @@ export function CurrentConditions({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
 
           {/* Solar Wind */}
-          <div className="metric">
+          <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
                 <Wind className="w-4 h-4" /> SOLAR WIND
@@ -225,14 +225,16 @@ export function CurrentConditions({
                 • {solarWindDensity !== null ? solarWindDensity.toFixed(1) : "—"} p/cm³
               </span>
             </div>
-            <div className="text-[10px] text-[#475569] mt-0.5">1-min cadence</div>
-            {!!solarWindError && (
-              <div className="text-[9px] text-amber-400 mt-0.5">data delayed</div>
-            )}
+            <div className="mt-auto pt-2">
+              {!!solarWindError && (
+                <div className="text-[9px] text-amber-400 mb-0.5">data delayed</div>
+              )}
+              <div className="text-[10px] text-[#475569]">Updates every minute</div>
+            </div>
           </div>
 
           {/* IMF Bz */}
-          <div className="metric">
+          <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
                 <Zap className="w-4 h-4" /> IMF Bz
@@ -251,11 +253,11 @@ export function CurrentConditions({
             <div className="text-sm text-[#64748b] -mt-1">
               nT <span className="text-xs ml-1">• Southward = favorable</span>
             </div>
-            <div className="text-[10px] text-[#475569] mt-0.5">1-min cadence</div>
+            <div className="text-[10px] text-[#475569] mt-auto pt-2">Updates every minute</div>
           </div>
 
           {/* Planetary Kp */}
-          <div className="metric">
+          <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
                 <Activity className="w-4 h-4" /> PLANETARY Kp
@@ -274,10 +276,11 @@ export function CurrentConditions({
             <div className="text-sm text-[#64748b] -mt-1">
               3-hour average · {kp !== null ? AURORA_TIERS[getKpTier(kp)].label : "—"}
             </div>
+            <div className="text-[10px] text-[#475569] mt-auto pt-2">Updates every 3 hrs</div>
           </div>
 
           {/* OVATION */}
-          <div className="metric">
+          <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
                 <Satellite className="w-4 h-4" /> OVATION (NA)
@@ -300,7 +303,7 @@ export function CurrentConditions({
                 ? "Quiet — aurora oval outside NA"
                 : "Max probability (North America)"}
             </div>
-            <div className="text-[10px] text-[#475569] mt-0.5">2-min cadence</div>
+            <div className="text-[10px] text-[#475569] mt-auto pt-2">Updates every 2 min</div>
           </div>
 
         </div>
