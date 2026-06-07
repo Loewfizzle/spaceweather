@@ -33,7 +33,7 @@ export function approximateLocation(lat: number, lon: number): string {
   if (lat >= 30 && lat <= 47 && lon >= -6   && lon <= 42)  return "Mediterranean Sea";
   if (lat >= 22 && lat <= 32 && lon >= 32   && lon <= 45)  return "Red Sea";
   if (lat >= 22 && lat <= 30 && lon >= 47   && lon <= 57)  return "Persian Gulf";
-  if (lat >= 50 && lat <= 65 && lon >= 155  && lon <= 192) return "Bering Sea";
+  if (lat >= 50 && lat <= 65 && (lon >= 155 || lon <= -168)) return "Bering Sea";
   if (lat >= 18 && lat <= 31 && lon >= -98  && lon <= -80) return "Gulf of Mexico";
   if (lat >= 10 && lat <= 24 && lon >= -88  && lon <= -60) return "Caribbean Sea";
   if (lat >= -5 && lat <= 10 && lon >= -5   && lon <= 10)  return "Gulf of Guinea";

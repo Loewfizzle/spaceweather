@@ -890,6 +890,11 @@ describe('approximateLocation', () => {
     expect(approximateLocation(55, 160)).toBe('Bering Sea')
   })
 
+  it('returns Bering Sea (eastern half, Alaska side)', () => {
+    expect(approximateLocation(60, -170)).toBe('Bering Sea')
+    expect(approximateLocation(58, -168)).toBe('Bering Sea') // boundary
+  })
+
   it('returns Gulf of Mexico', () => {
     expect(approximateLocation(25, -90)).toBe('Gulf of Mexico')
   })
@@ -919,7 +924,7 @@ describe('approximateLocation', () => {
   })
 
   it('returns North America for Alaska (separate band check)', () => {
-    expect(approximateLocation(64, -150)).toBe('North America') // Interior Alaska
+    expect(approximateLocation(64, -150)).toBe('North America') // Interior Alaska — not Bering Sea
     expect(approximateLocation(55, -160)).toBe('North America') // SW Alaska
   })
 

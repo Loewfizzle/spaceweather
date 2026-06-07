@@ -93,12 +93,21 @@ function OvationCanvasLayer({ points }: { points: { position: [number, number]; 
         const ctx = canvas.getContext('2d')!;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        const bounds = this._map.getBounds();
+        const bufferDeg = 5;
+        const minLat = bounds.getSouth() - bufferDeg;
+        const maxLat = bounds.getNorth() + bufferDeg;
+        const minLon = bounds.getWest() - bufferDeg;
+        const maxLon = bounds.getEast() + bufferDeg;
+
         const cellDeg = 2.0;
         const originPx = this._map.latLngToContainerPoint([0, 0]);
         const cellPx   = this._map.latLngToContainerPoint([0, cellDeg]);
         const cellSize = Math.max(2, Math.abs(cellPx.x - originPx.x));
 
         for (const point of points) {
+          if (point.position[0] < minLat || point.position[0] > maxLat ||
+              point.position[1] < minLon || point.position[1] > maxLon) continue;
           const px = this._map.latLngToContainerPoint([point.position[0], point.position[1]]);
           const alpha = Math.pow(point.prob / 100, 1.1) * 0.9;
           if (alpha < 0.06) continue;
