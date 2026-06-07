@@ -5,7 +5,8 @@ import { ChevronDown } from "lucide-react";
 
 /**
  * DataUnderstanding
- * Expandable/collapsible educational section for Kp, Bz, OVATION, Solar, and Michigan viewing tips.
+ * Expandable/collapsible educational section covering Kp, Bz, OVATION, solar activity,
+ * indicator interactions, and general viewing tips.
  * Button uses aria-expanded + aria-controls for a11y.
  */
 export function DataUnderstanding() {
@@ -23,7 +24,7 @@ export function DataUnderstanding() {
           <div>
             <div className="section-title mb-1">Understanding the Data</div>
             <div className="text-sm text-[#94a3b8]">
-              Helpful context for Michigan aurora chasers
+              What the numbers and maps mean
             </div>
           </div>
           <ChevronDown
@@ -31,50 +32,64 @@ export function DataUnderstanding() {
           />
         </button>
 
-        <div id="understanding-data-content" className="px-6 pb-6 text-sm text-[#cbd5e1] space-y-4 border-t border-[#1e2937] pt-4" hidden={!isDataInfoExpanded}>
-            <div>
-              <div className="font-medium text-white mb-1">Kp Index</div>
-              <p>
-                The planetary K-index measures geomagnetic activity on a scale of 0–9. For Michigan, Kp 4+ can produce aurora in the Upper Peninsula under dark skies; Kp 5+ offers a good chance there and possible visibility in northern Lower Michigan. Higher values (6–9) increase the odds dramatically, even in southern parts of the state with clear, dark conditions.
-              </p>
-            </div>
-
-            <div>
-              <div className="font-medium text-white mb-1">Bz (IMF)</div>
-              <p>
-                Bz is the north-south component of the interplanetary magnetic field. Southward (negative) Bz is favorable for aurora because it allows solar wind energy to connect with Earth’s magnetic field. Strongly negative Bz (e.g., –5 nT or lower) combined with high solar wind speed significantly boosts chances for Michigan viewers.
-              </p>
-            </div>
-
-            <div>
-              <div className="font-medium text-white mb-1">OVATION Map</div>
-              <p>
-                The map displays modeled probability of visible aurora based on the OVATION Prime model using real-time solar wind data. It is a forecast, not live imagery of the aurora itself. Probabilities are highest near the auroral oval; even low percentages in the Great Lakes region can mean visible aurora if skies are dark and clear.
-              </p>
-            </div>
-
-            <div>
-              <div className="font-medium text-white mb-1">Solar Activity Section</div>
-              <p>
-                Flares indicate sudden energy releases that can precede geomagnetic disturbances. CMEs (coronal mass ejections) are large expulsions of plasma; Earth-directed ones with high speed are the main drivers of strong aurora displays 1–3 days later. Higher sunspot numbers generally mean more solar activity overall. Coronal holes produce high-speed solar wind streams that can create recurrent aurora opportunities, especially when combined with other factors.
-              </p>
-            </div>
-
-            <div>
-              <div className="font-medium text-white mb-1">Viewing Tips for Michigan</div>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Seek dark skies away from city lights (Upper Peninsula and northern Lower Peninsula are best).</li>
-                <li>Best chances are typically between 10pm and 2am local time, though aurora can appear earlier or later.</li>
-                <li>Watch for clear skies and a dark horizon to the north.</li>
-                <li>Even moderate Kp or low OVATION probabilities can produce visible aurora if Bz is strongly southward.</li>
-                <li>Be patient — displays can last minutes to hours and often come in waves.</li>
-              </ul>
-            </div>
-
-            <div className="text-[10px] text-[#64748b] pt-2 border-t border-[#1e2937]">
-              Data is provided by NOAA Space Weather Prediction Center (SWPC) for personal and educational use. This dashboard is not intended for navigation or safety-critical decisions. Conditions can change rapidly.
-            </div>
+        <div
+          id="understanding-data-content"
+          className="px-6 pb-6 text-sm text-[#cbd5e1] space-y-4 border-t border-[#1e2937] pt-4"
+          hidden={!isDataInfoExpanded}
+        >
+          <div>
+            <div className="font-medium text-white mb-1">Kp Index</div>
+            <p>
+              The planetary K-index measures global geomagnetic activity on a scale of 0–9. Values of 4–5 can produce aurora visible from northern states under dark skies; values of 6 and above significantly expand the visible zone southward. Kp updates every three hours and represents a summary of the past period — it is a current reading, not a prediction on its own.
+            </p>
           </div>
+
+          <div>
+            <div className="font-medium text-white mb-1">Bz (Interplanetary Magnetic Field)</div>
+            <p>
+              Bz is the north-south component of the solar wind&apos;s magnetic field. When Bz is negative (pointing southward), it aligns with Earth&apos;s field in a way that allows solar wind energy to flow into the magnetosphere, driving geomagnetic activity. A sustained Bz of –5 nT or lower is a strong positive signal; brief dips matter less than sustained periods of southward Bz. Bz is highly dynamic and can flip direction in minutes.
+            </p>
+          </div>
+
+          <div>
+            <div className="font-medium text-white mb-1">OVATION Probability Map</div>
+            <p>
+              The map shows modeled aurora probability derived from the OVATION Prime model, driven by real-time solar wind measurements. It represents the statistical likelihood of visible aurora at each location — not live imagery of the aurora itself. The auroral oval shifts equatorward as geomagnetic activity increases, so even areas well south of the usual oval can see meaningful probabilities during active periods.
+            </p>
+          </div>
+
+          <div>
+            <div className="font-medium text-white mb-1">Solar Activity</div>
+            <p>
+              Solar flares are sudden bursts of radiation that can disturb the ionosphere but typically do not directly cause visible aurora. Coronal mass ejections (CMEs) are the main drivers of strong geomagnetic storms — large clouds of magnetized plasma that take 1–3 days to reach Earth. Earth-directed CMEs with high speed and southward magnetic field are the most impactful. Elevated sunspot counts and active coronal holes indicate an overall more active sun and increase the likelihood of recurrent solar wind disturbances.
+            </p>
+          </div>
+
+          <div>
+            <div className="font-medium text-white mb-1">How the Indicators Work Together</div>
+            <p>
+              No single number tells the full story. The strongest aurora nights combine several favorable factors at once: Kp rising above 4 or 5, a sustained negative Bz, elevated solar wind speed (above 500–600 km/s), and rising OVATION probabilities across northern latitudes. When all of these align, conditions can evolve quickly — sometimes within an hour.
+            </p>
+            <p className="mt-2">
+              A useful mental model: Kp and OVATION probabilities tell you where the night is headed, while Bz and solar wind speed tell you what is happening right now. Strong Bz and high wind speed with a modest Kp reading often means conditions are improving; high Kp with Bz drifting back toward zero often means the display is winding down.
+            </p>
+          </div>
+
+          <div>
+            <div className="font-medium text-white mb-1">Viewing Tips</div>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Dark skies are essential. Move well away from city and suburban light pollution and allow 15–20 minutes for your eyes to adjust.</li>
+              <li>The peak window is generally between 10 pm and 2 am local time, though significant displays can occur outside those hours.</li>
+              <li>Face north and look for a clear, unobstructed horizon. Aurora typically appears low in the sky first and rises with intensity.</li>
+              <li>Check current Bz and solar wind speed alongside Kp — a strong negative Bz can elevate an otherwise quiet night quickly.</li>
+              <li>Displays vary in duration from a few minutes to several hours and often come in pulses. Patience is rewarded.</li>
+            </ul>
+          </div>
+
+          <div className="text-[10px] text-[#64748b] pt-2 border-t border-[#1e2937]">
+            Data is provided by NOAA Space Weather Prediction Center (SWPC) for personal and educational use. This dashboard is not intended for navigation or safety-critical decisions. Conditions can change rapidly.
+          </div>
+        </div>
       </div>
     </div>
   );
