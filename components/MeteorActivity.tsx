@@ -30,7 +30,8 @@ function energyColor(impactE: string | null | undefined): string {
   if (!impactE) return "#475569";
   const val = parseFloat(impactE);
   if (isNaN(val)) return "#475569";
-  if (val >= 1)   return "#f97316"; // significant
+  if (val >= 3)   return "#a78bfa"; // major
+  if (val >= 1)   return "#ef4444"; // significant
   if (val >= 0.1) return "#eab308"; // moderate
   return "#64748b";                 // minor
 }
@@ -183,9 +184,14 @@ export function MeteorActivity() {
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
-              <span className="text-[10px] text-[#475569] tabular-nums">
-                NASA JPL · {fireballsQuery.fireballs.length} events
-              </span>
+              <div className="text-right">
+                <div className="text-[10px] text-[#475569] tabular-nums">
+                  NASA JPL · {fireballsQuery.fireballs.length} events · most recent first
+                </div>
+                <div className="text-[10px] text-[#475569]">
+                  Historical · analysis may lag weeks
+                </div>
+              </div>
             )}
           </div>
 
@@ -206,7 +212,7 @@ export function MeteorActivity() {
           ) : (
             <>
               <div className="space-y-0.5">
-                {fireballsQuery.fireballs.slice(0, 5).map((fb: Fireball) => {
+                {fireballsQuery.fireballs.map((fb: Fireball) => {
                   const color = energyColor(fb.impactE);
                   return (
                     <button
@@ -249,9 +255,10 @@ export function MeteorActivity() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     {([
-                      { color: "#f97316", label: "≥1 kt" },
+                      { color: "#a78bfa", label: "≥3 kt"   },
+                      { color: "#ef4444", label: "≥1 kt"   },
                       { color: "#eab308", label: "≥0.1 kt" },
-                      { color: "#64748b", label: "minor" },
+                      { color: "#64748b", label: "<0.1 kt" },
                     ] as const).map(({ color, label }) => (
                       <span key={label} className="flex items-center gap-1 text-[10px] text-[#475569]">
                         <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
@@ -264,6 +271,9 @@ export function MeteorActivity() {
                 <p className="text-[10px] text-[#475569] leading-relaxed">
                   Fireballs are exceptionally bright meteors that explode in Earth&apos;s atmosphere.
                   This tracker shows events energetic enough to be detected by US government sensors.
+                </p>
+                <p className="text-[10px] text-[#475569] leading-relaxed">
+                  Data from NASA JPL CNEOS. Events are added after analysis is complete and may not reflect recent fireballs.
                 </p>
               </div>
             </>
