@@ -384,11 +384,11 @@ describe('getMichiganGuidance', () => {
 // getCityAuroraProbabilities
 // ============================================
 describe('getCityAuroraProbabilities', () => {
-  it('returns 5 cities', () => {
+  it('returns 6 cities', () => {
     const result = getCityAuroraProbabilities(null, null, null)
-    expect(result).toHaveLength(5)
-    expect(result[0].name).toBe('Duluth')
-    expect(result[4].name).toBe('Presque Isle')
+    expect(result).toHaveLength(6)
+    expect(result[0].name).toBe('Fairbanks')
+    expect(result[5].name).toBe('Presque Isle')
   })
 
   it('returns 0 for all cities when no data and no kp', () => {
@@ -397,26 +397,27 @@ describe('getCityAuroraProbabilities', () => {
   })
 
   it('uses Kp-based fallback when ovation is null', () => {
-    // Kp 6 should give Duluth (47°N) a meaningful probability
+    // Kp 6 should give Fairbanks (65°N) a meaningful probability
     const result = getCityAuroraProbabilities(null, 6, null)
-    expect(result[0].state).toBe('MN')
+    expect(result[0].state).toBe('AK')
     expect(result[0].prob).toBeGreaterThan(0)
-    // All 5 cities are at similar high latitudes; just verify all have non-negative probs
+    // All 6 cities are at high latitudes; verify all have non-negative probs
     result.forEach(c => expect(c.prob).toBeGreaterThanOrEqual(0))
   })
 
   it('picks the nearest OVATION grid point for each city', () => {
-    // Place a high-probability point near Duluth (~47°N, -92°W → rawLon 268)
-    // and a lower point near Billings (~46°N, -109°W → rawLon 251)
+    // High-prob point near Fairbanks (~68°N, -148°W → rawLon 212): clearly closest
+    // to result[0] (Fairbanks 65°N, -148°W); all mid-latitude cities are far away.
+    // Mid-prob point near Duluth (~47°N, -92°W → rawLon 268): closest to result[1–5].
     const ovation: OvationResponse = {
       coordinates: [
+        [212, 68, 80],   // near Fairbanks
         [268, 47, 70],   // near Duluth
-        [251, 46, 20],   // near Billings
       ],
     }
     const result = getCityAuroraProbabilities(ovation, 5, null)
-    expect(result[0].prob).toBe(70)   // Duluth
-    expect(result[3].prob).toBe(20)   // Billings
+    expect(result[0].prob).toBe(80)   // Fairbanks → high-latitude point
+    expect(result[2].prob).toBe(70)   // Duluth → mid-latitude point
   })
 
   it('applies Bz boost when bz <= -5', () => {
