@@ -158,10 +158,10 @@ export function HeroOutlook({
           {/* ── Primary row: location control + Share ──────────────────────────────
               Two-column: left takes all remaining space (min-w-0 + flex-1 enables
               label truncation), right is always shrink-0 so Share never wraps.   */}
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
 
             {/* Left: location status or GPS/manual entry triggers */}
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 w-full sm:flex-1">
               {locationIsSet ? (
                 /* Active location — icon, truncated label, Change, Clear */
                 <div className="flex items-center gap-1.5 min-w-0 text-xs">
@@ -178,7 +178,7 @@ export function HeroOutlook({
                   )}
                   {/* truncate here — all siblings are shrink-0 so this is what gives */}
                   <span
-                    className="font-medium truncate min-w-0"
+                    className="font-medium truncate min-w-0 flex-1"
                     style={{ color: outlook.accentColor }}
                   >
                     {userLocationLabel ?? "Your location"}
