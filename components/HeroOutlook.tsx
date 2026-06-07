@@ -49,7 +49,7 @@ export function HeroOutlook({
 
   return (
     <div
-      className="mt-8 card p-6 max-w-3xl border-l-4"
+      className="card p-6 max-w-3xl border-l-4"
       style={{ borderLeftColor: outlook.accentColor }}
     >
       <div>
