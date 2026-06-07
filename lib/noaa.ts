@@ -456,7 +456,10 @@ function resolveProb(
   if (points.length > 0) {
     let nearestDist = Infinity;
     for (const p of points) {
-      const d = (p.lat - lat) ** 2 + (p.lon - lon) ** 2;
+      const dLat = p.lat - lat;
+      const dLonRaw = p.lon - lon;
+      const dLon = Math.abs(dLonRaw) > 180 ? 360 - Math.abs(dLonRaw) : dLonRaw;
+      const d = dLat ** 2 + dLon ** 2;
       if (d < nearestDist) { nearestDist = d; prob = p.prob; }
     }
   } else if (kp !== null) {
@@ -492,7 +495,10 @@ export function getNearestCityName(lat: number, lon: number): string {
   let best: (typeof US_CITIES)[number] = US_CITIES[0];
   let bestDist = Infinity;
   for (const city of US_CITIES) {
-    const d = (city.lat - lat) ** 2 + (city.lon - lon) ** 2;
+    const dLat = city.lat - lat;
+    const dLonRaw = city.lon - lon;
+    const dLon = Math.abs(dLonRaw) > 180 ? 360 - Math.abs(dLonRaw) : dLonRaw;
+    const d = dLat ** 2 + dLon ** 2;
     if (d < bestDist) { bestDist = d; best = city; }
   }
   return `${best.name}, ${best.state}`;

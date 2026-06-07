@@ -88,6 +88,9 @@ function DashboardInner() {
   }, [locationState, ovationPoints, kp, bz]);
 
   const cloudCoverQuery = useCloudCover(userLat, userLon);
+  const cloudCoverData = cloudCoverQuery.data;
+  const cloudCoverPct = cloudCoverData?.tonightAvg ?? cloudCoverData?.currentPct ?? null;
+  const cloudCoverLabel = cloudCoverData?.label ?? null;
   const kpForecastQuery = useKpForecast();
 
   // Dynamic page title — shows live Kp so users can see conditions in the tab bar
@@ -108,8 +111,8 @@ function DashboardInner() {
             error={error}
             isFetching={isFetching}
             userLocationProb={userLocationProb}
-            cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
-            cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
+            cloudCoverPct={cloudCoverPct}
+            cloudCoverLabel={cloudCoverLabel}
             kp={kp}
             latestUpdate={latestGlobalUpdate}
           />
@@ -124,8 +127,8 @@ function DashboardInner() {
         <ViewingWindow
           kpForecast={kpForecastQuery.data ?? []}
           kpHistory={kpHistory}
-          cloudCoverPct={cloudCoverQuery.data?.tonightAvg ?? cloudCoverQuery.data?.currentPct ?? null}
-          cloudCoverLabel={cloudCoverQuery.data?.label ?? null}
+          cloudCoverPct={cloudCoverPct}
+          cloudCoverLabel={cloudCoverLabel}
           locationGranted={locationState.status === "set"}
           isLoading={isLoading || kpForecastQuery.isLoading}
           viewingWindow={viewingWindow}

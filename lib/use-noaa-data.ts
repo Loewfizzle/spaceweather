@@ -156,7 +156,7 @@ export function useCurrentConditions() {
 
   const maxProbNA = useMemo(
     () => (ovationData ? maxOvationNorthAmerica(ovationPoints) : null),
-    [ovationData, ovationPoints]
+    [ovationPoints]
   );
 
   // True when the NOAA fetch itself succeeded — even if the aurora oval happened
@@ -197,9 +197,20 @@ export function useCurrentConditions() {
 
   const currentBz = solarWind.current.bz;
   const currentSpeed = solarWind.current.speed;
+  // Phase 1: O(n) nearest-cell scan — skips Bz so Bz fluctuations don't retrigger the scan
+  const cityBaseProbs = useMemo(
+    () => getCityAuroraProbabilities(ovationPoints, latestKp?.Kp ?? null, null),
+    [ovationPoints, latestKp?.Kp]
+  );
+
+  // Phase 2: apply Bz boost — lightweight remap, only re-runs when Bz crosses the −5 threshold
   const cityProbs = useMemo(
-    () => getCityAuroraProbabilities(ovationPoints, latestKp?.Kp ?? null, currentBz),
-    [ovationPoints, latestKp?.Kp, currentBz]
+    () => {
+      if (currentBz === null || currentBz > -5) return cityBaseProbs;
+      const boost = Math.round(Math.min(8, Math.abs(currentBz + 5) * 1.5));
+      return cityBaseProbs.map(c => ({ ...c, prob: Math.min(99, c.prob + boost) }));
+    },
+    [cityBaseProbs, currentBz]
   );
 
   // Tonight's viewing window — computed once and shared with both getAuroraGuidance (for forecast
@@ -257,12 +268,10 @@ export function useCurrentConditions() {
     // Use this (not kpTime/NOAA data timestamps) to decide whether the app just
     // successfully contacted NOAA — it updates to Date.now() on every fetch, even
     // when NOAA returns the same data.
-    lastFetchedAt: Math.max(
-      kpQuery.dataUpdatedAt,
-      ovationQuery.dataUpdatedAt,
-      solarWind.plasma.dataUpdatedAt,
-      solarWind.mag.dataUpdatedAt,
-    ),
+    lastFetchedAt: (() => {
+      const ts = [kpQuery.dataUpdatedAt, ovationQuery.dataUpdatedAt, solarWind.plasma.dataUpdatedAt, solarWind.mag.dataUpdatedAt].filter(t => t > 0);
+      return ts.length ? Math.max(...ts) : 0;
+    })(),
     refetchAll,
   };
 }
@@ -353,11 +362,10 @@ export function useSolarActivity() {
     error,
     regionsError,
     isFetching: flaresQuery.isFetching || alertsQuery.isFetching || regionsQuery.isFetching,
-    lastFetchedAt: Math.max(
-      flaresQuery.dataUpdatedAt,
-      alertsQuery.dataUpdatedAt,
-      regionsQuery.dataUpdatedAt,
-    ),
+    lastFetchedAt: (() => {
+      const ts = [flaresQuery.dataUpdatedAt, alertsQuery.dataUpdatedAt, regionsQuery.dataUpdatedAt].filter(t => t > 0);
+      return ts.length ? Math.max(...ts) : 0;
+    })(),
     refetchAll,
     flareTime: latestFlare?.max_time || latestFlare?.time_tag || null,
     alertsTime: alertsQuery.data && alertsQuery.data.length > 0 ? alertsQuery.data[0].issue_datetime : null,
