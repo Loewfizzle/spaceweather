@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import {
   exponentialBackoff,
   shouldRetryCritical,
@@ -233,12 +233,30 @@ export function useCurrentConditions() {
     [latestKp?.Kp, maxProbNA, currentBz, currentSpeed]
   );
 
+  // Keep a ref to the latest refetch functions so refetchAll has a stable identity.
+  // TanStack Query builds new result objects (and new .refetch closures) each render,
+  // so putting whole query results in useCallback deps would recreate refetchAll every render.
+  const _refetchRefs = useRef({
+    kp: kpQuery.refetch,
+    ovation: ovationQuery.refetch,
+    plasma: solarWind.plasma.refetch,
+    mag: solarWind.mag.refetch,
+  });
+  useLayoutEffect(() => {
+    _refetchRefs.current = {
+      kp: kpQuery.refetch,
+      ovation: ovationQuery.refetch,
+      plasma: solarWind.plasma.refetch,
+      mag: solarWind.mag.refetch,
+    };
+  });
+
   const refetchAll = useCallback(() => {
-    kpQuery.refetch();
-    ovationQuery.refetch();
-    solarWind.plasma.refetch();
-    solarWind.mag.refetch();
-  }, [kpQuery, ovationQuery, solarWind.plasma, solarWind.mag]);
+    _refetchRefs.current.kp();
+    _refetchRefs.current.ovation();
+    _refetchRefs.current.plasma();
+    _refetchRefs.current.mag();
+  }, []);
 
   return {
     kp: latestKp?.Kp ?? null,
