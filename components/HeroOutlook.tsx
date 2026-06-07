@@ -158,7 +158,7 @@ export function HeroOutlook({
           {/* ── Primary row: location control + Share ──────────────────────────────
               Two-column: left takes all remaining space (min-w-0 + flex-1 enables
               label truncation), right is always shrink-0 so Share never wraps.   */}
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between sm:gap-3">
 
             {/* Left: location status or GPS/manual entry triggers */}
             <div className="min-w-0 w-full sm:flex-1">
@@ -206,7 +206,7 @@ export function HeroOutlook({
                 </div>
               ) : !showPicker ? (
                 /* No location — GPS button and/or manual entry */
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <div className="flex items-center gap-3">
                   {onRequestLocation && (
                     <button
                       onClick={onRequestLocation}
@@ -234,15 +234,17 @@ export function HeroOutlook({
               ) : null /* picker open, no location — primary row is empty */}
             </div>
 
-            {/* Right: Share — protected, never wraps */}
+            {/* Right (desktop) / Row 2 (mobile): Share */}
             {!showPicker && (
-              <ShareButton
-                status={outlook.status}
-                kp={kp ?? null}
-                cityProbs={outlook.cityProbs ?? []}
-                accentColor={outlook.accentColor}
-                userLocationLabel={userLocationLabel}
-              />
+              <div className="pt-2 sm:pt-0">
+                <ShareButton
+                  status={outlook.status}
+                  kp={kp ?? null}
+                  cityProbs={outlook.cityProbs ?? []}
+                  accentColor={outlook.accentColor}
+                  userLocationLabel={userLocationLabel}
+                />
+              </div>
             )}
           </div>
 
