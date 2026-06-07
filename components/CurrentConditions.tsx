@@ -64,8 +64,8 @@ const MODAL_CONTENT: Record<CardId, {
         body: "A 0–9 index measuring global geomagnetic disturbance, averaged from ground magnetometer stations worldwide over 3-hour windows.",
       },
       {
-        heading: "Michigan visibility",
-        body: "Kp 4 is possible in the Upper Peninsula under dark skies. Kp 5 gives a good chance in the UP and possible in northern Lower Michigan. Kp 6+ extends visibility further south.",
+        heading: "Visibility by latitude",
+        body: "Kp 4 is typically visible above 60°N, Kp 5 reaches ~55°N, Kp 6 reaches ~50°N, Kp 7 can reach 45°N, and Kp 8–9 can push aurora to 40°N and below. Viewers at higher latitudes need lower Kp to see aurora. Dark skies away from light pollution are essential regardless of Kp.",
       },
       {
         heading: "It lags real-time conditions",
