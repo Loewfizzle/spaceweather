@@ -5,7 +5,11 @@ import { Share2, Check, AlertCircle } from "lucide-react";
 
 const SHARE_URL = "https://space.loewfizzle.com";
 
-export function ShareButton() {
+interface ShareButtonProps {
+  accentColor?: string;
+}
+
+export function ShareButton({ accentColor = '#94a3b8' }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
 
@@ -48,7 +52,7 @@ export function ShareButton() {
   return (
     <button
       onClick={handleShare}
-      style={{ color: '#94a3b8' }}
+      style={{ color: accentColor }}
       className="flex items-center gap-1.5 text-xs font-normal hover:opacity-80 transition-opacity"
       title="Share tonight's forecast"
     >

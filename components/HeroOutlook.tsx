@@ -153,23 +153,23 @@ export function HeroOutlook({
       {outlook.status !== "Loading" && (
         <div className="mt-2 pt-3 border-t border-[#1e2937]">
 
-          {/* ── Primary row: location control + Share ──────────────────────────────
-              Two-column: left takes all remaining space (min-w-0 + flex-1 enables
-              label truncation), right is always shrink-0 so Share never wraps.   */}
-          <div className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          {/* Primary row: location controls LEFT, Share forecast RIGHT */}
+          <div className="flex items-start justify-between gap-3">
 
-            {/* Left: location status or GPS/manual entry triggers */}
-            <div className="min-w-0 w-full sm:flex-1">
+            {/* LEFT: location state or picker trigger */}
+            <div className="min-w-0 flex-1">
               {locationIsSet ? (
-                /* Active location — icon, truncated label, Change, Clear */
+                /* active location row — icon, truncated label, Change, Clear */
                 <div className="flex items-center gap-1.5 min-w-0 text-xs">
                   {locationSource === "gps" ? (
-                    <Navigation className="h-3.5 w-3.5 shrink-0 text-[#94a3b8]" />
+                    <Navigation className="h-3.5 w-3.5 shrink-0" style={{ color: '#94a3b8' }} />
                   ) : (
-                    <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94a3b8]" />
+                    <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: '#94a3b8' }} />
                   )}
-                  {/* truncate here — all siblings are shrink-0 so this is what gives */}
-                  <span className="font-medium truncate min-w-0 flex-1 text-[#94a3b8]">
+                  <span
+                    className="font-medium truncate min-w-0 flex-1"
+                    style={{ color: '#94a3b8' }}
+                  >
                     {userLocationLabel ?? "Your location"}
                   </span>
                   <span className="text-[#2d3748] shrink-0">·</span>
@@ -194,8 +194,8 @@ export function HeroOutlook({
                   )}
                 </div>
               ) : !showPicker ? (
-                /* No location — GPS button and/or manual entry */
-                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 gap-2">
+                /* no location set — stack vertically */
+                <div className="flex flex-col gap-2">
                   {onRequestLocation && (
                     <button
                       onClick={onRequestLocation}
@@ -214,28 +214,25 @@ export function HeroOutlook({
                   )}
                   <button
                     onClick={() => setShowPicker(true)}
-                    style={{ color: '#94a3b8' }}
                     className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-colors"
+                    style={{ color: '#94a3b8' }}
                   >
                     <MapPin className="h-3.5 w-3.5" />
                     {onRequestLocation ? "Enter manually" : "Set location"}
                   </button>
                 </div>
-              ) : null /* picker open, no location — primary row is empty */}
+              ) : null}
             </div>
 
-            {/* Right (desktop) / Row 2 (mobile): Share */}
+            {/* RIGHT: Share forecast — always anchored right, hidden only when picker is open */}
             {!showPicker && (
-              <div className="pt-2 sm:pt-0">
-                <ShareButton />
+              <div className="shrink-0 pt-0.5">
+                <ShareButton accentColor="#94a3b8" />
               </div>
             )}
           </div>
 
-          {/* ── Secondary row: cloud cover + soft prompts ───────────────────────────
-              Rendered below the primary row so it never displaces ShareButton.
-              Cloud cover is conditional; NotificationPrompt and InstallPrompt
-              self-manage (return null when not applicable).                     */}
+          {/* Secondary row: cloud cover + notification + install prompts */}
           {!showPicker && (
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
               {cloudCoverPct != null && (
@@ -248,12 +245,12 @@ export function HeroOutlook({
                   <span className="text-[#475569]">· 8pm–6am avg</span>
                 </div>
               )}
-              <NotificationPrompt accentColor={outlook.accentColor} />
-              <InstallPrompt accentColor={outlook.accentColor} />
+              <NotificationPrompt accentColor="#94a3b8" />
+              <InstallPrompt accentColor="#94a3b8" />
             </div>
           )}
 
-          {/* ── Inline location picker ──────────────────────────────────────────── */}
+          {/* Inline location picker */}
           {showPicker && onSetManualLocation && (
             <LocationPicker
               onConfirm={(lat, lon, label) => {
