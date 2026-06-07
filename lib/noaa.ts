@@ -403,10 +403,12 @@ export function getTonightOutlook(
 // ── City-level aurora probability ──────────────────────────────────────────
 
 const AURORA_WATCH_CITIES = [
+  { name: "Fairbanks",    state: "AK", lat: 64.84, lon: -147.72 },
+  { name: "Anchorage",    state: "AK", lat: 61.22, lon: -149.90 },
+  { name: "Seattle",      state: "WA", lat: 47.61, lon: -122.33 },
   { name: "Duluth",       state: "MN", lat: 46.79, lon: -92.10  },
-  { name: "Fargo",        state: "ND", lat: 46.88, lon: -96.79  },
   { name: "Marquette",    state: "MI", lat: 46.54, lon: -87.40  },
-  { name: "Billings",     state: "MT", lat: 45.78, lon: -108.50 },
+  { name: "Burlington",   state: "VT", lat: 44.48, lon: -73.21  },
   { name: "Presque Isle", state: "ME", lat: 46.68, lon: -68.02  },
 ] as const;
 

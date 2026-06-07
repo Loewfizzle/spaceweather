@@ -3,6 +3,7 @@
 import { MapPin, Loader2, Cloud } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
+import { cloudCoverColor } from "../lib/noaa";
 import { ShareButton } from "./ShareButton";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { InstallPrompt } from "./InstallPrompt";
@@ -37,7 +38,7 @@ export function HeroOutlook({
   latestUpdate,
 }: HeroOutlookProps) {
   // Show at most 4 pre-defined cities — enough for the north→south gradient without crowding
-  const displayedCities = outlook.cityProbs?.slice(0, 4) ?? [];
+  const displayedCities = outlook.cityProbs?.slice(0, 5) ?? [];
 
   return (
     <div
@@ -165,7 +166,7 @@ export function HeroOutlook({
               <div className="flex items-center gap-1.5 text-xs text-[#64748b]">
                 <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
                 <span>Cloud cover:</span>
-                <span className="font-medium text-sky-300">
+                <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>
                   {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
                 </span>
               </div>
