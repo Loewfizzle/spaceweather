@@ -816,6 +816,29 @@ describe('assessEarthImpact', () => {
     expect(result.level).toBe('possible')
   })
 
+  it('returns glancing when a fresh CME has earthImpact = "Glancing impact possible"', () => {
+    const result = assessEarthImpact([fresh({ earthImpact: 'Glancing impact possible' })])
+    expect(result.level).toBe('glancing')
+    expect(result.headline).toContain('Glancing')
+    expect(result.cme).not.toBeNull()
+  })
+
+  it('likely takes priority over glancing', () => {
+    const result = assessEarthImpact([
+      fresh({ earthImpact: 'Glancing impact possible' }),
+      fresh({ earthImpact: 'Likely Earth impact' }),
+    ])
+    expect(result.level).toBe('likely')
+  })
+
+  it('glancing takes priority over possible', () => {
+    const result = assessEarthImpact([
+      fresh({ note: 'uncertain' }),
+      fresh({ earthImpact: 'Glancing impact possible' }),
+    ])
+    expect(result.level).toBe('glancing')
+  })
+
   it('includes speed in detail when provided', () => {
     const result = assessEarthImpact([fresh({ earthImpact: 'Likely Earth impact', speed: 1500 })])
     expect(result.detail).toContain('1,500')

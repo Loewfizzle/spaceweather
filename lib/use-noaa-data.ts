@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   exponentialBackoff,
   shouldRetryCritical,
@@ -196,6 +196,7 @@ export function useCurrentConditions() {
   }, [criticalError]);
 
   const currentBz = solarWind.current.bz;
+  const currentSpeed = solarWind.current.speed;
   const cityProbs = useMemo(
     () => getCityAuroraProbabilities(ovationPoints, latestKp?.Kp ?? null, currentBz),
     [ovationPoints, latestKp?.Kp, currentBz]
@@ -209,6 +210,23 @@ export function useCurrentConditions() {
     [forecastQuery.data]
   );
 
+  const guidance = useMemo(
+    () => getAuroraGuidance(latestKp?.Kp ?? null, maxProbNA, currentBz, currentSpeed, viewingWindow?.hasData ? viewingWindow.peakKp : null),
+    [latestKp?.Kp, maxProbNA, currentBz, currentSpeed, viewingWindow]
+  );
+
+  const riskLevel = useMemo(
+    () => getAuroraRiskLevel(latestKp?.Kp ?? null, maxProbNA, currentBz, currentSpeed),
+    [latestKp?.Kp, maxProbNA, currentBz, currentSpeed]
+  );
+
+  const refetchAll = useCallback(() => {
+    kpQuery.refetch();
+    ovationQuery.refetch();
+    solarWind.plasma.refetch();
+    solarWind.mag.refetch();
+  }, [kpQuery, ovationQuery, solarWind.plasma, solarWind.mag]);
+
   return {
     kp: latestKp?.Kp ?? null,
     kpTime: latestKp?.time_tag ?? null,
@@ -218,11 +236,11 @@ export function useCurrentConditions() {
     viewingWindow,
     ovationProcessed,  // true when the NOAA fetch succeeded — empty coordinates are a valid quiet-sun result, not a failure
     cityProbs,
-    solarWindSpeed: solarWind.current.speed,
+    solarWindSpeed: currentSpeed,
     solarWindDensity: solarWind.current.density,
-    bz: solarWind.current.bz,
-    guidance: getAuroraGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed, viewingWindow?.hasData ? viewingWindow.peakKp : null),
-    riskLevel: getAuroraRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
+    bz: currentBz,
+    guidance,
+    riskLevel,
     isLoading:
       kpQuery.isLoading ||
       ovationQuery.isLoading ||
@@ -245,12 +263,7 @@ export function useCurrentConditions() {
       solarWind.plasma.dataUpdatedAt,
       solarWind.mag.dataUpdatedAt,
     ),
-    refetchAll: () => {
-      kpQuery.refetch();
-      ovationQuery.refetch();
-      solarWind.plasma.refetch();
-      solarWind.mag.refetch();
-    },
+    refetchAll,
   };
 }
 

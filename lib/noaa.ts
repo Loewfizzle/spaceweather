@@ -246,7 +246,7 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
   });
 }
 
-export type CmeImpactLevel = "likely" | "possible" | "none";
+export type CmeImpactLevel = "likely" | "glancing" | "possible" | "none";
 
 export interface EarthImpactAssessment {
   level: CmeImpactLevel;
@@ -272,6 +272,17 @@ export function assessEarthImpact(recentCmes: CmeSummary[]): EarthImpactAssessme
       headline: "Likely Earth-directed CME detected",
       detail: `A potentially Earth-directed CME${speedStr} was detected. If confirmed, aurora enhancement is possible in 1–3 days.`,
       cme: likely,
+    };
+  }
+
+  const glancing = fresh.find((c) => c.earthImpact === "Glancing impact possible");
+  if (glancing) {
+    const speedStr = glancing.speed ? ` (${glancing.speed.toLocaleString()} km/s)` : "";
+    return {
+      level: "glancing",
+      headline: "Glancing CME impact possible",
+      detail: `A glancing blow from a CME${speedStr} may arrive in 1–3 days. Partial aurora enhancement is possible, particularly at higher latitudes.`,
+      cme: glancing,
     };
   }
 

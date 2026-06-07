@@ -81,7 +81,7 @@ function sunspotContext(n: number): { label: string; color: string } {
 function cmeImpactColor(impact: string | undefined): string {
   if (!impact) return "#eab308";
   const lc = impact.toLowerCase();
-  if (lc.includes("expected") || lc.includes("direct")) return "#a78bfa";
+  if (lc.includes("likely")) return "#a78bfa";
   if (lc.includes("glancing")) return "#f97316";
   return "#eab308";
 }
@@ -301,6 +301,8 @@ function FlareModal({
             const dotColor =
               impact.level === "likely"
                 ? "#f97316"
+                : impact.level === "glancing"
+                ? "#eab308"
                 : impact.level === "possible"
                 ? "#eab308"
                 : "#475569";
@@ -795,7 +797,7 @@ export function SolarActivity() {
             <div className="text-[10px] text-[#475569] mt-3 pt-2.5 border-t border-[#0f1425]">
               {solarActivity.recentCmes.some((c) => {
                 const lc = (c.earthImpact ?? "").toLowerCase();
-                return lc.includes("expected") || lc.includes("direct");
+                return lc.includes("likely");
               })
                 ? "Earth-directed CMEs typically arrive in 1–3 days."
                 : "Earth-directed CMEs can trigger aurora in 1–3 days."}
