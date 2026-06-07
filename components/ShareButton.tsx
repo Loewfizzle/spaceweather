@@ -8,9 +8,10 @@ interface ShareButtonProps {
   status: string;
   kp: number | null;
   cityProbs?: CityAuroraProb[];
+  accentColor?: string;
 }
 
-export function ShareButton({ status, kp, cityProbs = [] }: ShareButtonProps) {
+export function ShareButton({ status, kp, cityProbs = [], accentColor = "#38bdf8" }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
@@ -53,7 +54,8 @@ export function ShareButton({ status, kp, cityProbs = [] }: ShareButtonProps) {
   return (
     <button
       onClick={handleShare}
-      className="flex items-center gap-1.5 text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors"
+      style={{ color: accentColor }}
+      className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity"
       title="Share tonight's forecast"
     >
       {copied ? (

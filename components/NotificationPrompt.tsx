@@ -20,7 +20,11 @@ type WithPeriodicSync = ServiceWorkerRegistration & {
   periodicSync: { register(tag: string, opts: { minInterval: number }): Promise<void> };
 };
 
-export function NotificationPrompt() {
+interface NotificationPromptProps {
+  accentColor?: string;
+}
+
+export function NotificationPrompt({ accentColor = "#38bdf8" }: NotificationPromptProps) {
   const [perm, setPerm] = useState<NotificationPermission>(() => {
     if (typeof window === "undefined" || !("Notification" in window)) return "denied";
     return Notification.permission;
@@ -48,6 +52,7 @@ export function NotificationPrompt() {
         {PRESETS.map((p) => (
           <button
             key={p.key}
+            style={{ color: accentColor }}
             onClick={async () => {
               setChosen(p.key);
               if (typeof window !== "undefined") {
@@ -74,7 +79,7 @@ export function NotificationPrompt() {
               } catch {}
               setPhase("done");
             }}
-            className="text-xs px-2.5 py-0.5 rounded-full border border-[#1e2937] text-[#94a3b8] hover:border-sky-400 hover:text-sky-400 transition-colors"
+            className="text-xs px-2.5 py-0.5 rounded-full border border-[#1e2937] hover:opacity-80 transition-opacity"
             title={p.desc}
           >
             {p.label}
@@ -92,7 +97,8 @@ export function NotificationPrompt() {
         setPerm(result);
         if (result === "granted") setPhase("picking");
       }}
-      className="flex items-center gap-1.5 text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors"
+      style={{ color: accentColor }}
+      className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity"
       title="Get browser notifications when aurora conditions improve"
     >
       <Bell className="h-3.5 w-3.5" />

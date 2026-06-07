@@ -12,7 +12,11 @@ interface BeforeInstallPromptEvent extends Event {
   readonly userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-export function InstallPrompt() {
+interface InstallPromptProps {
+  accentColor?: string;
+}
+
+export function InstallPrompt({ accentColor = "#38bdf8" }: InstallPromptProps) {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
@@ -58,7 +62,8 @@ export function InstallPrompt() {
     <div className="flex items-center gap-1">
       <button
         onClick={handleInstall}
-        className="flex items-center gap-1.5 text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors"
+        style={{ color: accentColor }}
+        className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity"
         title="Install AuroraWatch on your device"
       >
         <Download className="h-3.5 w-3.5" />
