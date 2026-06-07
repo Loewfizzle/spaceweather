@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import {
   exponentialBackoff,
   shouldRetryCritical,
@@ -23,17 +23,19 @@ import {
 
 // Pure business logic and display helpers
 import { latest } from "./noaa";
-import { maxOvationNorthAmerica, filterOvationCoordinates } from "./aurora/ovation";
 import { parseRecentCmes, currentSunspotNumber } from "./aurora/solar";
-import { getTonightOutlook, getCityAuroraProbabilities, getLocationAuroraProb } from "./aurora/outlook";
+import { getTonightOutlook, getLocationAuroraProb } from "./aurora/outlook";
 import type { CityAuroraProb, TonightOutlook } from "./aurora/outlook";
-import { getAuroraRiskLevel, getAuroraGuidance } from "./aurora/kp";
+import { getAuroraRiskLevel } from "./aurora/kp";
 import { getNextMeteorShower, formatMeteorPeak, createGoogleCalendarLink } from "./aurora/meteors";
 import type { MeteorShower } from "./aurora/meteors";
 import { formatFireballDate, formatFireballLocation, formatFireballEnergy } from "./aurora/fireballs";
 import { approximateLocation } from "./aurora/location";
 
-import { computeViewingWindow, type ViewingWindowData } from "./utils/viewingWindow";
+import type { ViewingWindowData } from "./utils/viewingWindow";
+
+import { useDerivedConditions } from "./hooks/useDerivedConditions";
+import { useStableRefetch } from "./hooks/useStableRefetch";
 
 import type {
   // Types from the Zod schemas (single source of truth for shapes)
@@ -133,152 +135,64 @@ export function useCurrentConditions() {
   const forecastQuery = useKpForecast();
 
   const latestKp = kpQuery.data ? latest(kpQuery.data) : null;
-  const ovationData = ovationQuery.data;
 
-  // filterOvationCoordinates walks the full OVATION grid (~65k entries); memoize once so
-  // maxOvationNorthAmerica, getCityAuroraProbabilities, and getLocationAuroraProb all share
-  // the same filtered array rather than each paying the full scan cost independently.
-  const ovationPoints = useMemo(
-    () => (ovationData ? filterOvationCoordinates(ovationData.coordinates, 0) : []),
-    [ovationData]
-  );
+  const { ovationPoints, maxAuroraProbNA, ovationProcessed, cityProbs, viewingWindow, guidance, riskLevel } =
+    useDerivedConditions({
+      latestKp,
+      ovationData: ovationQuery.data,
+      ovationIsSuccess: ovationQuery.isSuccess,
+      bz: solarWind.current.bz,
+      speed: solarWind.current.speed,
+      forecastData: forecastQuery.data,
+    });
 
-  const maxProbNA = useMemo(
-    () => (ovationData ? maxOvationNorthAmerica(ovationPoints) : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- ovationData gates nullability only; exclude to avoid rescanning on every poll tick
-    [ovationPoints]
-  );
-
-  // True when the NOAA fetch itself succeeded — even if the aurora oval happened
-  // to have no coordinates (legitimate quiet-sun result, not a data failure).
-  const ovationProcessed = ovationQuery.isSuccess && !!ovationData;
+  const kpError = kpQuery.error;
+  const ovationError = ovationQuery.error;
 
   // Observability: log when OVATION yields unexpectedly low/empty NA results.
   // Runs in an effect (not render body) to avoid firing on discarded renders in StrictMode.
   useEffect(() => {
-    if (!ovationData || !ovationData.coordinates) return;
-    const coordsCount = ovationData.coordinates.length;
-    if (maxProbNA === 0 && coordsCount > 0) {
-      logDataError(
-        'OVATION: 0 max prob in NA after filtering (oval may be shifted or bounds/filter issue)',
-        null,
-        { coordsCount, minProbUsed: 0 },
-        false
-      );
-    } else if (maxProbNA != null && maxProbNA < 5 && latestKp?.Kp != null && latestKp.Kp >= 4) {
-      logDataError(
-        'OVATION: unexpectedly low NA max prob given current Kp (possible data shift or filter)',
-        null,
-        { maxProbNA, kp: latestKp.Kp, coordsCount: ovationData.coordinates.length },
-        false
-      );
+    if (!ovationQuery.data?.coordinates) return;
+    const coordsCount = ovationQuery.data.coordinates.length;
+    if (maxAuroraProbNA === 0 && coordsCount > 0) {
+      logDataError('OVATION: 0 max prob in NA after filtering (oval may be shifted or bounds/filter issue)', null, { coordsCount, minProbUsed: 0 }, false);
+    } else if (maxAuroraProbNA != null && maxAuroraProbNA < 5 && latestKp?.Kp != null && latestKp.Kp >= 4) {
+      logDataError('OVATION: unexpectedly low NA max prob given current Kp (possible data shift or filter)', null, { maxAuroraProbNA, kp: latestKp.Kp, coordsCount: ovationQuery.data.coordinates.length }, false);
     }
-  }, [ovationData, maxProbNA, latestKp]);
-
-  // Observability: expose fetching state and separate non-critical errors for UI indicators
-  const kpError = kpQuery.error;
-  const ovationError = ovationQuery.error;
-  const criticalError = kpError || ovationError;
-  const nonCriticalError = solarWind.error;
+  }, [ovationQuery.data, maxAuroraProbNA, latestKp]);
 
   useEffect(() => {
     if (kpError) logDataError('Critical data (Kp)', kpError, ['useCurrentConditions'], true);
     if (ovationError) logDataError('Critical data (OVATION)', ovationError, ['useCurrentConditions'], true);
   }, [kpError, ovationError]);
 
-  const currentBz = solarWind.current.bz;
-  const currentSpeed = solarWind.current.speed;
-  // Phase 1: O(n) nearest-cell scan — skips Bz so Bz fluctuations don't retrigger the scan
-  const cityBaseProbs = useMemo(
-    () => getCityAuroraProbabilities(ovationPoints, latestKp?.Kp ?? null, null),
-    [ovationPoints, latestKp?.Kp]
-  );
-
-  // Phase 2: apply Bz boost — lightweight remap, only re-runs when Bz crosses the −5 threshold
-  const cityProbs = useMemo(
-    () => {
-      if (currentBz === null || currentBz > -5) return cityBaseProbs;
-      const boost = Math.round(Math.min(8, Math.abs(currentBz + 5) * 1.5));
-      return cityBaseProbs.map(c => ({ ...c, prob: Math.min(99, c.prob + boost) }));
-    },
-    [cityBaseProbs, currentBz]
-  );
-
-  // Tonight's viewing window — computed once and shared with both getAuroraGuidance (for forecast
-  // peak Kp) and the ViewingWindow component, so both see the same snapshot and new Date() is
-  // called only once per render cycle rather than independently in two places.
-  const viewingWindow = useMemo<ViewingWindowData | null>(
-    () => (forecastQuery.data && forecastQuery.data.length > 0 ? computeViewingWindow(forecastQuery.data) : null),
-    [forecastQuery.data]
-  );
-
-  const guidance = useMemo(
-    () => getAuroraGuidance(latestKp?.Kp ?? null, maxProbNA, currentBz, currentSpeed, viewingWindow?.hasData ? viewingWindow.peakKp : null),
-    [latestKp?.Kp, maxProbNA, currentBz, currentSpeed, viewingWindow]
-  );
-
-  const riskLevel = useMemo(
-    () => getAuroraRiskLevel(latestKp?.Kp ?? null, maxProbNA, currentBz, currentSpeed),
-    [latestKp?.Kp, maxProbNA, currentBz, currentSpeed]
-  );
-
-  // Keep a ref to the latest refetch functions so refetchAll has a stable identity.
-  // TanStack Query builds new result objects (and new .refetch closures) each render,
-  // so putting whole query results in useCallback deps would recreate refetchAll every render.
-  const _refetchRefs = useRef({
+  const refetchAll = useStableRefetch({
     kp: kpQuery.refetch,
     ovation: ovationQuery.refetch,
     plasma: solarWind.plasma.refetch,
     mag: solarWind.mag.refetch,
   });
-  useLayoutEffect(() => {
-    _refetchRefs.current = {
-      kp: kpQuery.refetch,
-      ovation: ovationQuery.refetch,
-      plasma: solarWind.plasma.refetch,
-      mag: solarWind.mag.refetch,
-    };
-  });
-
-  const refetchAll = useCallback(() => {
-    _refetchRefs.current.kp();
-    _refetchRefs.current.ovation();
-    _refetchRefs.current.plasma();
-    _refetchRefs.current.mag();
-  }, []);
 
   return {
     kp: latestKp?.Kp ?? null,
     kpTime: latestKp?.time_tag ?? null,
     kpHistory: kpQuery.data ?? [],
-    maxAuroraProbNA: maxProbNA,
+    maxAuroraProbNA,
     ovationPoints,
     viewingWindow,
-    ovationProcessed,  // true when the NOAA fetch succeeded — empty coordinates are a valid quiet-sun result, not a failure
+    ovationProcessed,
     cityProbs,
-    solarWindSpeed: currentSpeed,
+    solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
-    bz: currentBz,
+    bz: solarWind.current.bz,
     guidance,
     riskLevel,
-    isLoading:
-      kpQuery.isLoading ||
-      ovationQuery.isLoading ||
-      solarWind.isLoading,
-    // Critical error for hero (only Kp/OVATION); also exposed individually for diagnostics
-    error: criticalError,
+    isLoading: kpQuery.isLoading || ovationQuery.isLoading || solarWind.isLoading,
+    error: kpError || ovationError,
     kpError,
     ovationError,
-    // For partial data UI (e.g. show subtle note in Current Conditions when solar wind delayed)
-    solarWindError: nonCriticalError,
+    solarWindError: solarWind.error,
     isFetching: kpQuery.isFetching || ovationQuery.isFetching || solarWind.plasma.isFetching || solarWind.mag.isFetching,
-    // Only propagate errors from Kp and OVATION as fatal for the hero/outlook.
-    // Solar wind glitches (plasma/mag) are non-fatal; values gracefully fall back to null.
-    // This prevents spurious "Error loading outlook" when supporting data sources are flaky.
-    // Epoch ms of the last successful network response for any query in this hook.
-    // Use this (not kpTime/NOAA data timestamps) to decide whether the app just
-    // successfully contacted NOAA — it updates to Date.now() on every fetch, even
-    // when NOAA returns the same data.
     lastFetchedAt: (() => {
       const ts = [kpQuery.dataUpdatedAt, ovationQuery.dataUpdatedAt, solarWind.plasma.dataUpdatedAt, solarWind.mag.dataUpdatedAt].filter(t => t > 0);
       return ts.length ? Math.max(...ts) : 0;
