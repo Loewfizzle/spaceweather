@@ -268,18 +268,12 @@ function MapStateTracker() {
   return null;
 }
 
-function ResetViewButton() {
+// Captures the Leaflet map instance and exposes it to the parent via callback.
+// Must be rendered inside MapContainer so useMap() resolves.
+function MapInstanceCapture({ onMap }: { onMap: (map: L.Map) => void }) {
   const map = useMap();
-  return (
-    <button
-      onClick={(e) => { e.stopPropagation(); map.setView([48, -100], 3); }}
-      className="absolute bottom-3 left-3 z-[20] flex items-center justify-center rounded-lg border border-[#1e2937] bg-[#0f1425]/95 p-1.5 shadow backdrop-blur-sm hover:bg-[#1e2937] transition-colors"
-      title="Reset view"
-      aria-label="Reset map view"
-    >
-      <Home className="h-3.5 w-3.5 text-[#cbd5e1]" />
-    </button>
-  );
+  useEffect(() => { onMap(map); }, [map, onMap]);
+  return null;
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -292,6 +286,7 @@ export default function AuroraMap({
 }: AuroraMapProps) {
   const { data: ovationData, isLoading, error, refetch } = useOvationData();
   const [tilesFailed, setTilesFailed] = useState(false);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const onTileError = useCallback(() => setTilesFailed(true), []);
 
   // Restore the user's last map position from localStorage (runs once on mount).
@@ -394,7 +389,7 @@ export default function AuroraMap({
           <OvationCanvasLayer points={safePoints} />
           {/* Persist center/zoom so the map remembers the user's last view */}
           <MapStateTracker />
-          <ResetViewButton />
+          <MapInstanceCapture onMap={setMapInstance} />
           {/* User location pin — only rendered when geolocation has been granted */}
           {hasUserLocation && (
             <UserLocationMarker
@@ -429,6 +424,18 @@ export default function AuroraMap({
             Map tiles unavailable — aurora data still shown
           </div>
         </div>
+      )}
+
+      {/* Reset button — outside MapContainer so overflow-hidden doesn't clip it */}
+      {mapInstance && (
+        <button
+          onClick={(e) => { e.stopPropagation(); mapInstance.setView([48, -100], 3); }}
+          className="absolute bottom-3 left-3 z-[20] flex items-center justify-center rounded-lg border border-[#1e2937] bg-[#0f1425]/95 p-1.5 shadow backdrop-blur-sm hover:bg-[#1e2937] transition-colors"
+          title="Reset view"
+          aria-label="Reset map view"
+        >
+          <Home className="h-3.5 w-3.5 text-[#cbd5e1]" />
+        </button>
       )}
 
       {/* Legend — z-[20] keeps it above the empty state overlay */}

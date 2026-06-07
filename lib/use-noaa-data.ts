@@ -41,6 +41,8 @@ import {
   getLocationAuroraProb,
 } from "./noaa";
 
+import { computeViewingWindow } from "./utils/viewingWindow";
+
 import type { MeteorShower, TonightOutlook, CityAuroraProb } from "./noaa";
 
 import type {
@@ -191,17 +193,12 @@ export function useCurrentConditions() {
     [ovationData, latestKp?.Kp, solarWind.current.bz]
   );
 
-  // Max Kp across predicted forecast entries — used to surface tonight's expected
-  // peak in the guidance text when conditions are set to improve later.
-  // Uses observed === "predicted" (NOAA's own label for future entries) to avoid
-  // calling Date.now() inside useMemo (impure function, violates react-hooks/purity).
+  // Peak Kp within tonight's Michigan aurora viewing window (8pm–6am ET).
+  // computeViewingWindow handles DST-aware ET offset and the > now filter internally.
   const forecastPeakKp = useMemo(() => {
     if (!forecastQuery.data || forecastQuery.data.length === 0) return null;
-    const predicted = forecastQuery.data.filter(
-      (e) => e.kp != null && e.observed === 'predicted'
-    );
-    if (predicted.length === 0) return null;
-    return Math.max(...predicted.map((e) => e.kp as number));
+    const result = computeViewingWindow(forecastQuery.data);
+    return result.hasData ? result.peakKp : null;
   }, [forecastQuery.data]);
 
   return {
