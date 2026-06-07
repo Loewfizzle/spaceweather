@@ -260,10 +260,11 @@ export function HeroOutlook({
               {cloudCoverPct != null && (
                 <div className="flex items-center gap-1.5 text-xs text-[#64748b]">
                   <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
-                  <span>Cloud cover:</span>
+                  <span>Your skies tonight:</span>
                   <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>
                     {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
                   </span>
+                  <span className="text-[#475569]">· 8pm–6am avg</span>
                 </div>
               )}
               <NotificationPrompt accentColor={outlook.accentColor} />
