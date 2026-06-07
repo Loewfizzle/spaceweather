@@ -3,6 +3,7 @@
 import { Bell } from "lucide-react";
 import { useNotifications, ALERT_THRESHOLDS } from "../lib/hooks/useNotifications";
 import { alertProductLabel, alertFirstLine, formatAlertAge } from "../lib/utils/alertHelpers";
+import { useMemo } from "react";
 import type { Alert } from "../lib/api/schemas";
 
 interface AlertsPanelProps {
@@ -15,8 +16,16 @@ interface AlertsPanelProps {
   alertsLoading?: boolean;
 }
 
+function useIsMobile(): boolean {
+  return useMemo(() => {
+    if (typeof navigator === "undefined") return false;
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }, []);
+}
+
 export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, alerts, alertsLoading }: AlertsPanelProps) {
   const recentAlerts = (alerts ?? []).slice(0, 8);
+  const isMobile = useIsMobile();
   const {
     notificationPermission,
     alertsEnabled,
@@ -36,7 +45,7 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
               <Bell className="w-5 h-5 text-[#64748b] shrink-0" />
-              <div className="font-semibold">Alerts for Michigan</div>
+              <div className="font-semibold">Get Notified</div>
               {riskLevel && (
                 <span
                   className={`risk-pill risk-${riskLevel.toLowerCase()} ml-0.5`}
@@ -48,107 +57,117 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
             </div>
 
             <div className="text-sm text-[#94a3b8] max-w-md">
-              Browser notifications when Michigan conditions meet your threshold.
+              Browser notifications when conditions meet your chosen threshold.
               Evaluated on every data refresh (∼5 min).
             </div>
 
-            {/* On/Off toggle (only functional once permission granted) */}
-            <div className="mt-4 flex items-center gap-3">
-              <div className="text-xs text-[#64748b]">Auto alerts</div>
-              <div className="inline-flex rounded-full border border-[#1e2937] text-xs overflow-hidden select-none">
-                <button
-                  onClick={() => {
-                    if (notificationPermission === "granted") setAlertsEnabled(true);
-                  }}
-                  disabled={notificationPermission !== "granted"}
-                  className={`px-3 py-1 transition-colors ${
-                    alertsEnabled && notificationPermission === "granted"
-                      ? "bg-[#22c55e] text-[#05070f] font-medium"
-                      : "text-[#64748b] hover:bg-[#1e2937]"
-                  }`}
-                >
-                  On
-                </button>
-                <button
-                  onClick={() => setAlertsEnabled(false)}
-                  disabled={notificationPermission !== "granted"}
-                  className={`px-3 py-1 transition-colors ${
-                    !alertsEnabled || notificationPermission !== "granted"
-                      ? "bg-[#334155] text-white"
-                      : "text-[#64748b] hover:bg-[#1e2937]"
-                  }`}
-                >
-                  Off
-                </button>
+            {isMobile ? (
+              <div className="mt-4 text-[11px] text-[#475569]">
+                Browser notifications work best on desktop.
               </div>
-              {notificationPermission === "granted" && alertsEnabled && (
-                <div className="text-[10px] text-[#22c55e]">Active</div>
-              )}
-              {notificationPermission === "denied" && (
-                <div className="text-[10px] text-red-400">Blocked in browser settings</div>
-              )}
-            </div>
+            ) : (
+              <>
+                {/* On/Off toggle (only functional once permission granted) */}
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="text-xs text-[#64748b]">Auto alerts</div>
+                  <div className="inline-flex rounded-full border border-[#1e2937] text-xs overflow-hidden select-none">
+                    <button
+                      onClick={() => {
+                        if (notificationPermission === "granted") setAlertsEnabled(true);
+                      }}
+                      disabled={notificationPermission !== "granted"}
+                      className={`px-3 py-1 transition-colors ${
+                        alertsEnabled && notificationPermission === "granted"
+                          ? "bg-[#22c55e] text-[#05070f] font-medium"
+                          : "text-[#64748b] hover:bg-[#1e2937]"
+                      }`}
+                    >
+                      On
+                    </button>
+                    <button
+                      onClick={() => setAlertsEnabled(false)}
+                      disabled={notificationPermission !== "granted"}
+                      className={`px-3 py-1 transition-colors ${
+                        !alertsEnabled || notificationPermission !== "granted"
+                          ? "bg-[#334155] text-white"
+                          : "text-[#64748b] hover:bg-[#1e2937]"
+                      }`}
+                    >
+                      Off
+                    </button>
+                  </div>
+                  {notificationPermission === "granted" && alertsEnabled && (
+                    <div className="text-[10px] text-[#22c55e]">Active</div>
+                  )}
+                  {notificationPermission === "denied" && (
+                    <div className="text-[10px] text-red-400">Blocked in browser settings</div>
+                  )}
+                </div>
 
-            {/* User threshold presets (sensitivity) */}
-            <div className="mt-4">
-              <div className="text-xs text-[#64748b] mb-1.5">Notify me for:</div>
-              <div className="flex flex-wrap gap-1.5">
-                {(
-                  [
-                    { key: "sensitive", label: "Sensitive", desc: "Kp ≥3 or 10%" },
-                    { key: "balanced", label: "Balanced", desc: "Kp ≥4 or 15%" },
-                    { key: "strong", label: "Strong only", desc: "Kp ≥5 or 25%" },
-                  ] as const
-                ).map((opt) => (
-                  <button
-                    key={opt.key}
-                    onClick={() => setAlertSensitivity(opt.key)}
-                    className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                      alertSensitivity === opt.key
-                        ? "bg-[#0f1425] border-[#22c55e] text-[#22c55e]"
-                        : "border-[#1e2937] text-[#94a3b8] hover:border-[#334155]"
-                    }`}
-                    title={opt.desc}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-1 text-[10px] text-[#475569]">
-                Current threshold: Kp ≥ {ALERT_THRESHOLDS[alertSensitivity].kp} or OVATION ≥{" "}
-                {ALERT_THRESHOLDS[alertSensitivity].prob}% (plus strong southward Bz)
-              </div>
-            </div>
+                {/* Sensitivity presets */}
+                <div className="mt-4">
+                  <div className="text-xs text-[#64748b] mb-1.5">Notify me for:</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(
+                      [
+                        { key: "sensitive", label: "Sensitive", desc: "Kp ≥3 or 10%" },
+                        { key: "balanced", label: "Balanced", desc: "Kp ≥4 or 15%" },
+                        { key: "strong", label: "Strong only", desc: "Kp ≥5 or 25%" },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.key}
+                        onClick={() => setAlertSensitivity(opt.key)}
+                        className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                          alertSensitivity === opt.key
+                            ? "bg-[#0f1425] border-[#22c55e] text-[#22c55e]"
+                            : "border-[#1e2937] text-[#94a3b8] hover:border-[#334155]"
+                        }`}
+                        title={opt.desc}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-1 text-[10px] text-[#475569]">
+                    Current threshold: Kp ≥ {ALERT_THRESHOLDS[alertSensitivity].kp} or OVATION ≥{" "}
+                    {ALERT_THRESHOLDS[alertSensitivity].prob}% (plus strong southward Bz)
+                  </div>
+                </div>
 
-            {notificationPermission === "granted" && (
-              <div className="mt-3 text-[10px] text-[#64748b]">
-                Throttled to once per 30 min • Respects Do Not Disturb
-              </div>
-            )}
-            {notificationError && (
-              <div className="mt-3 text-[11px] text-red-400">{notificationError}</div>
-            )}
-          </div>
-
-          {/* Right: primary action */}
-          <div className="sm:shrink-0 sm:pt-1">
-            <button
-              onClick={handleEnableAlerts}
-              className="button button-primary w-full sm:w-auto justify-center min-w-[168px]"
-              disabled={notificationPermission === "denied"}
-            >
-              {notificationPermission === "granted"
-                ? "Send test alert"
-                : notificationPermission === "denied"
-                ? "Notifications blocked"
-                : "Enable browser alerts"}
-            </button>
-            {notificationPermission === "granted" && !alertsEnabled && (
-              <div className="mt-2 text-[10px] text-[#64748b] text-center sm:text-left">
-                Auto alerts are paused
-              </div>
+                {notificationPermission === "granted" && (
+                  <div className="mt-3 text-[10px] text-[#64748b]">
+                    Throttled to once per 30 min • Respects Do Not Disturb
+                  </div>
+                )}
+                {notificationError && (
+                  <div className="mt-3 text-[11px] text-red-400">{notificationError}</div>
+                )}
+              </>
             )}
           </div>
+
+          {/* Right: primary action (desktop only) */}
+          {!isMobile && (
+            <div className="sm:shrink-0 sm:pt-1">
+              <button
+                onClick={handleEnableAlerts}
+                className="button button-primary w-full sm:w-auto justify-center min-w-[168px]"
+                disabled={notificationPermission === "denied"}
+              >
+                {notificationPermission === "granted"
+                  ? "Send test alert"
+                  : notificationPermission === "denied"
+                  ? "Notifications blocked"
+                  : "Enable browser alerts"}
+              </button>
+              {notificationPermission === "granted" && !alertsEnabled && (
+                <div className="mt-2 text-[10px] text-[#64748b] text-center sm:text-left">
+                  Auto alerts are paused
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Recent NOAA alerts feed — skeleton while loading, populated list once data arrives */}
