@@ -151,10 +151,8 @@ export function maxOvationNorthAmerica(data: OvationResponse | null): number {
 
 // ── Canonical 4-tier aurora color palette ─────────────────────────────────
 // Single source of truth used by the header Kp pill, viewing window, and map.
-// Tier names mirror geomagnetic storm scale language so they're self-documenting.
-//
-// Kp  cutoffs: quiet <4 · moderate 4–4.9 · active 5–5.9 · storm ≥6
-// Prob cutoffs: quiet <10% · moderate 10–29% · active 30–59% · storm ≥60%
+// Kp activity tiers — used by getKpTier and ViewingWindow.
+// Kp cutoffs: quiet <4 · moderate 4–4.9 · active 5–5.9 · storm ≥6
 export const AURORA_TIERS = {
   quiet:    { color: '#22c55e', label: 'Quiet'    },
   moderate: { color: '#eab308', label: 'Moderate' },
@@ -164,6 +162,17 @@ export const AURORA_TIERS = {
 
 export type AuroraTier = keyof typeof AURORA_TIERS;
 
+// Probability display tiers — used by getProbTier, getAuroraColor, and city/location rows.
+// Prob cutoffs: quiet <15% · low 15–34% · moderate 35–59% · high ≥60%
+export const PROB_TIERS = {
+  quiet:    { color: '#64748b', label: 'Quiet'    },
+  low:      { color: '#eab308', label: 'Low'      },
+  moderate: { color: '#22c55e', label: 'Moderate' },
+  high:     { color: '#a78bfa', label: 'High'     },
+} as const;
+
+export type ProbTier = keyof typeof PROB_TIERS;
+
 /** Map a Kp index (0–9) to the canonical activity tier. */
 export function getKpTier(kp: number): AuroraTier {
   if (kp >= 6) return 'storm';
@@ -172,23 +181,23 @@ export function getKpTier(kp: number): AuroraTier {
   return 'quiet';
 }
 
-/** Map an aurora probability (0–100%) to the canonical activity tier. */
-export function getProbTier(prob: number): AuroraTier {
-  if (prob >= 60) return 'storm';
-  if (prob >= 30) return 'active';
-  if (prob >= 10) return 'moderate';
+/** Map an aurora probability (0–100%) to the display tier. */
+export function getProbTier(prob: number): ProbTier {
+  if (prob >= 60) return 'high';
+  if (prob >= 35) return 'moderate';
+  if (prob >= 15) return 'low';
   return 'quiet';
 }
 
-/** Aurora color for a given probability. Internals use the unified tier system. */
+/** Aurora color for a given probability. */
 export function getAuroraColor(prob: number): string {
-  return AURORA_TIERS[getProbTier(prob)].color;
+  return PROB_TIERS[getProbTier(prob)].color;
 }
 
 /** Radius for high-prob marker peaks (scaled for visual weight). */
 export function getAuroraMarkerRadius(prob: number): number {
   if (prob < 15) return 3;
-  if (prob < 40) return 3.5;
+  if (prob < 35) return 3.5;
   return 4.5; // larger for the strongest areas
 }
 

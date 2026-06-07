@@ -302,17 +302,17 @@ describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
 })
 
 describe('getAuroraColor', () => {
-  it('returns unified 4-tier palette (quiet/moderate/active/storm)', () => {
-    // quiet  (<10%)    → green
-    expect(getAuroraColor(3)).toBe('#22c55e')
-    expect(getAuroraColor(9)).toBe('#22c55e')
-    // moderate (10–29%) → amber
-    expect(getAuroraColor(10)).toBe('#eab308')
-    expect(getAuroraColor(20)).toBe('#eab308')
-    // active (30–59%)  → orange
-    expect(getAuroraColor(30)).toBe('#f97316')
-    expect(getAuroraColor(50)).toBe('#f97316')
-    // storm  (≥60%)    → violet
+  it('returns 4-tier probability palette (quiet/low/moderate/high)', () => {
+    // quiet  (<15%)    → gray
+    expect(getAuroraColor(0)).toBe('#64748b')
+    expect(getAuroraColor(14)).toBe('#64748b')
+    // low    (15–34%)  → amber
+    expect(getAuroraColor(15)).toBe('#eab308')
+    expect(getAuroraColor(34)).toBe('#eab308')
+    // moderate (35–59%) → green
+    expect(getAuroraColor(35)).toBe('#22c55e')
+    expect(getAuroraColor(59)).toBe('#22c55e')
+    // high   (≥60%)    → violet
     expect(getAuroraColor(60)).toBe('#a78bfa')
     expect(getAuroraColor(100)).toBe('#a78bfa')
   })
@@ -945,22 +945,22 @@ describe('approximateLocation', () => {
 // getAuroraColor + getAuroraMarkerRadius
 // ============================================
 describe('getAuroraColor', () => {
-  it('returns quiet color for prob < 10', () => {
-    expect(getAuroraColor(0)).toBe('#22c55e')
-    expect(getAuroraColor(9)).toBe('#22c55e')
+  it('returns quiet color (gray) for prob < 15', () => {
+    expect(getAuroraColor(0)).toBe('#64748b')
+    expect(getAuroraColor(14)).toBe('#64748b')
   })
 
-  it('returns moderate color for prob 10–29', () => {
-    expect(getAuroraColor(10)).toBe('#eab308')
-    expect(getAuroraColor(29)).toBe('#eab308')
+  it('returns low color (amber) for prob 15–34', () => {
+    expect(getAuroraColor(15)).toBe('#eab308')
+    expect(getAuroraColor(34)).toBe('#eab308')
   })
 
-  it('returns active color for prob 30–59', () => {
-    expect(getAuroraColor(30)).toBe('#f97316')
-    expect(getAuroraColor(59)).toBe('#f97316')
+  it('returns moderate color (green) for prob 35–59', () => {
+    expect(getAuroraColor(35)).toBe('#22c55e')
+    expect(getAuroraColor(59)).toBe('#22c55e')
   })
 
-  it('returns storm color for prob >= 60', () => {
+  it('returns high color (violet) for prob >= 60', () => {
     expect(getAuroraColor(60)).toBe('#a78bfa')
     expect(getAuroraColor(99)).toBe('#a78bfa')
   })
@@ -972,13 +972,13 @@ describe('getAuroraMarkerRadius', () => {
     expect(getAuroraMarkerRadius(14)).toBe(3)
   })
 
-  it('returns 3.5 for prob 15–39', () => {
+  it('returns 3.5 for prob 15–34', () => {
     expect(getAuroraMarkerRadius(15)).toBe(3.5)
-    expect(getAuroraMarkerRadius(39)).toBe(3.5)
+    expect(getAuroraMarkerRadius(34)).toBe(3.5)
   })
 
-  it('returns 4.5 for prob >= 40', () => {
-    expect(getAuroraMarkerRadius(40)).toBe(4.5)
+  it('returns 4.5 for prob >= 35', () => {
+    expect(getAuroraMarkerRadius(35)).toBe(4.5)
     expect(getAuroraMarkerRadius(99)).toBe(4.5)
   })
 })
@@ -1012,24 +1012,24 @@ describe('getKpTier', () => {
 // getProbTier
 // ============================================
 describe('getProbTier', () => {
-  it('returns quiet for prob < 10', () => {
+  it('returns quiet for prob < 15', () => {
     expect(getProbTier(0)).toBe('quiet')
-    expect(getProbTier(9)).toBe('quiet')
+    expect(getProbTier(14)).toBe('quiet')
   })
 
-  it('returns moderate for prob 10–29', () => {
-    expect(getProbTier(10)).toBe('moderate')
-    expect(getProbTier(29)).toBe('moderate')
+  it('returns low for prob 15–34', () => {
+    expect(getProbTier(15)).toBe('low')
+    expect(getProbTier(34)).toBe('low')
   })
 
-  it('returns active for prob 30–59', () => {
-    expect(getProbTier(30)).toBe('active')
-    expect(getProbTier(59)).toBe('active')
+  it('returns moderate for prob 35–59', () => {
+    expect(getProbTier(35)).toBe('moderate')
+    expect(getProbTier(59)).toBe('moderate')
   })
 
-  it('returns storm for prob >= 60', () => {
-    expect(getProbTier(60)).toBe('storm')
-    expect(getProbTier(100)).toBe('storm')
+  it('returns high for prob >= 60', () => {
+    expect(getProbTier(60)).toBe('high')
+    expect(getProbTier(100)).toBe('high')
   })
 })
 
