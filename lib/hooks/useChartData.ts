@@ -36,64 +36,62 @@ function isTonightAuroraWindow(utcDate: Date): boolean {
   return etHour >= 20 || etHour < 6;
 }
 
-// ── Chart options (function so callbacks capture nothing from outer scope) ────
+// ── Chart options — module-level constant (no data-dependent values) ─────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeChartOptions(): Record<string, any> {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: {
-        min: 0,
-        max: 9,
-        ticks: {
-          color: "#64748b",
-          font: { size: 11 },
-          // Only label values that map to meaningful activity thresholds
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          callback: (value: any) =>
-            [0, 2, 4, 5, 7].includes(Number(value)) ? String(value) : '',
-        },
-        grid: {
-          // Subtle color accent at the two key aurora onset thresholds
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          color: (context: any) => {
-            const v = context.tick?.value;
-            if (v === 5) return "rgba(249, 115, 22, 0.22)"; // orange — active onset
-            if (v === 4) return "rgba(234, 179, 8, 0.18)";  // yellow — moderate onset
-            return "#171f2e";
-          },
-        },
+const CHART_OPTIONS: Record<string, any> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    y: {
+      min: 0,
+      max: 9,
+      ticks: {
+        color: "#64748b",
+        font: { size: 11 },
+        // Only label values that map to meaningful activity thresholds
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        callback: (value: any) =>
+          [0, 2, 4, 5, 7].includes(Number(value)) ? String(value) : '',
       },
-      x: {
-        ticks: { color: "#64748b", font: { size: 10 }, maxRotation: 0 },
-        grid: { color: "#171f2e" },
-      },
-    },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: "#0d1425",
-        borderColor: "#1e2937",
-        borderWidth: 1,
-        titleColor: "#94a3b8",
-        bodyColor: "#f1f5f9",
-        padding: 10,
-        callbacks: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          label: (context: any) => {
-            const val = context.parsed?.y;
-            if (val === null || val === undefined) return '';
-            const isForecast = context.dataset.label === 'Forecast';
-            const prefix = isForecast ? '◌ Forecast' : '● Kp';
-            return ` ${prefix} ${(val as number).toFixed(1)} — ${kpTierLabel(val as number)}`;
-          },
+      grid: {
+        // Subtle color accent at the two key aurora onset thresholds
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        color: (context: any) => {
+          const v = context.tick?.value;
+          if (v === 5) return "rgba(249, 115, 22, 0.22)"; // orange — active onset
+          if (v === 4) return "rgba(234, 179, 8, 0.18)";  // yellow — moderate onset
+          return "#171f2e";
         },
       },
     },
-  };
-}
+    x: {
+      ticks: { color: "#64748b", font: { size: 10 }, maxRotation: 0 },
+      grid: { color: "#171f2e" },
+    },
+  },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: "#0d1425",
+      borderColor: "#1e2937",
+      borderWidth: 1,
+      titleColor: "#94a3b8",
+      bodyColor: "#f1f5f9",
+      padding: 10,
+      callbacks: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        label: (context: any) => {
+          const val = context.parsed?.y;
+          if (val === null || val === undefined) return '';
+          const isForecast = context.dataset.label === 'Forecast';
+          const prefix = isForecast ? '◌ Forecast' : '● Kp';
+          return ` ${prefix} ${(val as number).toFixed(1)} — ${kpTierLabel(val as number)}`;
+        },
+      },
+    },
+  },
+};
 
 // ── Plugins ───────────────────────────────────────────────────────────────────
 
@@ -276,7 +274,7 @@ export function buildChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry
 
   return {
     chartData,
-    chartOptions: makeChartOptions(),
+    chartOptions: CHART_OPTIONS,
     chartPlugins,
     hasTonight,
     hasForecast: futureForecast.length > 0,

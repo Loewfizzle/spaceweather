@@ -2,6 +2,7 @@
 
 import { Wind, Zap, Activity, Satellite } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { getKpTier, AURORA_TIERS } from "../lib/noaa";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 
 interface CurrentConditionsProps {
@@ -76,7 +77,7 @@ export function CurrentConditions({
               <div className="text-4xl font-semibold tracking-tighter tabular-nums">
                 {kp !== null ? kp.toFixed(1) : "—"}
               </div>
-              <div className="text-sm text-[#64748b] -mt-1">Latest 3-hour • {kp !== null && kp < 4 ? "Quiet" : "Active"}</div>
+              <div className="text-sm text-[#64748b] -mt-1">Latest 3-hour • {kp !== null ? AURORA_TIERS[getKpTier(kp)].label : "—"}</div>
             </div>
 
             <div className="metric">

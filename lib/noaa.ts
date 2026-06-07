@@ -230,9 +230,9 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
     // Word-boundary prefix avoids matching partial numbers; range covers realistic CME speeds
     const speedMatch = msg.match(/\b(\d{3,4})\s*km\/s/i);
     const dirMatch = msg.match(/Earth-directed|Earth-facing|full halo|partial halo|halo CME/i);
-    const impactNote = /Earth-directed|Earth-facing|will reach Earth|geomagnetic storm/i.test(msg)
-      ? "Likely Earth impact"
-      : "Monitor for effects";
+    const isDirectHit = /Earth-directed|Earth-facing|will reach Earth|geomagnetic storm|full halo|halo CME/i.test(msg);
+    const isGlancing = !isDirectHit && /partial halo|glancing/i.test(msg);
+    const impactNote = isDirectHit ? "Expected Earth impact" : isGlancing ? "Glancing impact possible" : "Monitor for effects";
     const lines = msg.split("\n").filter(Boolean);
     const joined = lines.slice(0, 3).join(" ").replace(/\s+/g, " ");
     const shortNote = joined.length > 140 ? joined.substring(0, 140) + "…" : joined;

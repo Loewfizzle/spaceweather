@@ -70,10 +70,8 @@ export function MeteorActivity() {
   const nextMeteor = getNextMeteorShower();
   const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
 
-  // Capture mount-time timestamp via lazy initializer so Date.now() isn't called during render
-  const [now] = useState(Date.now);
   const showerDays = nextMeteor
-    ? Math.ceil((nextMeteor.peakDate.getTime() - now) / (1000 * 60 * 60 * 24))
+    ? Math.ceil((nextMeteor.peakDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
   const showerColor = nextMeteor ? activityColor(nextMeteor.shower.activityLevel) : "#64748b";
 

@@ -57,6 +57,7 @@ function DashboardInner() {
     solarWindError,
     isFetching,
     cityProbs,
+    refetchAll,
   } = conditions;
 
   const latestGlobalUpdate = useGlobalFreshness(
@@ -169,7 +170,17 @@ function DashboardInner() {
         )}
       >
         <Suspense fallback={<KpOutlookSkeleton />}>
-          <KpForecast guidance={guidance} />
+          <KpForecast
+            guidance={guidance}
+            kpHistory={kpHistory}
+            kpForecastData={kpForecastQuery.data ?? []}
+            kpIsLoading={isLoading}
+            kpError={error}
+            forecastIsLoading={kpForecastQuery.isLoading}
+            forecastError={kpForecastQuery.error}
+            onRefetchKp={refetchAll}
+            onRefetchForecast={kpForecastQuery.refetch}
+          />
         </Suspense>
       </ErrorBoundary>
 

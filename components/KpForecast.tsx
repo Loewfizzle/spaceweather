@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { useKpData, useKpForecast } from "../lib/use-noaa-data";
 import { useChartData } from "../lib/hooks/useChartData";
 import { Line } from "react-chartjs-2";
 import {
@@ -30,6 +29,14 @@ ChartJS.register(
 
 interface KpForecastProps {
   guidance: string;
+  kpHistory: KpEntry[];
+  kpForecastData: KpForecastEntry[];
+  kpIsLoading: boolean;
+  kpError: unknown;
+  forecastIsLoading: boolean;
+  forecastError: unknown;
+  onRefetchKp: () => void;
+  onRefetchForecast: () => void;
 }
 
 interface StormDay {
@@ -77,13 +84,7 @@ function useStormDays(kpForecast: KpForecastEntry[]): StormDay[] {
   }, [kpForecast]);
 }
 
-export function KpForecast({ guidance }: KpForecastProps) {
-  const kpQuery = useKpData();
-  const forecastQuery = useKpForecast();
-
-  const kpHistory = (kpQuery.data || []) as KpEntry[];
-  const kpForecastData = (forecastQuery.data || []) as KpForecastEntry[];
-
+export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, kpError, forecastIsLoading, forecastError, onRefetchKp, onRefetchForecast }: KpForecastProps) {
   const { chartData, chartOptions, chartPlugins, hasTonight, hasForecast } =
     useChartData(kpHistory, kpForecastData);
 
@@ -102,12 +103,12 @@ export function KpForecast({ guidance }: KpForecastProps) {
       <div className="section-title">KP INDEX &amp; OUTLOOK</div>
       <div className="card p-6">
         <div className="h-56">
-          {kpQuery.isLoading ? (
+          {kpIsLoading ? (
             <div className="h-full animate-pulse bg-[#1e2937] rounded" />
-          ) : kpQuery.error ? (
+          ) : kpError ? (
             <ErrorState
               message="Unable to load Kp data right now."
-              onRetry={kpQuery.refetch}
+              onRetry={onRefetchKp}
               standalone={false}
             />
           ) : kpHistory.length > 0 ? (
@@ -139,7 +140,7 @@ export function KpForecast({ guidance }: KpForecastProps) {
             Solid line = recent observations · Dashed = NOAA 36-hr forecast
             {hasTonight && " · Shaded = tonight's viewing window"}
             {"."}
-            {forecastQuery.error && !hasForecast && (
+            {!!forecastError && !hasForecast && (
               <span className="ml-2 text-amber-400/70">Forecast temporarily unavailable.</span>
             )}
           </div>
@@ -147,17 +148,17 @@ export function KpForecast({ guidance }: KpForecastProps) {
         </div>
 
         {/* 3-Day Storm Outlook */}
-        {(forecastQuery.isLoading || forecastQuery.error || stormDays.length > 0) && (
+        {(forecastIsLoading || forecastError || stormDays.length > 0) && (
           <div className="mt-5 pt-5 border-t border-[#1e2937]">
             <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
-              {forecastQuery.isLoading ? (
+              {forecastIsLoading ? (
                 <div className="h-2.5 w-32 rounded animate-pulse bg-[#1e2937]" />
               ) : (
                 "3-DAY STORM OUTLOOK"
               )}
             </div>
             <div className="grid grid-cols-3 gap-3">
-              {forecastQuery.isLoading
+              {forecastIsLoading
                 ? [0, 1, 2].map((i) => (
                     <div key={i} className="rounded-lg bg-[#0a0e1a] border border-[#1e2937] p-3">
                       <div className="h-2.5 w-10 rounded animate-pulse bg-[#1e2937] mb-3" />
@@ -165,12 +166,12 @@ export function KpForecast({ guidance }: KpForecastProps) {
                       <div className="h-2.5 w-14 rounded animate-pulse bg-[#1e2937]" />
                     </div>
                   ))
-                : forecastQuery.error && stormDays.length === 0
+                : forecastError && stormDays.length === 0
                 ? (
                     <div className="col-span-3 text-[11px] text-amber-400/70 py-1">
                       Forecast temporarily unavailable.{" "}
                       <button
-                        onClick={() => forecastQuery.refetch()}
+                        onClick={onRefetchForecast}
                         className="underline underline-offset-2 hover:text-amber-400 transition-colors"
                       >
                         Retry
