@@ -194,9 +194,26 @@ export function CurrentConditions({
   const [openCard, setOpenCard] = useState<CardId | null>(null);
   const closeCard = useCallback(() => setOpenCard(null), []);
 
+  // Dot: null = hidden during initial load, red = feed down, yellow = partial/stale, green = fresh
+  const dotColor = (() => {
+    if (isLoading && kp === null) return null;
+    if (solarWindError && kp === null) return '#ef4444';
+    if (solarWindError) return '#eab308';
+    if (kp === null) return '#eab308';
+    return '#22c55e';
+  })();
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-      <div className="section-title">CURRENT CONDITIONS</div>
+      <div className="section-title flex items-center gap-2">
+        {dotColor && (
+          <span
+            className="animate-pulse block rounded-full flex-shrink-0"
+            style={{ width: '7px', height: '7px', backgroundColor: dotColor }}
+          />
+        )}
+        CURRENT CONDITIONS
+      </div>
       {isLoading ? (
         <LoadingSkeleton variant="metrics" count={4} />
       ) : (
