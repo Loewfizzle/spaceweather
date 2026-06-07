@@ -2,42 +2,21 @@
 
 import { useState } from "react";
 import { Share2, Check, AlertCircle } from "lucide-react";
-import type { CityAuroraProb } from "../lib/aurora/outlook";
+
+const SHARE_URL = "https://space.loewfizzle.com";
 
 interface ShareButtonProps {
-  status: string;
-  kp: number | null;
-  cityProbs?: CityAuroraProb[];
   accentColor?: string;
-  userLocationLabel?: string | null;
 }
 
-export function ShareButton({ status, kp, cityProbs = [], accentColor = "#38bdf8", userLocationLabel }: ShareButtonProps) {
+export function ShareButton({ accentColor = "#38bdf8" }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
 
   async function handleShare() {
-    const kpText = kp != null ? ` (Kp ${kp.toFixed(1)})` : "";
-    const place = userLocationLabel ?? "the northern US";
-    const cityLine = cityProbs
-      .slice(0, 3)
-      .map((c) => `${c.name} ${c.state}: ${c.prob > 0 ? `${c.prob}%` : "<1%"}`)
-      .join(" · ");
-    const body = [
-      `Aurora forecast for ${place} tonight: ${status}${kpText}`,
-      cityLine,
-      "space.loewfizzle.com",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({
-          title: "AuroraWatch",
-          text: body,
-          url: "https://space.loewfizzle.com",
-        });
+        await navigator.share({ url: SHARE_URL });
       } catch {
         // user cancelled — no-op
       }
@@ -45,9 +24,8 @@ export function ShareButton({ status, kp, cityProbs = [], accentColor = "#38bdf8
     }
 
     // Desktop: try modern clipboard API first
-    const fullText = body + "\nhttps://space.loewfizzle.com";
     try {
-      await navigator.clipboard.writeText(fullText);
+      await navigator.clipboard.writeText(SHARE_URL);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       return;
@@ -56,7 +34,7 @@ export function ShareButton({ status, kp, cityProbs = [], accentColor = "#38bdf8
     // Legacy fallback for private browsing / HTTP origins that block the async API
     try {
       const el = document.createElement("textarea");
-      el.value = fullText;
+      el.value = SHARE_URL;
       el.setAttribute("readonly", "");
       el.style.cssText = "position:absolute;left:-9999px";
       document.body.appendChild(el);

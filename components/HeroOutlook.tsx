@@ -240,13 +240,7 @@ export function HeroOutlook({
             {/* Right (desktop) / Row 2 (mobile): Share */}
             {!showPicker && (
               <div className="pt-2 sm:pt-0">
-                <ShareButton
-                  status={outlook.status}
-                  kp={kp ?? null}
-                  cityProbs={outlook.cityProbs ?? []}
-                  accentColor={outlook.accentColor}
-                  userLocationLabel={userLocationLabel}
-                />
+                <ShareButton accentColor={outlook.accentColor} />
               </div>
             )}
           </div>
