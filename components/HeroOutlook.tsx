@@ -208,20 +208,23 @@ export function HeroOutlook({
                 /* No location — GPS button and/or manual entry */
                 <div className="flex items-center gap-3">
                   {onRequestLocation && (
-                    <button
-                      onClick={onRequestLocation}
-                      disabled={isLocating}
-                      style={{ color: outlook.accentColor }}
-                      className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
-                      title="Get aurora probability for your current location"
-                    >
-                      {isLocating ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Navigation className="h-3.5 w-3.5" />
-                      )}
-                      {isLocating ? "Locating…" : locationTimedOut ? "Try again" : "Use my location"}
-                    </button>
+                    <>
+                      <button
+                        onClick={onRequestLocation}
+                        disabled={isLocating}
+                        style={{ color: outlook.accentColor }}
+                        className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
+                        title="Get aurora probability for your current location"
+                      >
+                        {isLocating ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Navigation className="h-3.5 w-3.5" />
+                        )}
+                        {isLocating ? "Locating…" : locationTimedOut ? "Try again" : "Use my location"}
+                      </button>
+                      <span className="text-[#334155] text-xs shrink-0">·</span>
+                    </>
                   )}
                   <button
                     onClick={() => setShowPicker(true)}
