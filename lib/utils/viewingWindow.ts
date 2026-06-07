@@ -19,8 +19,8 @@ function etOffsetHours(date: Date): number {
   return diff > 12 ? diff - 24 : diff; // -4 or -5
 }
 
-// Return true if `date` falls within the Michigan aurora viewing window (8 pm–6 am ET).
-function inMichiganAuroraWindow(date: Date): boolean {
+// Return true if `date` falls within the northern US aurora viewing window (8 pm–6 am ET).
+function inAuroraViewingWindow(date: Date): boolean {
   const offset = etOffsetHours(date);
   const etHour = ((date.getUTCHours() + offset) % 24 + 24) % 24;
   return etHour >= 20 || etHour < 6;
@@ -36,7 +36,7 @@ export interface ViewingWindowData {
 
 /**
  * From the Kp history array, find the peak Kp that occurred in last night's
- * Michigan darkness window (8 pm–6 am ET).
+ * northern US darkness window (8 pm–6 am ET).
  *
  * The window is bounded to exactly that 10-hour period so that a multi-day
  * storm can't make a peak from two nights ago appear as "last night."
@@ -74,7 +74,7 @@ export function computeLastNightPeak(
 }
 
 /**
- * From a 3-day Kp forecast array, find tonight's best aurora viewing window in Michigan.
+ * From a 3-day Kp forecast array, find tonight's best aurora viewing window for northern US viewers.
  * Returns the start/end of the contiguous "high Kp" block and the peak value within it.
  * Returns hasData=false when no forecast entries fall in tonight's darkness window.
  */
@@ -85,7 +85,7 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
     .filter((e) => {
       if (!e.time_tag) return false;
       const t = new Date(e.time_tag);
-      return t > now && inMichiganAuroraWindow(t);
+      return t > now && inAuroraViewingWindow(t);
     })
     .map((e) => ({ time: new Date(e.time_tag!), kp: e.kp ?? 0 }))
     .sort((a, b) => a.time.getTime() - b.time.getTime());

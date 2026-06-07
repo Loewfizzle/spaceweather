@@ -50,7 +50,7 @@ export function DashboardClient() {
     solarWindSpeed,
     solarWindDensity,
     bz,
-    michiganGuidance,
+    guidance,
     riskLevel,
     isLoading,
     error,
@@ -186,7 +186,7 @@ export function DashboardClient() {
         )}
       >
         <Suspense fallback={<KpOutlookSkeleton />}>
-          <KpForecast michiganGuidance={michiganGuidance} />
+          <KpForecast guidance={guidance} />
         </Suspense>
       </ErrorBoundary>
 

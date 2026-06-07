@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
-  getMichiganRiskLevel,
-  getMichiganGuidance,
+  getAuroraRiskLevel,
+  getAuroraGuidance,
   getTonightOutlook,
   currentSunspotNumber,
   getNextMeteorShower,
@@ -29,47 +29,47 @@ import {
 import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse, MeteorShower } from '../../lib/api/schemas'
 
 // ============================================
-// getMichiganRiskLevel
+// getAuroraRiskLevel
 // ============================================
-describe('getMichiganRiskLevel', () => {
+describe('getAuroraRiskLevel', () => {
   it('returns Quiet when kp is null', () => {
-    expect(getMichiganRiskLevel(null, 10, -3)).toBe('Quiet')
+    expect(getAuroraRiskLevel(null, 10, -3)).toBe('Quiet')
   })
 
   it('returns High for strong conditions (kp >= 5 or high prob or strong negative Bz)', () => {
-    expect(getMichiganRiskLevel(5, 5, -3)).toBe('High')
-    expect(getMichiganRiskLevel(4, 30, -3)).toBe('High')
-    expect(getMichiganRiskLevel(3, 5, -9)).toBe('High')
+    expect(getAuroraRiskLevel(5, 5, -3)).toBe('High')
+    expect(getAuroraRiskLevel(4, 30, -3)).toBe('High')
+    expect(getAuroraRiskLevel(3, 5, -9)).toBe('High')
   })
 
   it('returns Moderate for medium conditions', () => {
-    expect(getMichiganRiskLevel(4, 5, -3)).toBe('Moderate')
-    expect(getMichiganRiskLevel(3, 20, -3)).toBe('Moderate')
-    expect(getMichiganRiskLevel(3, 5, -6)).toBe('Moderate')
+    expect(getAuroraRiskLevel(4, 5, -3)).toBe('Moderate')
+    expect(getAuroraRiskLevel(3, 20, -3)).toBe('Moderate')
+    expect(getAuroraRiskLevel(3, 5, -6)).toBe('Moderate')
   })
 
   it('returns Quiet for weak conditions', () => {
-    expect(getMichiganRiskLevel(2, 5, -2)).toBe('Quiet')
-    expect(getMichiganRiskLevel(3, 5, -3)).toBe('Quiet')
+    expect(getAuroraRiskLevel(2, 5, -2)).toBe('Quiet')
+    expect(getAuroraRiskLevel(3, 5, -3)).toBe('Quiet')
   })
 
   it('returns Moderate when kp >= 3 and solar wind speed > 600 km/s', () => {
-    expect(getMichiganRiskLevel(3, 5, -3, 650)).toBe('Moderate')
-    expect(getMichiganRiskLevel(3, 5, -3, 601)).toBe('Moderate')
+    expect(getAuroraRiskLevel(3, 5, -3, 650)).toBe('Moderate')
+    expect(getAuroraRiskLevel(3, 5, -3, 601)).toBe('Moderate')
   })
 
   it('returns High when kp >= 4 and solar wind speed > 600 km/s', () => {
-    expect(getMichiganRiskLevel(4, 5, -3, 650)).toBe('High')
+    expect(getAuroraRiskLevel(4, 5, -3, 650)).toBe('High')
   })
 
   it('does not elevate risk for speed <= 600 km/s', () => {
-    expect(getMichiganRiskLevel(3, 5, -3, 600)).toBe('Quiet')
-    expect(getMichiganRiskLevel(3, 5, -3, 500)).toBe('Quiet')
+    expect(getAuroraRiskLevel(3, 5, -3, 600)).toBe('Quiet')
+    expect(getAuroraRiskLevel(3, 5, -3, 500)).toBe('Quiet')
   })
 
   it('returns Quiet when solarWindSpeed is null (no elevation)', () => {
-    expect(getMichiganRiskLevel(3, 5, -3, null)).toBe('Quiet')
-    expect(getMichiganRiskLevel(3, 5, -3, undefined)).toBe('Quiet')
+    expect(getAuroraRiskLevel(3, 5, -3, null)).toBe('Quiet')
+    expect(getAuroraRiskLevel(3, 5, -3, undefined)).toBe('Quiet')
   })
 })
 
@@ -319,63 +319,63 @@ describe('getAuroraColor', () => {
 })
 
 // ============================================
-// getMichiganGuidance
+// getAuroraGuidance
 // ============================================
-describe('getMichiganGuidance', () => {
+describe('getAuroraGuidance', () => {
   it('returns loading text when kp is null', () => {
-    expect(getMichiganGuidance(null, null, null)).toBe('Data loading...')
+    expect(getAuroraGuidance(null, null, null)).toBe('Data loading...')
   })
 
   it('returns high-confidence text for kp >= 7', () => {
-    const result = getMichiganGuidance(7, 10, -3)
+    const result = getAuroraGuidance(7, 10, -3)
     expect(result).toContain('northern United States')
   })
 
   it('returns northern-tier text for kp 5-6', () => {
-    const result = getMichiganGuidance(5, 10, -3)
+    const result = getAuroraGuidance(5, 10, -3)
     expect(result).toContain('northern-tier')
     expect(result).toContain('Great Lakes')
   })
 
   it('appends Bz boost note when bz <= -5', () => {
-    const result = getMichiganGuidance(3, 5, -6)
+    const result = getAuroraGuidance(3, 5, -6)
     expect(result).toContain('southward Bz')
   })
 
   it('appends OVATION note when maxProb >= 20 and bz not favorable', () => {
-    const result = getMichiganGuidance(3, 25, -2)
+    const result = getAuroraGuidance(3, 25, -2)
     expect(result).toContain('probabilities across North America')
   })
 
   it('Bz note takes priority over OVATION note', () => {
-    const result = getMichiganGuidance(3, 25, -8)
+    const result = getAuroraGuidance(3, 25, -8)
     expect(result).toContain('southward Bz')
     expect(result).not.toContain('probabilities across North America')
   })
 
   it('elevates to northern-tier text when kp >= 3 and speed > 600', () => {
-    const result = getMichiganGuidance(3, 5, -2, 650)
+    const result = getAuroraGuidance(3, 5, -2, 650)
     expect(result).toContain('northern-tier')
   })
 
   it('appends solar wind note when speed > 600 and Bz not favorable', () => {
-    const result = getMichiganGuidance(2, 5, -2, 650)
+    const result = getAuroraGuidance(2, 5, -2, 650)
     expect(result).toContain('solar wind speed')
   })
 
   it('Bz note takes priority over solar wind note', () => {
-    const result = getMichiganGuidance(2, 5, -6, 650)
+    const result = getAuroraGuidance(2, 5, -6, 650)
     expect(result).toContain('southward Bz')
     expect(result).not.toContain('solar wind speed')
   })
 
   it('does not append solar wind note when speed <= 600', () => {
-    const result = getMichiganGuidance(2, 5, -2, 600)
+    const result = getAuroraGuidance(2, 5, -2, 600)
     expect(result).not.toContain('solar wind speed')
   })
 
   it('does not append solar wind note when solarWindSpeed is null', () => {
-    const result = getMichiganGuidance(2, 5, -2, null)
+    const result = getAuroraGuidance(2, 5, -2, null)
     expect(result).not.toContain('solar wind speed')
   })
 })
@@ -1122,29 +1122,29 @@ describe('getTonightOutlook — additional tier paths', () => {
 })
 
 // ============================================
-// getMichiganRiskLevel — boundary conditions
+// getAuroraRiskLevel — boundary conditions
 // ============================================
 describe('getMichiganRiskLevel — boundary conditions', () => {
   it('returns High when prob >= 25 regardless of kp', () => {
-    expect(getMichiganRiskLevel(3, 25, -3)).toBe('High')
-    expect(getMichiganRiskLevel(2, 30, -2)).toBe('High')
+    expect(getAuroraRiskLevel(3, 25, -3)).toBe('High')
+    expect(getAuroraRiskLevel(2, 30, -2)).toBe('High')
   })
 
   it('returns High when bz is exactly -8 (b <= -8 boundary)', () => {
-    expect(getMichiganRiskLevel(3, 5, -8)).toBe('High')
+    expect(getAuroraRiskLevel(3, 5, -8)).toBe('High')
   })
 
   it('returns Moderate when bz is exactly -5 (b <= -5, not <= -8)', () => {
-    expect(getMichiganRiskLevel(3, 5, -5)).toBe('Moderate')
+    expect(getAuroraRiskLevel(3, 5, -5)).toBe('Moderate')
   })
 
   it('returns Moderate when prob is exactly 15 (>= 15 threshold)', () => {
-    expect(getMichiganRiskLevel(2, 15, -2)).toBe('Moderate')
+    expect(getAuroraRiskLevel(2, 15, -2)).toBe('Moderate')
   })
 
   it('returns Quiet when bz and prob are null and kp < 4', () => {
-    expect(getMichiganRiskLevel(3, null, null)).toBe('Quiet')
-    expect(getMichiganRiskLevel(2, null, null)).toBe('Quiet')
+    expect(getAuroraRiskLevel(3, null, null)).toBe('Quiet')
+    expect(getAuroraRiskLevel(2, null, null)).toBe('Quiet')
   })
 })
 

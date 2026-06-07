@@ -30,7 +30,7 @@ function etOffsetHours(date: Date): number {
   return diff > 12 ? diff - 24 : diff;
 }
 
-function isTonightMichigan(utcDate: Date): boolean {
+function isTonightAuroraWindow(utcDate: Date): boolean {
   const offset = etOffsetHours(utcDate);
   const etHour = ((utcDate.getUTCHours() + offset) % 24 + 24) % 24;
   return etHour >= 20 || etHour < 6;
@@ -208,7 +208,7 @@ export function buildChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry
 
   const historicalLabels = recent.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
   const historicalValues = recent.map((entry) => entry.Kp ?? 0);
-  const historicalTonightMask = recent.map((e) => isTonightMichigan(new Date(e.time_tag!)));
+  const historicalTonightMask = recent.map((e) => isTonightAuroraWindow(new Date(e.time_tag!)));
 
   const lastHistoricalTime =
     recent.length > 0 ? new Date(recent[recent.length - 1].time_tag!).getTime() : 0;
@@ -224,7 +224,7 @@ export function buildChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry
 
   const forecastLabels = futureForecast.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
   const forecastValues = futureForecast.map((e) => e.kp ?? 0);
-  const forecastTonightMask = futureForecast.map((e) => isTonightMichigan(new Date(e.time_tag!)));
+  const forecastTonightMask = futureForecast.map((e) => isTonightAuroraWindow(new Date(e.time_tag!)));
 
   const fullMask = [...historicalTonightMask, ...forecastTonightMask];
   const hasTonight = fullMask.some((v) => v);

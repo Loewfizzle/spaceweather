@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     title: "AuroraWatch | Real-time Aurora & Space Weather",
     description: "Premium real-time aurora visibility and space weather dashboard for the United States, with particularly strong coverage for the Great Lakes region and northern states. Live NOAA SWPC data.",
   },
-  keywords: ["aurora", "space weather", "Michigan", "Great Lakes", "NOAA", "Kp index", "fireball", "meteor shower"],
+  keywords: ["aurora", "space weather", "northern lights", "Great Lakes", "NOAA", "Kp index", "fireball", "meteor shower"],
   authors: [{ name: "AuroraWatch" }],
   alternates: {
     canonical: "/",

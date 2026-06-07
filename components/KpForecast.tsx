@@ -29,7 +29,7 @@ ChartJS.register(
 );
 
 interface KpForecastProps {
-  michiganGuidance: string;
+  guidance: string;
 }
 
 interface StormDay {
@@ -77,7 +77,7 @@ function useStormDays(kpForecast: KpForecastEntry[]): StormDay[] {
   }, [kpForecast]);
 }
 
-export function KpForecast({ michiganGuidance }: KpForecastProps) {
+export function KpForecast({ guidance }: KpForecastProps) {
   const kpQuery = useKpData();
   const forecastQuery = useKpForecast();
 
@@ -126,7 +126,7 @@ export function KpForecast({ michiganGuidance }: KpForecastProps) {
         <div className="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
           <div className="text-[#94a3b8]">
             <span className="font-medium text-white">Outlook:</span>{" "}
-            {michiganGuidance}
+            {guidance}
           </div>
           <div className="text-[#94a3b8]">
             <span className="font-medium text-white">Trend:</span>{" "}

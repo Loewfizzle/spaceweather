@@ -1,17 +1,17 @@
 # AuroraWatch
 
-Premium, calm, mobile-first real-time aurora and space weather dashboard focused on the United States, with extra attention to Michigan and the Great Lakes.
+Premium, calm, mobile-first real-time aurora and space weather dashboard for the United States and northern North America.
 
 Live data from NOAA SWPC + NASA (proxied). Clean, professional, high-quality experience — no emojis, restrained aurora-inspired accents, excellent typography and spacing.
 
 ## Current Features
 
-- Sticky header with live color-coded Kp pill + Michigan risk badge + global freshness timestamp + Refresh
-- Prominent hero with "Tonight’s Michigan Outlook" card (dynamic status, reasons, drivers from Kp + Bz + OVATION + solar)
+- Sticky header with live color-coded Kp pill + aurora risk badge + global freshness timestamp + Refresh
+- Prominent hero with "Tonight’s Outlook" card (dynamic status, reasons, drivers from Kp + Bz + OVATION + solar)
 - Current Conditions metrics row (solar wind speed/density, Bz, Kp, max OVATION prob NA)
-- **Interactive Aurora Map** (Leaflet + react-leaflet + leaflet.heat): OVATION model, North America focus, probability filter slider, one-click recenters (Great Lakes, Michigan, US, NA), hybrid heatmap + markers
-- Kp Outlook + Michigan Forecast (Chart.js timeline + trend + plain-English guidance)
-- Solar Activity (latest flares, recent CMEs, sunspot number, coronal hole notes — Michigan-relevant)
+- **Interactive Aurora Map** (Leaflet + react-leaflet + leaflet.heat): OVATION model, North America focus, probability filter slider, one-click recenters (Great Lakes, US, NA), hybrid heatmap + markers
+- Kp Outlook + Forecast (Chart.js timeline + trend + plain-English guidance)
+- Solar Activity (latest flares, recent CMEs, sunspot number, coronal hole notes)
 - **Meteor Activity** (new):
   - Next Meteor Shower card with peak date/range, description, activity level, and "Add to Calendar" (Google Calendar link)
   - Fireball Tracker: recent NASA JPL fireballs (date/time UTC, energy kt, location, altitude) — proxied for CORS
@@ -56,7 +56,7 @@ npm run test:coverage
 
 Key tests live in `tests/lib/noaa.test.ts` and cover the core business logic:
 - `getTonightOutlook` (most critical)
-- `getMichiganRiskLevel`
+- `getAuroraRiskLevel`
 - `currentSunspotNumber`
 - Meteor helpers
 - OVATION utilities, color scales, CME parsing, etc.
@@ -91,7 +91,7 @@ lib/
     useGlobalFreshness.ts  # Consolidated last-updated timestamp
     useNotifications.ts    # Alerts permission, localStorage, throttle, auto-alert effect
   noaa.ts                  # Pure business logic + derived data (NO fetching):
-                           #   - getTonightOutlook, getMichiganRiskLevel
+                           #   - getTonightOutlook, getAuroraRiskLevel, getAuroraGuidance
                            #   - parseRecentCmes, currentSunspotNumber
                            #   - latest(), filterOvationCoordinates, maxOvationNorthAmerica
                            #   - getAuroraColor / getAuroraMarkerRadius
@@ -144,5 +144,5 @@ Built with live public data from the NOAA Space Weather Prediction Center and NA
 
 ---
 
-AuroraWatch — Real-time aurora visibility and space weather for the Great Lakes and United States. Calm. Premium. Focused.
+AuroraWatch — Real-time aurora visibility and space weather for the United States and northern North America. Calm. Premium. Focused.
 

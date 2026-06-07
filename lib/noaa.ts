@@ -6,7 +6,7 @@
 // - Time-series helpers (latest)
 // - OVATION data utilities (filtering, max prob, color/radius scales for viz)
 // - Solar activity parsing (CMEs, sunspots)
-// - Michigan outlook computation (getTonightOutlook + risk/guidance helpers)
+// - Aurora outlook computation (getTonightOutlook + risk/guidance helpers)
 // - Meteor shower calendar helpers
 // - Fireball display formatters
 //
@@ -34,9 +34,9 @@ export function latest<T extends { time_tag?: string | null }>(arr: T[]): T | nu
 
 /**
  * Plain-English aurora guidance for the northern US, incorporating Kp + OVATION prob + Bz.
- * Pure function; lives here alongside getMichiganRiskLevel and getTonightOutlook.
+ * Pure function; lives here alongside getAuroraRiskLevel and getTonightOutlook.
  */
-export function getMichiganGuidance(
+export function getAuroraGuidance(
   kp: number | null,
   maxProb: number | null,
   bz: number | null,
@@ -73,7 +73,7 @@ export function getMichiganGuidance(
 // Regional risk level for visibility (used by alerts UI + header badge).
 // Pure function; derived from Kp + OVATION prob + Bz. Lives here with other
 // business logic rather than inside a hook file.
-export function getMichiganRiskLevel(
+export function getAuroraRiskLevel(
   kp: number | null,
   maxAuroraProbNA: number | null,
   bz: number | null,
@@ -326,7 +326,7 @@ export interface TonightOutlook {
 }
 
 /**
- * Compute a realistic, Michigan-focused outlook for tonight based on current conditions.
+ * Compute a realistic outlook for tonight based on current conditions.
  * Prioritizes Kp + Bz + OVATION prob, with solar activity as supporting context.
  */
 export function getTonightOutlook(

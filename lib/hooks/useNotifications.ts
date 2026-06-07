@@ -172,7 +172,7 @@ export function useNotifications({
     saveSensitivity(val);
   };
 
-  // Auto-trigger browser notification when conditions look good for Michigan.
+  // Auto-trigger browser notification when conditions meet the alert threshold.
   // Normal cadence: 30-min throttle. Surge (Kp jumps ≥2 into alert territory): 5-min throttle.
   useEffect(() => {
     // Always record prevKp before early returns so the ref tracks the true last-seen value.

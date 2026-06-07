@@ -28,8 +28,8 @@ import {
   parseRecentCmes,
   currentSunspotNumber,
   getTonightOutlook,
-  getMichiganRiskLevel,
-  getMichiganGuidance,
+  getAuroraRiskLevel,
+  getAuroraGuidance,
   getNextMeteorShower,
   formatMeteorPeak,
   createGoogleCalendarLink,
@@ -135,7 +135,7 @@ export function useSolarWindData() {
   };
 }
 
-// Combined hook for current conditions + Michigan guidance
+// Combined hook for current conditions + aurora guidance
 export function useCurrentConditions() {
   const kpQuery = useKpData();
   const ovationQuery = useOvationData();
@@ -193,7 +193,7 @@ export function useCurrentConditions() {
     [ovationData, latestKp?.Kp, solarWind.current.bz]
   );
 
-  // Peak Kp within tonight's Michigan aurora viewing window (8pm–6am ET).
+  // Peak Kp within tonight's northern US aurora viewing window (8pm–6am ET).
   // computeViewingWindow handles DST-aware ET offset and the > now filter internally.
   const forecastPeakKp = useMemo(() => {
     if (!forecastQuery.data || forecastQuery.data.length === 0) return null;
@@ -211,8 +211,8 @@ export function useCurrentConditions() {
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
-    michiganGuidance: getMichiganGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed, forecastPeakKp),
-    riskLevel: getMichiganRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
+    guidance: getAuroraGuidance(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed, forecastPeakKp),
+    riskLevel: getAuroraRiskLevel(latestKp?.Kp ?? null, maxProbNA, solarWind.current.bz, solarWind.current.speed),
     isLoading:
       kpQuery.isLoading ||
       ovationQuery.isLoading ||
@@ -369,7 +369,7 @@ export {
   createGoogleCalendarLink,
   getTonightOutlook,
   getLocationAuroraProb,
-  getMichiganRiskLevel,
+  getAuroraRiskLevel,
   formatFireballDate,
   formatFireballLocation,
   formatFireballEnergy,
