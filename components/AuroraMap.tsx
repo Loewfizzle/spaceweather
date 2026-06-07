@@ -6,7 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Home } from "lucide-react";
 import { useOvationData } from "../lib/use-noaa-data";
-import { filterOvationCoordinates } from "../lib/noaa";
+import { filterOvationCoordinates, type OvationPoint } from "../lib/noaa";
 
 interface AuroraMapProps {
   minProb?: number;
@@ -16,6 +16,9 @@ interface AuroraMapProps {
   userLon?: number | null;
   /** Pre-computed aurora probability at the user's location (0–100, or null). */
   userProb?: number | null;
+  /** Pre-filtered NA OvationPoint[] from useCurrentConditions. When provided,
+   *  skips the 65k-entry filterOvationCoordinates scan and applies minProb in O(k). */
+  ovationPoints?: OvationPoint[];
 }
 
 // ─── Aurora overlay ───────────────────────────────────────────────────────────
@@ -283,6 +286,7 @@ export default function AuroraMap({
   userLat,
   userLon,
   userProb,
+  ovationPoints: ovationPointsProp,
 }: AuroraMapProps) {
   const { data: ovationData, isLoading, error, refetch } = useOvationData();
   const [tilesFailed, setTilesFailed] = useState(false);
@@ -314,12 +318,16 @@ export default function AuroraMap({
   });
 
   const points = useMemo(() => {
-    const raw = filterOvationCoordinates(ovationData?.coordinates, minProb);
-    return raw.map((p) => ({
+    // If the parent passes pre-filtered NA points, skip the 65k-entry scan entirely.
+    // minProb is still applied, but over ~5k points instead of 65k raw entries.
+    const source = ovationPointsProp
+      ? ovationPointsProp.filter((p) => p.prob >= minProb)
+      : filterOvationCoordinates(ovationData?.coordinates, minProb);
+    return source.map((p) => ({
       position: [p.lat, p.lon] as [number, number],
       prob: Math.round(p.prob),
     }));
-  }, [ovationData, minProb]);
+  }, [ovationPointsProp, ovationData, minProb]);
 
   // Secondary safety guard: drop any point whose coordinates would confuse Leaflet's
   // canvas renderer (e.g. stray NaN/Infinity, lat/lon swapped, dateline edge cases).

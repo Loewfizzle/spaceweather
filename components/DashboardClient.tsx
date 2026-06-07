@@ -141,7 +141,6 @@ function DashboardInner() {
           kp={kp}
           maxAuroraProbNA={maxAuroraProbNA}
           isLoading={isLoading}
-          latestGlobalUpdate={latestGlobalUpdate}
           kpTime={kpTime}
           solarWindError={solarWindError}
           ovationProcessed={ovationProcessed}
@@ -156,7 +155,7 @@ function DashboardInner() {
         )}
       >
         <Suspense fallback={<MapSectionSkeleton />}>
-          <AuroraMapSection userProb={userLocationProb} />
+          <AuroraMapSection userProb={userLocationProb} ovationPoints={ovationPoints} />
         </Suspense>
       </ErrorBoundary>
 

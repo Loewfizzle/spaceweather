@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { useOvationData } from "../lib/use-noaa-data";
 import { useUserLocationContext } from "../lib/context/UserLocationContext";
+import type { OvationPoint } from "../lib/noaa";
 
 const AuroraMap = dynamic(() => import("./AuroraMap"), {
   ssr: false,
@@ -14,6 +15,8 @@ const AuroraMap = dynamic(() => import("./AuroraMap"), {
 interface AuroraMapSectionProps {
   /** Pre-computed aurora probability at the user's location (0–100, or null). */
   userProb?: number | null;
+  /** Pre-filtered NA OvationPoint[] from useCurrentConditions — eliminates second 65k-scan. */
+  ovationPoints?: OvationPoint[];
 }
 
 function formatObsTime(iso?: string): string | null {
@@ -28,7 +31,7 @@ function formatObsTime(iso?: string): string | null {
   }
 }
 
-export function AuroraMapSection({ userProb }: AuroraMapSectionProps) {
+export function AuroraMapSection({ userProb, ovationPoints }: AuroraMapSectionProps) {
   const { userLat, userLon } = useUserLocationContext();
   // Lazy initializer: read persisted minProb once on mount.
   // Falls back to default (3%) if localStorage is unavailable or the saved
@@ -115,6 +118,7 @@ export function AuroraMapSection({ userProb }: AuroraMapSectionProps) {
         userLat={userLat}
         userLon={userLon}
         userProb={userProb}
+        ovationPoints={ovationPoints}
       />
     </div>
   );

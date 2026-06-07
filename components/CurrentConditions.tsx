@@ -11,7 +11,6 @@ interface CurrentConditionsProps {
   kp: number | null;
   maxAuroraProbNA: number | null;
   isLoading: boolean;
-  latestGlobalUpdate: Date | null;
   kpTime?: string | null;
   solarWindError?: unknown;
   ovationProcessed?: boolean;
@@ -24,7 +23,6 @@ export function CurrentConditions({
   kp,
   maxAuroraProbNA,
   isLoading,
-  latestGlobalUpdate,
   kpTime,
   solarWindError,
   ovationProcessed,
@@ -34,9 +32,7 @@ export function CurrentConditions({
       <div className="section-title flex items-baseline justify-between">
         <span>CURRENT CONDITIONS</span>
         <span className="text-[10px] font-normal text-[#64748b] normal-case tracking-normal">
-          {latestGlobalUpdate
-            ? `updated ${formatDistanceToNow(latestGlobalUpdate, { addSuffix: true })}`
-            : kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : 'syncing…'} • auto
+          {kpTime ? `updated ${formatDistanceToNow(new Date(kpTime), { addSuffix: true })}` : 'syncing…'} • auto
         </span>
       </div>
       {isLoading ? (

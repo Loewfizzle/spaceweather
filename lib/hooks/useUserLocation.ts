@@ -70,6 +70,13 @@ export function useUserLocation() {
       (pos) => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
+        // Reject (0,0) — Android bug that fires success before a real fix is acquired —
+        // and any out-of-range values that would silently corrupt probability calculations.
+        if (!isFinite(lat) || !isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180 || (lat === 0 && lon === 0)) {
+          clear();
+          setState({ status: "gps-timeout" });
+          return;
+        }
         const label = getNearestCityName(lat, lon);
         setState({ status: "set", lat, lon, label, source: "gps" });
         persist({ lat, lon, label, source: "gps" });

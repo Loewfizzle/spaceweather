@@ -240,6 +240,7 @@ export function HeroOutlook({
                 kp={kp ?? null}
                 cityProbs={outlook.cityProbs ?? []}
                 accentColor={outlook.accentColor}
+                userLocationLabel={userLocationLabel}
               />
             )}
           </div>
