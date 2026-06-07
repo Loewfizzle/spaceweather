@@ -46,12 +46,15 @@ export function HeroOutlook({
       style={{ borderLeftColor: outlook.accentColor }}
     >
       <div>
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-1">
           <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
             CURRENT CONDITIONS
           </span>
           <span className="text-[9px] font-semibold text-emerald-500 tracking-wide">LIVE</span>
         </div>
+        <p className="text-[11px] text-[#475569] mb-3">
+          Live solar wind readings — tonight&apos;s forecast is shown below
+        </p>
 
         {outlook.status === "Loading" ? (
           <div className="mb-3">

@@ -72,12 +72,15 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
       <div className="card p-5 max-w-3xl">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-1">
           <Clock className="h-3 w-3 text-[#64748b]" />
           <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
             TONIGHT'S FORECAST
           </span>
         </div>
+        <p className="text-[11px] text-[#475569] mb-3">
+          36-hr NOAA Kp forecast — may differ from current conditions above
+        </p>
 
         {tonight && (
           <div className="flex items-start justify-between gap-4">
@@ -105,12 +108,9 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
               {/* When location is not shared, surface a gentle nudge */}
               {!locationGranted && (
                 <div className="mt-2 text-[11px] text-[#334155]">
-                  More accurate with your location
+                  Share location for personalised sky conditions
                 </div>
               )}
-              <div className="mt-2 text-[10px] text-[#334155]">
-                Based on NOAA 36-hr Kp forecast
-              </div>
             </div>
 
             <div className="text-right flex-shrink-0">
