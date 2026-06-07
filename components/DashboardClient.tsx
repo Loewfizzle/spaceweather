@@ -103,7 +103,7 @@ function DashboardInner() {
   return (
     <>
       {/* Hero — outer div provides padding for both the normal and error paths */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-4">
         <div className="section-title">AURORA OUTLOOK</div>
         <SectionErrorBoundary message="Outlook unavailable — check back shortly." className="">
           <HeroOutlook
