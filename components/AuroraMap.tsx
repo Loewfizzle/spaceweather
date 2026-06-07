@@ -45,9 +45,9 @@ export default function AuroraMap({
     try {
       const raw = localStorage.getItem("aurora-map-state");
       if (raw) {
-        const { lat, lng, zoom } = JSON.parse(raw) as {
-          lat: number; lng: number; zoom: number;
-        };
+        const parsed: unknown = JSON.parse(raw);
+        if (typeof parsed !== 'object' || parsed === null) return defaults;
+        const { lat, lng, zoom } = parsed as { lat: number; lng: number; zoom: number };
         if (
           isFinite(lat) && isFinite(lng) && isFinite(zoom) &&
           lat >= -90 && lat <= 90 &&

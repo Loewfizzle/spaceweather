@@ -66,7 +66,7 @@ export function useUserLocation() {
         const lon = pos.coords.longitude;
         // Reject (0,0) — Android bug that fires success before a real fix is acquired —
         // and any out-of-range values that would silently corrupt probability calculations.
-        if (!isFinite(lat) || !isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180 || (lat === 0 && lon === 0)) {
+        if (!isFinite(lat) || !isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180 || pos.coords.accuracy > 100000) {
           clear();
           setState({ status: "gps-timeout" });
           return;

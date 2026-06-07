@@ -11,7 +11,7 @@ async function fetchKp(): Promise<number | null> {
   try {
     const res = await fetch(
       'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json',
-      { cache: 'no-store' },
+      { cache: 'no-store', signal: AbortSignal.timeout(5000) },
     );
     if (!res.ok) return null;
     const data = await res.json();

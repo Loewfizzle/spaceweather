@@ -102,6 +102,7 @@ export async function fetchKpForecast(): Promise<KpForecastEntry[]> {
     const raw = await fetchJson<unknown>(url);
     const result = z.array(KpForecastEntrySchema).safeParse(raw);
     if (!result.success) {
+      if (process.env.NODE_ENV === 'development') console.warn('[AuroraWatch] KpForecast schema mismatch:', result.error.format?.());
       logDataError('KpForecast parse', result.error, { url }, false, 'kp-forecast');
       return [];
     }
