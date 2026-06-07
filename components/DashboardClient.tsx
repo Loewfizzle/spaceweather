@@ -7,7 +7,7 @@ import {
   useKpForecast,
   getTonightOutlook,
 } from "../lib/use-noaa-data";
-import { getLocationAuroraProb } from "../lib/noaa";
+import { getLocationAuroraProb } from "../lib/aurora/outlook";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
 import { useCloudCover } from "../lib/hooks/useCloudCover";
 import { UserLocationProvider, useUserLocationContext } from "../lib/context/UserLocationContext";

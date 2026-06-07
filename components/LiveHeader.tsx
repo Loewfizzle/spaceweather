@@ -12,7 +12,7 @@
 
 import { Activity, RefreshCw } from "lucide-react";
 import { useCurrentConditions, useSolarActivity } from "../lib/use-noaa-data";
-import { getKpTier } from "../lib/noaa";
+import { getKpTier } from "../lib/aurora/kp";
 import { DataStatus } from "./DataStatus";
 
 export function LiveHeader() {

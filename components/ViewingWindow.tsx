@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Clock } from "lucide-react";
 import { computeViewingWindow, computeLastNightPeak, type ViewingWindowData } from "../lib/utils/viewingWindow";
-import { cloudCoverColor, getKpTier, AURORA_TIERS } from "../lib/noaa";
+import { cloudCoverColor, getKpTier, AURORA_TIERS } from "../lib/aurora/kp";
 import type { KpEntry, KpForecastEntry } from "../lib/api/schemas";
 
 interface ViewingWindowProps {

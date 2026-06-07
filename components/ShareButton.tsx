@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Share2, Check, AlertCircle } from "lucide-react";
-import type { CityAuroraProb } from "../lib/noaa";
+import type { CityAuroraProb } from "../lib/aurora/outlook";
 
 interface ShareButtonProps {
   status: string;

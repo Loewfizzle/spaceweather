@@ -22,29 +22,18 @@ import {
 } from "./api/fetchers";
 
 // Pure business logic and display helpers
-import {
-  latest,
-  maxOvationNorthAmerica,
-  filterOvationCoordinates,
-  parseRecentCmes,
-  currentSunspotNumber,
-  getTonightOutlook,
-  getAuroraRiskLevel,
-  getAuroraGuidance,
-  getNextMeteorShower,
-  formatMeteorPeak,
-  createGoogleCalendarLink,
-  formatFireballDate,
-  formatFireballLocation,
-  formatFireballEnergy,
-  approximateLocation,
-  getCityAuroraProbabilities,
-  getLocationAuroraProb,
-} from "./noaa";
+import { latest } from "./noaa";
+import { maxOvationNorthAmerica, filterOvationCoordinates } from "./aurora/ovation";
+import { parseRecentCmes, currentSunspotNumber } from "./aurora/solar";
+import { getTonightOutlook, getCityAuroraProbabilities, getLocationAuroraProb } from "./aurora/outlook";
+import type { CityAuroraProb, TonightOutlook } from "./aurora/outlook";
+import { getAuroraRiskLevel, getAuroraGuidance } from "./aurora/kp";
+import { getNextMeteorShower, formatMeteorPeak, createGoogleCalendarLink } from "./aurora/meteors";
+import type { MeteorShower } from "./aurora/meteors";
+import { formatFireballDate, formatFireballLocation, formatFireballEnergy } from "./aurora/fireballs";
+import { approximateLocation } from "./aurora/location";
 
 import { computeViewingWindow, type ViewingWindowData } from "./utils/viewingWindow";
-
-import type { MeteorShower, TonightOutlook, CityAuroraProb } from "./noaa";
 
 import type {
   // Types from the Zod schemas (single source of truth for shapes)

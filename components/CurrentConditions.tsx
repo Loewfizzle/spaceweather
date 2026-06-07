@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { Wind, Zap, Activity, Satellite, Info, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { getKpTier, AURORA_TIERS } from "../lib/noaa";
+import { getKpTier, AURORA_TIERS } from "../lib/aurora/kp";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 
 // ── Metric info modal ─────────────────────────────────────────────────────────

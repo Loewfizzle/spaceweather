@@ -6,7 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Home } from "lucide-react";
 import { useOvationData } from "../lib/use-noaa-data";
-import { filterOvationCoordinates, type OvationPoint } from "../lib/noaa";
+import { filterOvationCoordinates, type OvationPoint } from "../lib/aurora/ovation";
 import { OvationCanvasLayer } from "./map/OvationCanvasLayer";
 import { TileErrorDetector } from "./map/TileErrorDetector";
 import { UserLocationMarker } from "./map/UserLocationMarker";

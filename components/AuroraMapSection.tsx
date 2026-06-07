@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { useOvationData } from "../lib/use-noaa-data";
 import { useUserLocationContext } from "../lib/context/UserLocationContext";
-import type { OvationPoint } from "../lib/noaa";
+import type { OvationPoint } from "../lib/aurora/ovation";
 
 const AuroraMap = dynamic(() => import("./AuroraMap"), {
   ssr: false,

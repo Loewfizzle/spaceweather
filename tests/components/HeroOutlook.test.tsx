@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { HeroOutlook } from '../../components/HeroOutlook';
 import type { UserLocationContextValue } from '../../lib/context/UserLocationContext';
-import type { TonightOutlook } from '../../lib/noaa';
+import type { TonightOutlook } from '../../lib/aurora/outlook';
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 

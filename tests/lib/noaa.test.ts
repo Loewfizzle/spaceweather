@@ -1,31 +1,23 @@
 import { describe, it, expect } from 'vitest'
+import { latest } from '../../lib/noaa'
+import { getAuroraRiskLevel, getAuroraGuidance, cloudCoverColor, getKpTier } from '../../lib/aurora/kp'
 import {
-  getAuroraRiskLevel,
-  getAuroraGuidance,
-  getTonightOutlook,
-  currentSunspotNumber,
-  getNextMeteorShower,
-  formatMeteorPeak,
-  latest,
   filterOvationCoordinates,
   maxOvationNorthAmerica,
   getAuroraColor,
   getAuroraMarkerRadius,
-  getKpTier,
   getProbTier,
-  cloudCoverColor,
-  parseRecentCmes,
-  getCityAuroraProbabilities,
-  getLocationAuroraProb,
-  getNearestCityName,
-  formatFireballDate,
-  formatFireballEnergy,
-  formatFireballLocation,
-  approximateLocation,
-  assessEarthImpact,
+} from '../../lib/aurora/ovation'
+import { getTonightOutlook, getCityAuroraProbabilities, getLocationAuroraProb } from '../../lib/aurora/outlook'
+import { parseRecentCmes, assessEarthImpact, currentSunspotNumber } from '../../lib/aurora/solar'
+import { approximateLocation, getNearestCityName } from '../../lib/aurora/location'
+import {
+  getNextMeteorShower,
+  formatMeteorPeak,
   createGoogleCalendarLink,
   MAJOR_METEOR_SHOWERS,
-} from '../../lib/noaa'
+} from '../../lib/aurora/meteors'
+import { formatFireballDate, formatFireballEnergy, formatFireballLocation } from '../../lib/aurora/fireballs'
 import type { Alert, SolarRegion, CmeSummary, XrayFlare, OvationResponse, MeteorShower } from '../../lib/api/schemas'
 
 // ============================================

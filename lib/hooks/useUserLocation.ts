@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { getNearestCityName } from "../noaa";
+import { getNearestCityName } from "../aurora/location";
 
 export type LocationSource = "gps" | "manual";
 

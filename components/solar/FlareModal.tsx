@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { Zap, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { XrayFlare, CmeSummary } from "../../lib/api/schemas";
-import { assessEarthImpact } from "../../lib/noaa";
+import { assessEarthImpact } from "../../lib/aurora/solar";
 
 const GOES_FLUX_URL = "https://services.swpc.noaa.gov/images/goes-xray-flux-1-minute.png";
 
