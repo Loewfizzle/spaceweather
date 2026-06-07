@@ -21,8 +21,7 @@ import { MeteorActivity } from "./MeteorActivity";
 import { DataUnderstanding } from "./DataUnderstanding";
 import { AlertsPanel } from "./AlertsPanel";
 import { ViewingWindow } from "./ViewingWindow";
-import { ErrorBoundary } from "./ErrorBoundary";
-import { ErrorState } from "./ErrorState";
+import { SectionErrorBoundary } from "./SectionErrorBoundary";
 
 const MapSectionSkeleton = () => (
   <LoadingSkeleton variant="map" className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />
@@ -103,9 +102,9 @@ function DashboardInner() {
 
   return (
     <>
-      {/* Hero outlook card — lives below the server-rendered h1 */}
+      {/* Hero — outer div provides padding for both the normal and error paths */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
-        <ErrorBoundary fallback={(reset) => <ErrorState message="Outlook unavailable — check back shortly." onRetry={reset} />}>
+        <SectionErrorBoundary message="Outlook unavailable — check back shortly." className="">
           <HeroOutlook
             outlook={tonightOutlook}
             error={error}
@@ -116,14 +115,13 @@ function DashboardInner() {
             kp={kp}
             latestUpdate={latestGlobalUpdate}
           />
-        </ErrorBoundary>
+        </SectionErrorBoundary>
       </div>
 
-      <ErrorBoundary fallback={(reset) => (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
-          <ErrorState message="Forecast window unavailable." onRetry={reset} />
-        </div>
-      )}>
+      <SectionErrorBoundary
+        message="Forecast window unavailable."
+        className="max-w-7xl mx-auto px-4 sm:px-6 pb-4"
+      >
         <ViewingWindow
           kpForecast={kpForecastQuery.data ?? []}
           kpHistory={kpHistory}
@@ -133,13 +131,12 @@ function DashboardInner() {
           isLoading={isLoading || kpForecastQuery.isLoading}
           viewingWindow={viewingWindow}
         />
-      </ErrorBoundary>
+      </SectionErrorBoundary>
 
-      <ErrorBoundary fallback={(reset) => (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-          <ErrorState message="Current conditions data unavailable." onRetry={reset} />
-        </div>
-      )}>
+      <SectionErrorBoundary
+        message="Current conditions data unavailable."
+        className="max-w-7xl mx-auto px-4 sm:px-6 pb-10"
+      >
         <CurrentConditions
           solarWindSpeed={solarWindSpeed}
           solarWindDensity={solarWindDensity}
@@ -151,27 +148,15 @@ function DashboardInner() {
           solarWindError={solarWindError}
           ovationProcessed={ovationProcessed}
         />
-      </ErrorBoundary>
+      </SectionErrorBoundary>
 
-      <ErrorBoundary
-        fallback={(reset) => (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-            <ErrorState message="Aurora map unavailable." onRetry={reset} />
-          </div>
-        )}
-      >
+      <SectionErrorBoundary message="Aurora map unavailable.">
         <Suspense fallback={<MapSectionSkeleton />}>
           <AuroraMapSection userProb={userLocationProb} ovationPoints={ovationPoints} />
         </Suspense>
-      </ErrorBoundary>
+      </SectionErrorBoundary>
 
-      <ErrorBoundary
-        fallback={(reset) => (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-            <ErrorState message="Kp forecast unavailable." onRetry={reset} />
-          </div>
-        )}
-      >
+      <SectionErrorBoundary message="Kp forecast unavailable.">
         <Suspense fallback={<KpOutlookSkeleton />}>
           <KpForecast
             guidance={guidance}
@@ -185,39 +170,24 @@ function DashboardInner() {
             onRefetchForecast={kpForecastQuery.refetch}
           />
         </Suspense>
-      </ErrorBoundary>
+      </SectionErrorBoundary>
 
-      <ErrorBoundary
-        fallback={(reset) => (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-            <ErrorState message="Solar activity data unavailable." onRetry={reset} />
-          </div>
-        )}
+      <SectionErrorBoundary
+        message="Solar activity data unavailable."
+        className="max-w-7xl mx-auto px-4 sm:px-6 pb-10"
       >
         <Suspense fallback={<SolarActivitySkeleton />}>
           <SolarActivity />
         </Suspense>
-      </ErrorBoundary>
+      </SectionErrorBoundary>
 
-      <ErrorBoundary
-        fallback={(reset) => (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-            <ErrorState message="Meteor activity data unavailable." onRetry={reset} />
-          </div>
-        )}
-      >
+      <SectionErrorBoundary message="Meteor activity data unavailable.">
         <MeteorActivity />
-      </ErrorBoundary>
+      </SectionErrorBoundary>
 
       <DataUnderstanding />
 
-      <ErrorBoundary
-        fallback={(reset) => (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-            <ErrorState message="Alerts unavailable." onRetry={reset} />
-          </div>
-        )}
-      >
+      <SectionErrorBoundary message="Alerts unavailable.">
         <AlertsPanel
           riskLevel={riskLevel}
           kp={kp}
@@ -227,7 +197,7 @@ function DashboardInner() {
           alerts={solarActivity.alerts}
           alertsLoading={solarActivity.isLoading}
         />
-      </ErrorBoundary>
+      </SectionErrorBoundary>
     </>
   );
 }
