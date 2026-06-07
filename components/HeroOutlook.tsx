@@ -55,7 +55,7 @@ export function HeroOutlook({
       <div>
         <div className="mb-1">
           <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
-            CURRENT CONDITIONS
+            CURRENT DATA SUGGESTS
           </span>
         </div>
         <p className="text-[11px] text-[#475569] mb-3">
