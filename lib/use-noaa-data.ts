@@ -156,6 +156,7 @@ export function useCurrentConditions() {
 
   const maxProbNA = useMemo(
     () => (ovationData ? maxOvationNorthAmerica(ovationPoints) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ovationData gates nullability only; exclude to avoid rescanning on every poll tick
     [ovationPoints]
   );
 

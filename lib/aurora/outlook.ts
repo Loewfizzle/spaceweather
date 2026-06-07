@@ -1,0 +1,176 @@
+import type { CmeSummary, XrayFlare } from "../api/schemas";
+import type { OvationPoint } from "./ovation";
+import { AURORA_TIERS } from "./kp";
+
+export interface CityAuroraProb {
+  name: string;
+  state: string;
+  prob: number;
+}
+
+export interface TonightOutlook {
+  status: 'Excellent' | 'Good' | 'Moderate' | 'Low' | 'Quiet' | 'Loading';
+  message: string;
+  reasons: string[];
+  accentColor: string;
+  drivers?: string;
+  cityProbs?: CityAuroraProb[];
+}
+
+const AURORA_WATCH_CITIES = [
+  { name: "Fairbanks",    state: "AK", lat: 64.84, lon: -147.72 },
+  { name: "Seattle",      state: "WA", lat: 47.61, lon: -122.33 },
+  { name: "Duluth",       state: "MN", lat: 46.79, lon: -92.10  },
+  { name: "Marquette",    state: "MI", lat: 46.54, lon: -87.40  },
+  { name: "Burlington",   state: "VT", lat: 44.48, lon: -73.21  },
+  { name: "Presque Isle", state: "ME", lat: 46.68, lon: -68.02  },
+] as const;
+
+// Rough equatorward aurora oval boundary by Kp (Holzworth & Meng 1975, simplified).
+function estimateProbFromKp(kp: number, lat: number): number {
+  const boundary = 72 - kp * 4;
+  const margin = lat - boundary;
+  if (margin <= -15) return 0;
+  const peak = Math.min(90, 30 + kp * 8);
+  if (margin >= 0) return peak;
+  return Math.max(0, Math.round(((margin + 15) / 15) * peak));
+}
+
+// Shared nearest-cell lookup + Kp fallback + Bz boost.
+function resolveProb(
+  lat: number,
+  lon: number,
+  points: OvationPoint[],
+  kp: number | null,
+  bz: number | null
+): number {
+  let prob = 0;
+  if (points.length > 0) {
+    let nearestDist = Infinity;
+    for (const p of points) {
+      const dLat = p.lat - lat;
+      const dLonRaw = p.lon - lon;
+      const dLon = Math.abs(dLonRaw) > 180 ? 360 - Math.abs(dLonRaw) : dLonRaw;
+      const d = dLat ** 2 + dLon ** 2;
+      if (d < nearestDist) { nearestDist = d; prob = p.prob; }
+    }
+  } else if (kp !== null) {
+    prob = estimateProbFromKp(kp, lat);
+  }
+  if (bz !== null && bz <= -5) {
+    prob = Math.min(99, prob + Math.round(Math.min(8, Math.abs(bz + 5) * 1.5)));
+  }
+  return Math.round(Math.max(0, Math.min(99, prob)));
+}
+
+/**
+ * Returns tonight's aurora viewing probability (0–99) for each watch city.
+ * Accepts pre-filtered OvationPoint[] (empty = no OVATION data → Kp fallback).
+ */
+export function getCityAuroraProbabilities(
+  points: OvationPoint[],
+  kp: number | null,
+  bz: number | null
+): CityAuroraProb[] {
+  return AURORA_WATCH_CITIES.map((city) => ({
+    name: city.name,
+    state: city.state,
+    prob: resolveProb(city.lat, city.lon, points, kp, bz),
+  }));
+}
+
+/**
+ * Compute aurora probability for an arbitrary user-provided lat/lon.
+ */
+export function getLocationAuroraProb(
+  lat: number,
+  lon: number,
+  points: OvationPoint[],
+  kp: number | null,
+  bz: number | null
+): number {
+  return resolveProb(lat, lon, points, kp, bz);
+}
+
+/**
+ * Compute a realistic outlook for tonight based on current conditions.
+ */
+export function getTonightOutlook(
+  kp: number | null,
+  bz: number | null,
+  maxAuroraProbNA: number | null,
+  recentCmes: CmeSummary[] = [],
+  latestFlare: XrayFlare | null = null,
+  solarWindSpeed: number | null = null
+): TonightOutlook {
+  if (kp === null) {
+    return {
+      status: 'Loading',
+      message: 'Loading current conditions…',
+      reasons: [],
+      accentColor: '#64748b',
+    };
+  }
+
+  const isFavorableBz   = bz !== null && bz <= -5;
+  const strongFavorableBz = bz !== null && bz <= -10;
+  const highProb        = maxAuroraProbNA !== null && maxAuroraProbNA >= 20;
+  const moderateProb    = maxAuroraProbNA !== null && maxAuroraProbNA >= 10;
+  const highSpeed       = solarWindSpeed !== null && solarWindSpeed > 600;
+  const veryHighSpeed   = solarWindSpeed !== null && solarWindSpeed > 700;
+
+  const hasEarthCme = recentCmes.length > 0 && recentCmes.some(
+    (c) => c.earthImpact?.includes('impact') || /Earth-directed/i.test(c.note || c.direction || '')
+  );
+
+  const significantFlare = latestFlare && (
+    latestFlare.max_class?.startsWith('M') || latestFlare.max_class?.startsWith('X')
+  );
+
+  let status: TonightOutlook['status'];
+  let message: string;
+  let reasons: string[] = [];
+  let accentColor: string;
+
+  if (kp >= 7 || (kp >= 6 && (strongFavorableBz || highProb)) || (kp >= 5 && veryHighSpeed && isFavorableBz)) {
+    status = 'Excellent';
+    message = 'Strong chance across the northern tier, reaching well into the Great Lakes region.';
+    accentColor = AURORA_TIERS.storm.color;
+    if (strongFavorableBz) reasons.push('Strong southward Bz currently boosting chances');
+    if (veryHighSpeed && solarWindSpeed) reasons.push(`Very high solar wind speed (${Math.round(solarWindSpeed)} km/s) amplifying activity`);
+    if (highProb && !veryHighSpeed) reasons.push('Elevated OVATION probabilities across North America');
+  } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || (kp >= 4 && highSpeed) || (kp >= 3 && highSpeed && isFavorableBz) || highProb) {
+    status = 'Good';
+    message = 'Good chance tonight for northern-tier states and the Great Lakes region.';
+    accentColor = AURORA_TIERS.active.color;
+    if (isFavorableBz) reasons.push('Southward Bz currently favorable');
+    if (highSpeed && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) enhancing coupling`);
+    if (highProb && !highSpeed) reasons.push('High aurora probabilities across NA');
+  } else if (kp >= 4 || (kp >= 3 && isFavorableBz) || moderateProb || hasEarthCme || highSpeed) {
+    status = 'Moderate';
+    message = 'Possible across northern states under dark skies.';
+    accentColor = AURORA_TIERS.moderate.color;
+    if (isFavorableBz) reasons.push('Favorable Bz may enhance activity');
+    if (hasEarthCme) reasons.push('Recent Earth-directed CME may increase chances');
+    if (highSpeed && !isFavorableBz && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) — watch for Bz to turn south`);
+  } else if (kp >= 3 || isFavorableBz || significantFlare) {
+    status = 'Low';
+    message = 'Low probability across the northern US.';
+    accentColor = AURORA_TIERS.quiet.color;
+    if (isFavorableBz) reasons.push('Southward Bz provides some opportunity');
+  } else {
+    status = 'Quiet';
+    message = 'Very low chance tonight.';
+    accentColor = '#64748b';
+  }
+
+  if (reasons.length < 2 && kp >= 4) reasons.push(`Current Kp ${kp.toFixed(1)} supports activity`);
+  if (reasons.length < 2 && significantFlare) reasons.push('Recent significant flare may contribute');
+
+  reasons = reasons.slice(0, 2);
+
+  const speedStr = solarWindSpeed !== null ? ` • ${Math.round(solarWindSpeed)} km/s` : '';
+  const drivers = `Kp ${kp.toFixed(1)} • Bz ${bz !== null ? bz.toFixed(1) : '—'} nT${speedStr}`;
+
+  return { status, message, reasons, accentColor, drivers };
+}
