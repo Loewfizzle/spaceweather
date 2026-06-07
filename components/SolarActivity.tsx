@@ -7,6 +7,7 @@ import { useSolarActivity } from "../lib/use-noaa-data";
 import { FlareModal, flareClassInfo } from "./solar/FlareModal";
 import { CmeModal, cmeImpactColor } from "./solar/CmeModal";
 import { SunspotModal, sunspotContext } from "./solar/SunspotModal";
+import { CoronalModal } from "./solar/CoronalModal";
 import { SdoImage, SDO_DATA_URL } from "./solar/SdoImage";
 
 const SDO_SUNSPOT_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg";
@@ -14,7 +15,7 @@ const SDO_CORONAL_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024
 
 export function SolarActivity() {
   const solarActivity = useSolarActivity();
-  const [openModal, setOpenModal] = useState<"flare" | "cme" | "sunspot" | null>(null);
+  const [openModal, setOpenModal] = useState<"flare" | "cme" | "sunspot" | "coronal" | null>(null);
   const closeModal = useCallback(() => setOpenModal(null), []);
   const sunCtx = solarActivity.sunspotNumber !== null ? sunspotContext(solarActivity.sunspotNumber) : null;
 
@@ -212,7 +213,12 @@ export function SolarActivity() {
             <div className="flex items-center gap-2 text-[#64748b] text-xs">
               <TrendingUp className="w-4 h-4" /> CORONAL HOLES
             </div>
-            <span className="text-[10px] text-[#475569]">AIA 193Å · EUV</span>
+            <button
+              onClick={() => setOpenModal("coronal")}
+              className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+            >
+              Details <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           <SdoImage
@@ -222,10 +228,8 @@ export function SolarActivity() {
 
           <div className="px-4 pt-3 pb-2 space-y-2.5">
             <p className="text-[10px] text-[#475569] leading-relaxed">
-              <span className="text-[#64748b] font-medium">AIA 193Å</span> — extreme ultraviolet
-              view. Dark patches are coronal holes where high-speed solar wind escapes into space.
-              When an equatorial hole rotates to face Earth, the fast-moving stream arrives in
-              2–4 days and can enhance aurora — even during otherwise quiet periods.
+              <span className="text-[#64748b] font-medium">AIA 193Å</span> extreme ultraviolet
+              view. Dark patches are coronal holes — tap Details to learn how they affect aurora.
             </p>
             <div className="flex items-center justify-between pb-1">
               <span className="text-[9px] text-[#334155]">Updates every ~15 min</span>
@@ -277,6 +281,9 @@ export function SolarActivity() {
           sunspotNumber={solarActivity.sunspotNumber}
           onClose={closeModal}
         />
+      )}
+      {openModal === "coronal" && (
+        <CoronalModal onClose={closeModal} />
       )}
     </div>
   );
