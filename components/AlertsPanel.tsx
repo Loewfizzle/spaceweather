@@ -3,7 +3,7 @@
 import { Bell } from "lucide-react";
 import { useNotifications, ALERT_THRESHOLDS } from "../lib/hooks/useNotifications";
 import { alertProductLabel, alertFirstLine, formatAlertAge } from "../lib/utils/alertHelpers";
-import { useMemo } from "react";
+import { useIsMobile } from "../lib/hooks/useIsMobile";
 import type { Alert } from "../lib/api/schemas";
 
 interface AlertsPanelProps {
@@ -14,13 +14,6 @@ interface AlertsPanelProps {
   isLoading: boolean;
   alerts?: Alert[];
   alertsLoading?: boolean;
-}
-
-function useIsMobile(): boolean {
-  return useMemo(() => {
-    if (typeof navigator === "undefined") return false;
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  }, []);
 }
 
 export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, alerts, alertsLoading }: AlertsPanelProps) {
@@ -159,6 +152,12 @@ export function AlertsPanel({ riskLevel, kp, maxAuroraProbNA, bz, isLoading, ale
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {isMobile && (
+          <div className="mb-4 text-[11px] text-[#475569]">
+            Browser notifications available on desktop.
           </div>
         )}
 
