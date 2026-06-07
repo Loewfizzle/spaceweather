@@ -3,7 +3,6 @@
 import { MapPin, Loader2, Cloud } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
-import { cloudCoverColor } from "../lib/noaa";
 import { ShareButton } from "./ShareButton";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { InstallPrompt } from "./InstallPrompt";
@@ -96,7 +95,10 @@ export function HeroOutlook({
             {/* User location row — same structure as city rows; differentiated by color + weight only */}
             {userLocationProb != null && (
               <div className="flex items-center gap-2 py-0.5">
-                <span className="block h-1.5 w-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
+                <span
+                  className="block h-1.5 w-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: outlook.accentColor }}
+                />
                 <span className="flex-1 text-[15px] font-semibold text-white leading-tight">
                   {userLocationLabel ?? "Your location"}
                 </span>
@@ -163,7 +165,7 @@ export function HeroOutlook({
               <div className="flex items-center gap-1.5 text-xs text-[#64748b]">
                 <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
                 <span>Cloud cover:</span>
-                <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>
+                <span className="font-medium text-sky-300">
                   {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
                 </span>
               </div>
