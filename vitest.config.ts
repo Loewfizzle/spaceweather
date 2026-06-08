@@ -27,14 +27,14 @@ export default defineConfig({
         'next.config.ts',
       ],
       thresholds: {
-        // Global floor — raised after rounds 4-7 of coverage work.
-        // Actuals: ~51.8% stmt/lines, ~94.1% branches, ~88.6% functions.
+        // Global floor — raised after round 10 of coverage work.
+        // Actuals: ~53% stmt/lines, ~94.62% branches, ~93.53% functions.
         // Functions actual is capped by untested "use client" hooks/components (useCloudCover,
         // useNotifications, etc.) that are integration-tested via E2E; threshold ~3 pp below actual.
-        statements: 49,
-        lines: 49,
+        statements: 50,
+        lines: 50,
         branches: 92,
-        functions: 86,
+        functions: 90,
         // Critical pure-logic files: lock in high existing coverage
         'lib/aurora/solar.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
         'lib/aurora/kp.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
@@ -93,6 +93,13 @@ export default defineConfig({
         // lines 35/68-71 are the postcode-filter sub-expression and slice(0,5) guard (unreachable
         // via Nominatim which always honours limit=5) — floor 3 pp below actual 86.66%
         'app/api/location-search/route.ts': { statements: 95, branches: 84, functions: 95, lines: 95 },
+        // AlertsPanel: all button click handlers + permission states + skeleton + multi-alert
+        // tested in round 10; one branch at line 166 (recentAlerts empty+alertsLoading combo)
+        'components/AlertsPanel.tsx': { statements: 100, branches: 94, functions: 100, lines: 100 },
+        // useChartData: all CHART_OPTIONS callbacks + plugin beforeDraw/afterDraw + hook tested;
+        // 3 remaining branches are diff>12 ternary in etOffsetHours (non-US timezone),
+        // !chartArea guard in afterDraw (splitIdx>0 path), and a ?? in buildChartData
+        'lib/hooks/useChartData.ts': { statements: 100, branches: 91, functions: 100, lines: 100 },
       },
     },
   },

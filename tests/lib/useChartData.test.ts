@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { buildChartData } from '../../lib/hooks/useChartData'
+import { describe, it, expect, vi } from 'vitest'
+import { renderHook } from '@testing-library/react'
+import { buildChartData, useChartData } from '../../lib/hooks/useChartData'
 import type { KpEntry, KpForecastEntry } from '../../lib/api/schemas'
 
 // All dates use January 2024 (EST = UTC-5).
@@ -214,5 +215,200 @@ describe('buildChartData — cross-date label format', () => {
     for (const label of chartData.labels as string[]) {
       expect(label).not.toMatch(/^[A-Z][a-z]{2}\s/)
     }
+  })
+})
+
+// ── CHART_OPTIONS callbacks ───────────────────────────────────────────────────
+
+describe('CHART_OPTIONS — ticks.callback', () => {
+  const { chartOptions } = buildChartData([], [])
+  const tickCb = chartOptions.scales.y.ticks.callback
+
+  it('returns the string value for threshold labels: 0, 2, 4, 5, 7', () => {
+    for (const v of [0, 2, 4, 5, 7]) {
+      expect(tickCb(v)).toBe(String(v))
+    }
+  })
+
+  it('returns empty string for non-threshold values: 1, 3, 6, 8, 9', () => {
+    for (const v of [1, 3, 6, 8, 9]) {
+      expect(tickCb(v)).toBe('')
+    }
+  })
+})
+
+describe('CHART_OPTIONS — grid.color', () => {
+  const { chartOptions } = buildChartData([], [])
+  const gridColor = chartOptions.scales.y.grid.color
+
+  it('returns orange tint at Kp 5 (active onset threshold)', () => {
+    expect(gridColor({ tick: { value: 5 } })).toBe('rgba(249, 115, 22, 0.22)')
+  })
+
+  it('returns yellow tint at Kp 4 (moderate onset threshold)', () => {
+    expect(gridColor({ tick: { value: 4 } })).toBe('rgba(234, 179, 8, 0.18)')
+  })
+
+  it('returns default dark color for all other values', () => {
+    for (const v of [0, 1, 2, 3, 6, 7, 8, 9]) {
+      expect(gridColor({ tick: { value: v } })).toBe('#171f2e')
+    }
+  })
+})
+
+describe('CHART_OPTIONS — tooltip.callbacks.label (kpTierLabel)', () => {
+  const { chartOptions } = buildChartData([], [])
+  const labelCb = chartOptions.plugins.tooltip.callbacks.label
+
+  it('returns empty string when parsed.y is null', () => {
+    expect(labelCb({ parsed: { y: null }, dataset: { label: 'Kp Index' } })).toBe('')
+  })
+
+  it('returns empty string when parsed.y is undefined', () => {
+    expect(labelCb({ parsed: {}, dataset: { label: 'Kp Index' } })).toBe('')
+  })
+
+  it('uses "● Kp" prefix for the Kp Index dataset', () => {
+    const result = labelCb({ parsed: { y: 5 }, dataset: { label: 'Kp Index' } })
+    expect(result).toContain('● Kp')
+    expect(result).not.toContain('◌ Forecast')
+  })
+
+  it('uses "◌ Forecast" prefix for the Forecast dataset', () => {
+    const result = labelCb({ parsed: { y: 5 }, dataset: { label: 'Forecast' } })
+    expect(result).toContain('◌ Forecast')
+  })
+
+  it('labels Storm tier for kp >= 7', () => {
+    expect(labelCb({ parsed: { y: 7 }, dataset: { label: 'Kp Index' } })).toContain('Storm')
+    expect(labelCb({ parsed: { y: 9 }, dataset: { label: 'Kp Index' } })).toContain('Storm')
+  })
+
+  it('labels Active tier for 5 <= kp < 7', () => {
+    expect(labelCb({ parsed: { y: 5 }, dataset: { label: 'Kp Index' } })).toContain('Active')
+    expect(labelCb({ parsed: { y: 6 }, dataset: { label: 'Kp Index' } })).toContain('Active')
+  })
+
+  it('labels Moderate tier for 4 <= kp < 5', () => {
+    expect(labelCb({ parsed: { y: 4 }, dataset: { label: 'Kp Index' } })).toContain('Moderate')
+  })
+
+  it('labels Unsettled tier for 3 <= kp < 4', () => {
+    expect(labelCb({ parsed: { y: 3 }, dataset: { label: 'Kp Index' } })).toContain('Unsettled')
+  })
+
+  it('labels Quiet tier for kp < 3', () => {
+    expect(labelCb({ parsed: { y: 2 }, dataset: { label: 'Kp Index' } })).toContain('Quiet')
+    expect(labelCb({ parsed: { y: 0 }, dataset: { label: 'Kp Index' } })).toContain('Quiet')
+  })
+})
+
+// ── Plugin callbacks ──────────────────────────────────────────────────────────
+
+describe('tonightShade.beforeDraw', () => {
+  // 2024-01-15T03:00:00Z = 10pm EST (etHour=22 ≥ 20 → tonight)
+  // 2024-01-15T06:00:00Z = 1am EST  (etHour=1 < 6 → tonight)
+  const tonightHistory = [
+    hist('2024-01-15T03:00:00Z', 3.0),
+    hist('2024-01-15T06:00:00Z', 4.0),
+  ]
+
+  it('calls fillRect for contiguous tonight blocks', () => {
+    const { chartPlugins } = buildChartData(tonightHistory)
+    const plugin = chartPlugins.find((p) => p.id === 'tonightShade')!
+    const fillRect = vi.fn()
+    plugin.beforeDraw({
+      ctx: { save: vi.fn(), fillStyle: '', fillRect, restore: vi.fn() },
+      chartArea: { top: 0, bottom: 100, height: 100 },
+      scales: { x: { getPixelForValue: (i: number) => i * 50 } },
+    })
+    expect(fillRect).toHaveBeenCalledOnce()
+  })
+
+  it('returns early (no save) when all entries are daytime', () => {
+    // 2024-01-15T14:00:00Z = 9am EST → not tonight
+    const daytimeHistory = [
+      hist('2024-01-15T14:00:00Z', 2.0),
+      hist('2024-01-15T17:00:00Z', 3.0),
+    ]
+    const { chartPlugins } = buildChartData(daytimeHistory)
+    const plugin = chartPlugins.find((p) => p.id === 'tonightShade')!
+    const save = vi.fn()
+    plugin.beforeDraw({
+      ctx: { save, fillRect: vi.fn(), restore: vi.fn() },
+      chartArea: { top: 0, bottom: 100, height: 100 },
+      scales: { x: { getPixelForValue: vi.fn() } },
+    })
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('returns early (no save) when chartArea is absent', () => {
+    const { chartPlugins } = buildChartData(tonightHistory)
+    const plugin = chartPlugins.find((p) => p.id === 'tonightShade')!
+    const save = vi.fn()
+    plugin.beforeDraw({
+      ctx: { save },
+      chartArea: null,
+      scales: { x: { getPixelForValue: vi.fn() } },
+    })
+    expect(save).not.toHaveBeenCalled()
+  })
+})
+
+describe('forecastBoundary.afterDraw', () => {
+  it('draws the FORECAST → label when splitIdx > 0', () => {
+    const history  = [hist('2024-01-15T09:00:00Z', 3.0)]
+    const forecast = [fc('2024-01-15T12:00:00Z', 4.0)]
+    const { chartPlugins } = buildChartData(history, forecast)
+    const plugin = chartPlugins.find((p) => p.id === 'forecastBoundary')!
+
+    const fillText = vi.fn()
+    const ctx = {
+      save: vi.fn(), restore: vi.fn(),
+      strokeStyle: '', lineWidth: 0,
+      setLineDash: vi.fn(), beginPath: vi.fn(),
+      moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(),
+      font: '', fillStyle: '', textAlign: '',
+      fillText,
+    }
+    plugin.afterDraw({
+      ctx,
+      chartArea: { top: 0, bottom: 100 },
+      scales: { x: { getPixelForValue: (i: number) => i * 100 } },
+    })
+    expect(fillText).toHaveBeenCalledWith('FORECAST →', expect.any(Number), expect.any(Number))
+  })
+
+  it('returns early (no draw) when splitIdx is 0 (empty history)', () => {
+    // No history → splitIdx = recent.length = 0 → afterDraw returns immediately
+    const forecast = [fc('2024-01-15T12:00:00Z', 4.0)]
+    const { chartPlugins } = buildChartData([], forecast)
+    const plugin = chartPlugins.find((p) => p.id === 'forecastBoundary')!
+    expect(plugin).toBeDefined() // plugin is created but does nothing
+
+    const fillText = vi.fn()
+    plugin.afterDraw({ ctx: { fillText }, chartArea: {}, scales: { x: {} } })
+    expect(fillText).not.toHaveBeenCalled()
+  })
+})
+
+// ── useChartData hook ─────────────────────────────────────────────────────────
+
+describe('useChartData hook', () => {
+  it('returns the same shape as buildChartData for a given input', () => {
+    // 14:00 UTC = 9am EST → daytime; 17:00 UTC = 12pm EST → daytime; neither in aurora window
+    const history  = [hist('2024-01-15T14:00:00Z', 3.0)]
+    const forecast = [fc('2024-01-15T17:00:00Z', 4.0)]
+    const { result } = renderHook(() => useChartData(history, forecast))
+    expect(result.current.hasForecast).toBe(true)
+    expect(result.current.hasTonight).toBe(false)
+    expect(result.current.chartData.datasets).toHaveLength(2)
+    expect(result.current.chartPlugins).toHaveLength(2) // tonightShade + forecastBoundary
+  })
+
+  it('reflects empty inputs correctly', () => {
+    const { result } = renderHook(() => useChartData([]))
+    expect(result.current.hasForecast).toBe(false)
+    expect(result.current.chartData.labels).toHaveLength(0)
   })
 })
