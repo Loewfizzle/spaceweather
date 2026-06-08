@@ -1,148 +1,179 @@
 # AuroraWatch
 
-Premium, calm, mobile-first real-time aurora and space weather dashboard for the United States and northern North America.
+Real-time aurora and space weather dashboard for the United States and northern North America. Live NOAA SWPC + NASA data, location-aware aurora probability, interactive map, browser notifications.
 
-Live data from NOAA SWPC + NASA (proxied). Clean, professional, high-quality experience — no emojis, restrained aurora-inspired accents, excellent typography and spacing.
+## Features
 
-## Current Features
-
-- Sticky header with live color-coded Kp pill + aurora risk badge + global freshness timestamp + Refresh
-- Prominent hero with "Tonight’s Outlook" card (dynamic status, reasons, drivers from Kp + Bz + OVATION + solar)
-- Current Conditions metrics row (solar wind speed/density, Bz, Kp, max OVATION prob NA)
-- **Interactive Aurora Map** (Leaflet + react-leaflet + leaflet.heat): OVATION model, North America focus, probability filter slider, one-click recenters (Great Lakes, US, NA), hybrid heatmap + markers
-- Kp Outlook + Forecast (Chart.js timeline + trend + plain-English guidance)
-- Solar Activity (latest flares, recent CMEs, sunspot number, coronal hole notes)
-- **Meteor Activity** (new):
-  - Next Meteor Shower card with peak date/range, description, activity level, and "Add to Calendar" (Google Calendar link)
-  - Fireball Tracker: recent NASA JPL fireballs (date/time UTC, energy kt, location, altitude) — proxied for CORS
-- Understanding the Data (expandable educational section, collapsed by default)
-- Notifications/Alerts v2 (browser push with sensitivity presets, live risk badge, throttled)
-- Clean footer with NOAA credits and timestamps
-- Full loading skeletons, error states, empty states
-- Fully mobile-first and thumb-friendly
-
-## Data Sources
-
-- NOAA SWPC public JSON:
-  - OVATION Aurora: https://services.swpc.noaa.gov/json/ovation_aurora_latest.json
-  - Planetary K-index, solar wind (plasma/mag), flares, alerts, solar regions
-- Open-Meteo (free, no key) for optional sky conditions (currently not surfaced in UI)
-- NASA JPL Fireball API (https://ssd-api.jpl.nasa.gov/fireball.api) — **proxied via /api/fireballs** to solve CORS in production
-- Static major meteor shower data (Perseids, Geminids, etc.) with pure date math for "next" calculation
-
-All external data is validated at runtime with Zod schemas.
+- **Aurora Outlook** — Tonight's status (Excellent / Good / Moderate / Low / Very Low) derived from Kp, Bz, OVATION, solar wind speed, CMEs, and flares; city-by-city probability table
+- **Location-Aware Probability** — GPS or manual city search; personalized aurora % for your exact coordinates; local sky conditions (cloud cover via Open-Meteo)
+- **Tonight's Viewing Window** — Best hours to look up based on Kp forecast; last-night peak recap
+- **Interactive Aurora Map** — Leaflet + OVATION heatmap; probability filter slider; user location marker; recenters (Great Lakes, US, NA)
+- **Current Conditions** — Solar wind speed/density, IMF Bz, planetary Kp, max OVATION % over NA; info modals for each metric
+- **Kp Forecast Chart** — 36h history + 36h NOAA forecast; tonight shading; Chart.js with animated Kp-tier pills in header
+- **Solar Activity** — Latest X-ray flares, recent CMEs, sunspot count, coronal hole summary; detail modals
+- **Meteor Activity** — Next major shower card + "Add to Calendar"; NASA JPL Fireball Tracker with map
+- **Browser Alerts** — Notification permission flow, On/Off toggle, three sensitivity presets (Sensitive/Balanced/Strong), throttled to once per 30 min
+- **PWA** — Installable, service worker, manifest
+- Full loading skeletons, per-section error boundaries, and graceful degradation throughout
 
 ## Tech Stack
 
-- Next.js 16 (App Router) + TypeScript (strict)
-- Tailwind CSS 4 (custom dark space theme: #05070f bg, emerald/cyan/violet accents)
-- TanStack Query (@tanstack/react-query) — centralized hooks + Zod-validated fetchers
-- Leaflet + react-leaflet + leaflet.heat (interactive map, dynamic import ssr:false)
-- Chart.js + react-chartjs-2 (Kp timeline)
-- Zod (runtime schemas for NOAA + NASA responses)
-- Lucide-react (icons, no emojis)
-- date-fns (relative timestamps)
-- next/dynamic for code-splitting heavy components
+| Layer | Library |
+|---|---|
+| Framework | Next.js 16 (App Router), TypeScript strict |
+| Styling | Tailwind CSS 4 — custom dark space theme (`#05070f` bg, emerald/cyan/violet accents) |
+| Data fetching | TanStack Query (`@tanstack/react-query`) — per-hook staleTime/refetch |
+| Map | Leaflet + react-leaflet, custom OVATION canvas layer |
+| Chart | Chart.js + react-chartjs-2 |
+| Validation | Zod — all NOAA/NASA responses validated at the edge |
+| Icons | Lucide React |
+| Dates | date-fns |
+| Testing | Vitest + Testing Library (unit), Playwright (E2E) |
 
-## Testing
+## Data Sources
 
-Automated testing is set up with **Vitest** + **@testing-library/react**.
+- **NOAA SWPC** — Planetary K-index (3-hourly + 1-min), solar wind plasma/mag, Kp forecast, OVATION aurora model, X-ray flares, CME data, geomagnetic alerts
+- **NASA JPL Fireball API** — proxied via `/api/fireballs` (CORS bypass + CDN caching)
+- **Open-Meteo** — Cloud cover forecast for user location (no API key required)
+- **Nominatim / geocode** — Location search via `/api/location-search`; reverse geocoding via `/api/geocode`
 
-```bash
-npm test          # Run tests in watch mode
-npm run test:ui   # Open Vitest UI
-npm run test:coverage
-```
-
-Key tests live in `tests/lib/noaa.test.ts` and cover the core business logic:
-- `getTonightOutlook` (most critical)
-- `getAuroraRiskLevel`
-- `currentSunspotNumber`
-- Meteor helpers
-- OVATION utilities, color scales, CME parsing, etc.
-
-We prioritize testing pure functions and data processing logic (the parts most likely to regress when NOAA data formats change).
+All external responses are validated with Zod schemas at parse time. Invalid or missing fields produce nulls rather than crashes.
 
 ## Project Structure
 
 ```
 app/
-  api/fireballs/route.ts   # Server proxy for NASA JPL (CORS bypass + caching)
-  layout.tsx               # Root metadata (OG, etc.), Providers wrapper
-  loading.tsx              # Full-page skeleton (matches dashboard IA)
-  page.tsx                 # High-level orchestration (imports hooks + components)
-  providers.tsx            # TanStack QueryClient + top-level ErrorBoundary
-components/
-  AuroraMap.tsx            # Leaflet + heat map (dynamic import)
-  ErrorBoundary.tsx        # Top-level render error catcher
-  ErrorState.tsx           # Reusable error UI with optional retry
-  EmptyState.tsx
-  LoadingSkeleton.tsx      # Variants for card / metrics / chart / map / list
-  + extracted presentational: HeroOutlook, CurrentConditions, AuroraMapSection,
-    KpForecast, SolarActivity, MeteorActivity, DataUnderstanding, AlertsPanel
-lib/
+  page.tsx                   # Server component — static shell (h1, header, footer)
+  layout.tsx                 # Root metadata, Providers wrapper
+  loading.tsx                # Full-page skeleton (matches dashboard IA)
+  providers.tsx              # QueryClient + top-level ErrorBoundary
   api/
-    fetchers.ts            # Fetching + row parsing + Zod validation (single source for I/O)
-    schemas.ts             # All Zod schemas + inferred TS types (defensive nullables)
-  constants/
-    meteors.ts             # Static major shower data (used by business logic)
+    fireballs/route.ts       # Proxy for NASA JPL (CORS + caching)
+    cloud-cover/route.ts     # Open-Meteo proxy
+    location-search/route.ts # Nominatim search → normalised results
+    geocode/route.ts         # Reverse geocode for GPS coordinates
+    pwa-icon/route.tsx       # Dynamic PWA icon generation
+
+components/
+  DashboardClient.tsx        # Single "use client" boundary; orchestrates all sections
+  LiveHeader.tsx             # Sticky header: Kp pill, risk badge, freshness, refresh
+  HeroOutlook.tsx            # Tonight's outlook card + city probability table
+  ViewingWindow.tsx          # Best viewing window + last-night peak
+  CurrentConditions.tsx      # Metrics row (solar wind, Bz, Kp, OVATION)
+  AuroraMapSection.tsx       # Lazy-loaded map wrapper
+  AuroraMap.tsx              # Leaflet map + OVATION heatmap (ssr: false)
+  KpForecast.tsx             # Chart.js Kp timeline + plain-English guidance
+  SolarActivity.tsx          # Flares, CMEs, sunspots, coronal holes
+  MeteorActivity.tsx         # Next shower + fireball tracker
+  AlertsPanel.tsx            # Browser notification controls + NOAA alert feed
+  LocationPicker.tsx         # City search / GPS location input
+  FireballMap.tsx            # Mini Leaflet map for fireball events
+  ShareButton.tsx            # Web Share API
+  InstallPrompt.tsx          # PWA install banner
+  LoadingSkeleton.tsx        # Variants: card, metrics, chart, map, list
+  ErrorState.tsx             # Reusable error UI with optional retry
+  SectionErrorBoundary.tsx   # Per-section error boundary
+  map/                       # Map sub-components (OvationCanvasLayer, UserLocationMarker, …)
+  solar/                     # Modal components (FlareModal, CmeModal, AuroraMapModal, …)
+
+lib/
+  aurora/                    # Pure business logic — no React, no side effects
+    kp.ts                    # Kp tier classification, AURORA_TIERS constant
+    outlook.ts               # getTonightOutlook, getCityAuroraProbabilities, getLocationAuroraProb
+    conditions.ts            # getAuroraGuidance, plain-English condition blurbs
+    ovation.ts               # filterOvationCoordinates, maxOvationNorthAmerica, color/radius scales
+    solar.ts                 # parseRecentCmes, currentSunspotNumber, flare parsing
+    meteors.ts               # getNextMeteorShower, formatters, calendar link
+    fireballs.ts             # Fireball formatters
+    location.ts              # getNearestCityName, approximateLocation
+    visibleCities.ts         # getVisibleCities (Kp-to-latitude aurora visibility)
+  api/
+    fetchers.ts              # All NOAA/NASA fetch calls + Zod validation
+    schemas.ts               # Zod schemas and inferred TypeScript types
   hooks/
-    useChartData.ts        # Kp chart data prep (used by KpForecast)
-    useGlobalFreshness.ts  # Consolidated last-updated timestamp
-    useNotifications.ts    # Alerts permission, localStorage, throttle, auto-alert effect
-  noaa.ts                  # Pure business logic + derived data (NO fetching):
-                           #   - getTonightOutlook, getAuroraRiskLevel, getAuroraGuidance
-                           #   - parseRecentCmes, currentSunspotNumber
-                           #   - latest(), filterOvationCoordinates, maxOvationNorthAmerica
-                           #   - getAuroraColor / getAuroraMarkerRadius
-                           #   - meteor helpers (getNextMeteorShower, format*, calendar link)
-                           #   - fireball formatters
-  use-noaa-data.ts         # React Query hooks + composition only:
-                           #   - useCurrentConditions, useSolarActivity, useFireballs, useOvationData, useKpData, useSolarWindData, useSkyConditions (legacy)
-                           #   - Re-exports of business logic for UI convenience
-  utils/                   # (lightweight / future)
-public/
-  og-image.jpg, manifest.json, favicon, etc.
+    useCurrentConditions.ts  # Composes Kp + OVATION + solar wind → conditions object
+    useSolarActivity.ts      # Flares, CMEs, alerts, sunspots
+    useFireballs.ts          # NASA JPL fireballs query
+    useKpForecast.ts         # (via use-noaa-data) Kp 3-day forecast
+    useChartData.ts          # Kp chart data prep (buildChartData pure fn + useMemo hook)
+    useNotifications.ts      # Notification permission, localStorage prefs, auto-alert effect
+    useAutoAlert.ts          # Fires browser notification when conditions cross threshold
+    useCloudCover.ts         # Open-Meteo cloud cover for user location
+    useGlobalFreshness.ts    # Latest-update timestamp across all data sources
+    useUserLocation.ts       # GPS + manual location state machine
+    useIsMobile.ts           # matchMedia hook
+    useFocusTrap.ts          # Modal keyboard trap
+    useModalState.ts         # Shared open/close state for info modals
+    useStableRefetch.ts      # Debounced refetch across queries
+  context/
+    UserLocationContext.tsx  # UserLocation React context + provider
+  utils/
+    viewingWindow.ts         # computeViewingWindow, computeLastNightPeak
+    alertHelpers.ts          # alertProductLabel, alertFirstLine, formatAlertAge
+    retry.ts                 # Exponential-backoff fetch retry
+
+tests/                       # Vitest unit + integration tests
+e2e/                         # Playwright end-to-end tests
 ```
 
-Data layer split (after refactors):
-- lib/api/ = Fetching + Validation (Zod at the edge)
-- lib/noaa.ts = Pure business logic and data derivations (no side effects)
-- lib/use-noaa-data.ts = TanStack Query hook composition (orchestrates the above)
-- components/ + lib/hooks/ = Presentational components and UI-specific extracted logic (chart prep, notifications, freshness, etc.)
+## Data Flow
+
 ```
+NOAA SWPC / NASA JPL
+        │
+        ▼
+lib/api/fetchers.ts          ← Zod validation at the edge
+        │
+        ▼
+lib/hooks/use*               ← TanStack Query (staleTime, refetch, error handling)
+        │
+        ▼
+components/DashboardClient   ← Composes hooks, derives outlook + user prob
+        │
+        ├── lib/aurora/outlook.ts  ← getTonightOutlook (pure, no fetching)
+        ├── lib/aurora/conditions.ts
+        └── components/*           ← Presentational components receive plain props
+```
+
+The `lib/aurora/` layer is deliberately dependency-free — it receives plain data and returns plain data. This makes the business logic easy to test and independent of React or fetch concerns.
 
 ## Getting Started
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:3000
+npm run build      # Production build
+npm run start      # Serve production build locally
 ```
 
-Open http://localhost:3000
+No API keys required — all data sources are public.
 
-- To analyze bundle: `ANALYZE=true npm run build`
-- All data is live/public; no API keys required.
+```bash
+ANALYZE=true npm run build    # Bundle analysis
+```
 
-## Development & Production Notes
+## Testing
 
-- **Data fetching**: Mix of client (TanStack Query with per-hook staleTime/refetch) + server proxy for NASA. Fetchers use Zod .parse() (or safeParse+filter for resilience on CSV sources).
-- **Error handling**: Critical data (Kp + OVATION for hero outlook) vs. enhancement data (solar wind, regions/sunspots, fireballs). Critical errors bubble for the primary section; non-critical data gracefully degrades to "—" / cached values + subtle warnings. See comments in lib/use-noaa-data.ts. Top-level ErrorBoundary catches render crashes. Per-section components (SolarActivity, MeteorActivity, etc.) use ErrorState or inline warnings with retry where appropriate.
-- **Caching**: TanStack staleTime per source (1-60 min). Server proxy uses Next revalidate + Cache-Control. NOAA direct uses no-store + Query.
-- **Refresh**: Global button refetches all active queries (conditions, solar, fireballs).
-- **Map**: Dynamically imported (ssr: false) with canvas heatmap for performance.
-- **Accessibility**: ARIA on slider/map controls, keyboard friendly buttons, semantic structure.
-- The NASA proxy solves the production CORS problem that direct browser fetches to ssd-api.jpl.nasa.gov encounter.
+```bash
+npm test                  # Vitest watch mode
+npm run test:coverage     # Coverage report
+npm run test:e2e          # Playwright (requires npm run build && npm run start first)
+```
+
+**Philosophy:** tests cover pure business logic and non-obvious data transformations. The `lib/aurora/` functions (`getTonightOutlook`, `computeViewingWindow`, `getNextMeteorShower`, Kp scoring, OVATION utilities) get thorough coverage because bugs there are invisible — wrong math produces plausible-looking output. API route tests catch input-validation and response-format regressions. Simple UI wiring is covered by Playwright E2E rather than unit tests.
+
+High-value test files:
+- `tests/lib/noaa.test.ts` — `getTonightOutlook`, `getAuroraRiskLevel`, OVATION utilities
+- `tests/lib/outlook.test.ts` — city probability calculations
+- `tests/lib/viewingWindow.test.ts` — viewing window and last-night peak
+- `tests/lib/meteors.test.ts` — shower timing, calendar link generation
+- `tests/api/routes.test.ts` — all API route handlers (47 tests)
+- `e2e/smoke.spec.ts` — full page load, Kp pill, key sections visible
 
 ## Deploy
 
-Connected to Vercel. Push to main triggers deploy. The /api/fireballs route is serverless and benefits from edge caching where possible.
+Connected to Vercel. Push to `main` triggers deploy. The `/api/*` routes are serverless functions; `/api/fireballs` benefits from edge caching via `Cache-Control: s-maxage`.
 
 ## Credits
 
-Built with live public data from the NOAA Space Weather Prediction Center and NASA JPL. Not for navigation, safety, or operational decisions.
-
----
-
-AuroraWatch — Real-time aurora visibility and space weather for the United States and northern North America. Calm. Premium. Focused.
-
+Live data from [NOAA Space Weather Prediction Center](https://www.swpc.noaa.gov/) and NASA JPL. Not for navigation, safety, or operational decisions.
