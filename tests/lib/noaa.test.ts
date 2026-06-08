@@ -320,15 +320,14 @@ describe('getAuroraGuidance', () => {
 
   it('returns Excellent-tier text for kp >= 7', () => {
     const result = getAuroraGuidance(7, 10, -3)
-    // Delegates to getTonightOutlook Excellent: "Strong chance across the northern tier..."
-    expect(result).toContain('northern tier')
-    expect(result).toContain('Great Lakes')
+    expect(result).toContain('northern US')
+    expect(result).toContain('south of typical viewing areas')
   })
 
   it('returns northern-tier text for kp 5-6', () => {
     const result = getAuroraGuidance(5, 10, -3)
     expect(result).toContain('northern-tier')
-    expect(result).toContain('Great Lakes')
+    expect(result).toContain('dark skies')
   })
 
   it('appends Bz boost note when bz <= -5', () => {
