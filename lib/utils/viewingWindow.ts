@@ -16,6 +16,10 @@ function etOffsetHours(date: Date): number {
       10
     ) % 24;
   const diff = ((etH - utcH) % 24 + 24) % 24;
+  // diff is always 19 or 20 for America/New_York (EST/EDT), so the `diff - 24`
+  // branch always fires. The `diff` fallback is a defensive guard for other
+  // time zones and cannot be reached in practice for Eastern Time.
+  /* v8 ignore next */
   return diff > 12 ? diff - 24 : diff; // -4 or -5
 }
 

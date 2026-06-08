@@ -169,4 +169,54 @@ describe('computeViewingWindow', () => {
     expect(result.hasData).toBe(true)
     expect(result.windowStart?.toISOString()).toBe('2026-06-06T03:00:00.000Z')
   })
+
+  // ── Branch-coverage gap tests ──────────────────────────────────────────────
+  // The three cases below cover the branches flagged as uncovered in the
+  // v8 report: lines 89, 93, and 109-110.
+
+  it('skips forecast entries that have no time_tag (line 89)', () => {
+    // !e.time_tag → return false; the null-time_tag entry must be ignored
+    const result = computeViewingWindow([
+      { kp: 5.0 } as unknown as KpForecastEntry,  // no time_tag — filtered out
+      forecastEntry('2026-06-06T00:00:00Z', 4.0),
+    ])
+    expect(result.allBlocks).toHaveLength(1)
+    expect(result.peakKp).toBe(4.0)
+  })
+
+  it('treats null kp as 0 via nullish coalescing (line 93)', () => {
+    // e.kp ?? 0 fires when kp is null; entry should be included with kp=0
+    const result = computeViewingWindow([
+      { time_tag: '2026-06-06T00:00:00Z', kp: null } as unknown as KpForecastEntry,
+    ])
+    expect(result.hasData).toBe(true)
+    expect(result.peakKp).toBe(0)
+  })
+
+  it('falls back to peakBlock when goodBlocks is empty — kp below 2.5 floor (lines 109-110)', () => {
+    // threshold = max(0 - 1, 2.5) = 2.5; kp=0 < 2.5 → goodBlocks = []
+    // line 109: windowStart = peakBlock.time (false branch)
+    // line 110: lastGood = goodBlocks[…] ?? peakBlock (nullish fallback)
+    const result = computeViewingWindow([
+      forecastEntry('2026-06-06T00:00:00Z', 0),
+    ])
+    expect(result.windowStart?.toISOString()).toBe('2026-06-06T00:00:00.000Z')
+    expect(result.windowEnd?.toISOString()).toBe('2026-06-06T03:00:00.000Z')
+  })
+})
+
+// ── computeLastNightPeak — overnight "now" case ────────────────────────────────
+// Separate describe so we can override NOW without interfering with the pinned
+// daytime fixture used by the tests above.
+describe('computeLastNightPeak — windowEnd cap (line 67)', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('caps windowEnd at now when we are still inside the overnight aurora window', () => {
+    // NOW = 2026-06-05T05:00:00Z = 1am EDT (inside aurora window).
+    // nightStart = T00:00Z, nightEnd = T11:00Z, but nightEnd > now → windowEnd = now = T05:00Z.
+    // The entry at T01:00Z (9pm EDT) is within [nightStart, windowEnd] and should be returned.
+    vi.setSystemTime(new Date('2026-06-05T05:00:00Z'))
+    const result = computeLastNightPeak([kpEntry('2026-06-05T01:00:00Z', 4.0)])
+    expect(result?.peakKp).toBe(4.0)
+  })
 })
