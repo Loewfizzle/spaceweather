@@ -11,7 +11,7 @@ import { useMemo } from "react";
 // NOAA timestamps are always UTC but arrive in mixed formats:
 // "2026-06-05 23:00:00.000" (space-sep, no Z), "2026-06-05T23:00:00Z" (already correct), "2026-06-05" (date-only, parses as UTC natively).
 // Normalize to unambiguous UTC before constructing Date objects.
-function parseNoaaTimestamp(s: string): Date {
+export function parseNoaaTimestamp(s: string): Date {
   const t = s.trim();
   // Date-only strings like "2026-06-05" must become "2026-06-05T00:00:00Z".
   // Appending bare "Z" ("2026-06-05Z") is non-standard and produces Invalid Date in Safari/Firefox.
