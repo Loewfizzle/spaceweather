@@ -65,7 +65,7 @@ export function LoadingSkeleton({
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-          <div className="section-title">KP OUTLOOK + MICHIGAN FORECAST</div>
+          <div className="section-title">KP INDEX &amp; OUTLOOK</div>
           <LoadingSkeleton variant="chart" />
         </div>
 

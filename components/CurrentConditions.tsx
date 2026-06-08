@@ -174,7 +174,6 @@ interface CurrentConditionsProps {
   kp: number | null;
   maxAuroraProbNA: number | null;
   isLoading: boolean;
-  kpTime?: string | null;
   solarWindError?: unknown;
   ovationProcessed?: boolean;
 }

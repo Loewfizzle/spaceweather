@@ -116,6 +116,7 @@ function DashboardInner() {
           <span className="text-[13px] font-semibold tracking-[0.08em] uppercase text-[#94a3b8]">Aurora Outlook</span>
         </div>
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:items-start">
+          {/* className="" strips the default max-w wrapper — parent grid handles layout */}
           <SectionErrorBoundary message="Outlook unavailable — check back shortly." className="">
             <HeroOutlook
               outlook={tonightOutlook}
@@ -164,7 +165,6 @@ function DashboardInner() {
           kp={kp}
           maxAuroraProbNA={maxAuroraProbNA}
           isLoading={isLoading}
-          kpTime={kpTime}
           solarWindError={solarWindError}
           ovationProcessed={ovationProcessed}
         />
