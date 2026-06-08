@@ -114,8 +114,15 @@ describe('ViewingWindow', () => {
     expect(screen.getByText(/Share location for personalised sky conditions/i)).toBeInTheDocument();
   });
 
-  it('does not render last-night section when kpHistory is empty', () => {
-    render(<ViewingWindow {...defaultProps} kpHistory={[]} />);
+  it('renders last-night fallback when kpHistory is empty and not loading', () => {
+    render(<ViewingWindow {...defaultProps} kpHistory={[]} isLoading={false} />);
+    expect(screen.getByText(/Last night: no data available/i)).toBeInTheDocument();
+  });
+
+  it('does not render last-night section when isLoading is true', () => {
+    render(<ViewingWindow {...defaultProps} kpHistory={[]} isLoading={true} />);
+    // isLoading skips the early-return path here because viewingWindow has data;
+    // the last-night fallback should be suppressed while data is still loading
     expect(screen.queryByText(/Last night/i)).not.toBeInTheDocument();
   });
 

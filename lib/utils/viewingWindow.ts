@@ -45,12 +45,10 @@ export interface ViewingWindowData {
  * The window is bounded to exactly that 10-hour period so that a multi-day
  * storm can't make a peak from two nights ago appear as "last night."
  *
- * Math: the most recent 8 pm ET always started (nowEtH + 4) hours ago, where
- * nowEtH is the current fractional ET hour. This identity holds for all three
- * time-of-day cases:
- *   overnight  (0–6 ET):   3 am  →  7 h ago = yesterday  8 pm ✓
- *   daytime   (6–20 ET):   3 pm  → 19 h ago = yesterday  8 pm ✓
- *   evening   (20–24 ET): 10 pm  → 26 h ago = yesterday  8 pm ✓
+ * Math: hours since the most recent 8 pm ET —
+ *   etHour >= 20 (evening):   10 pm  →  2 h ago = tonight    8 pm ✓
+ *   etHour  < 20 (otherwise):  3 am  →  7 h ago = yesterday  8 pm ✓
+ *                              3 pm  → 19 h ago = yesterday  8 pm ✓
  */
 export function computeLastNightPeak(
   kpHistory: KpEntry[]
@@ -59,14 +57,23 @@ export function computeLastNightPeak(
   const msPerHour = 60 * 60 * 1000;
 
   const offset = etOffsetHours(now);
-  const nowEtH =
-    ((now.getUTCHours() + now.getUTCMinutes() / 60 + offset) % 24 + 24) % 24;
+  // Integer ET hour determines which 8pm boundary to target
+  const etHour =
+    parseInt(
+      new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        hour12: false,
+      }).format(now),
+      10
+    ) % 24;
+  // Fractional ET hour for sub-hour precision when placing nightStart
+  const nowEtHFrac = ((now.getUTCHours() + now.getUTCMinutes() / 60 + offset) % 24 + 24) % 24;
+  const hoursAgo = etHour >= 20 ? nowEtHFrac - 20 : nowEtHFrac + 4;
 
-  const nightStart = new Date(now.getTime() - (nowEtH + 4) * msPerHour);
-  // 11h instead of 10h: during spring-forward DST the real 6 am arrives after only 9 clock-hours,
-  // so a 10h window undershoots and misses the tail of the night. The +1h buffer covers this.
-  // The windowEnd cap below ensures this never pulls in future entries.
-  const nightEnd   = new Date(nightStart.getTime() + 11 * msPerHour);
+  const nightStart = new Date(now.getTime() - hoursAgo * msPerHour);
+  // 8pm–6am is always 10 clock-hours; DST transitions at 2am don't change the boundary times
+  const nightEnd   = new Date(nightStart.getTime() + 10 * msPerHour);
   // Cap at now so an ongoing night doesn't try to include future entries
   const windowEnd  = nightEnd < now ? nightEnd : now;
 

@@ -155,7 +155,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
             </div>
           )}
 
-          {lastNight && lastNightLabel && (
+          {lastNight && lastNightLabel ? (
             <div className={`flex items-center justify-between text-[12px] ${tonight ? 'mt-4 pt-4 border-t border-[#1e2937]' : ''}`}>
               <div>
                 <span className="text-[#64748b]">Last night — </span>
@@ -172,7 +172,11 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
                 </span>
               </div>
             </div>
-          )}
+          ) : !isLoading ? (
+            <div className={`text-[12px] text-[#475569] ${tonight ? 'mt-4 pt-4 border-t border-[#1e2937]' : ''}`}>
+              Last night: no data available
+            </div>
+          ) : null}
       </div>
 
       {showModal && (
