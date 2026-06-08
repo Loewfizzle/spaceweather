@@ -203,7 +203,7 @@ export default function AuroraMap({
       )}
 
       {/* Legend — z-[20] keeps it above the empty state overlay */}
-      <div className="absolute bottom-3 right-3 z-[20] rounded-lg border border-[#1e2937] bg-[#0f1425]/95 px-3 py-2 text-[10px] text-[#cbd5e1] shadow backdrop-blur-sm">
+      <div className="absolute bottom-3 right-3 z-[20] px-3 py-2 text-[10px] text-[#cbd5e1]">
         <div className="mb-0.5 font-medium tracking-wide">Aurora Probability</div>
         <div className="text-[9px] text-[#475569] mb-1">NOAA OVATION model</div>
         <div
