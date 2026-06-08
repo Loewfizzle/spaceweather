@@ -67,9 +67,6 @@ export function CmeModal({
                             {cme.speed ? `${cme.speed.toLocaleString()} km/s` : "CME"}
                           </span>
                         </div>
-                        <span className="text-[10px] text-[#475569] tabular-nums flex-shrink-0">
-                          {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
-                        </span>
                       </div>
                       {cme.direction && (
                         <div className="text-[11px] text-[#64748b] ml-4 mb-0.5">
@@ -78,6 +75,14 @@ export function CmeModal({
                       )}
                       <div className="text-[11px] ml-4 mt-0.5" style={{ color }}>
                         {cme.earthImpact || "Analyzed — Earth impact uncertain"}
+                      </div>
+                      {cme.note && (
+                        <div className="text-[11px] text-[#475569] ml-4 mt-1 leading-relaxed">
+                          {cme.note}
+                        </div>
+                      )}
+                      <div className="text-[10px] text-[#475569] ml-4 mt-1">
+                        Alert issued {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
                       </div>
                     </div>
                   );
