@@ -106,31 +106,30 @@ export function SolarActivity() {
             </div>
 
             {solarActivity.recentCmes.length > 0 ? (
-              <div>
-                {solarActivity.recentCmes.slice(0, 1).map((cme, i) => (
-                  <div key={i} className="flex items-start gap-2">
+              solarActivity.recentCmes.slice(0, 1).map((cme) => {
+                const color = cmeImpactColor(cme.earthImpact);
+                return (
+                  <div key={0}>
                     <div
-                      className="mt-0.5 h-1.5 w-1.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: cmeImpactColor(cme.earthImpact) }}
-                    />
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-[#cbd5e1] tabular-nums leading-tight">
-                        {cme.speed ? `${cme.speed.toLocaleString()} km/s` : "CME"}
+                      className="text-4xl font-semibold tracking-tighter tabular-nums leading-none"
+                      style={{ color }}
+                    >
+                      {cme.speed ? `${cme.speed.toLocaleString()} km/s` : "CME"}
+                    </div>
+
+                    {cme.earthImpact && (
+                      <div className="text-xs mt-1.5" style={{ color }}>
+                        {cme.earthImpact}
                       </div>
-                      <div
-                        className="text-[11px] leading-tight mt-0.5"
-                        style={{ color: cmeImpactColor(cme.earthImpact) }}
-                      >
-                        {cme.earthImpact || "Analyzed"}
-                      </div>
-                      <div className="text-[10px] text-[#475569] mt-0.5">
-                        {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
-                        {solarActivity.recentCmes.length > 1 && ` · ${solarActivity.recentCmes.length} total`}
-                      </div>
+                    )}
+
+                    <div className="text-[10px] text-[#475569] mt-0.5">
+                      {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
+                      {solarActivity.recentCmes.length > 1 && ` · ${solarActivity.recentCmes.length} total`}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })
             ) : (
               <div className="text-sm text-[#64748b]">—</div>
             )}
