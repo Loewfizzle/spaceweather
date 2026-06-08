@@ -40,6 +40,7 @@ export default defineConfig({
         branches: 83,
         functions: 75,
         // Critical pure-logic files: lock in high existing coverage
+        'lib/aurora/solar.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
         'lib/aurora/kp.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
         // branches at 85.71% actual; threshold set 5 pp below that
         'lib/aurora/ovation.ts': { statements: 90, branches: 80, functions: 90, lines: 90 },
