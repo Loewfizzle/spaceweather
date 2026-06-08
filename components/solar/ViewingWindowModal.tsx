@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { X, ChevronRight, Clock } from "lucide-react";
 import { US_CITIES } from "../../lib/constants/usCities";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
+import { forecastKpBlurb, viewingWindowLocationBlurb } from "../../lib/aurora/conditions";
 
 // Prefer well-known city names when building the reference list
 const PREFERRED = new Set([
@@ -22,28 +23,6 @@ function visibleCities(kp: number) {
     return ap !== bp ? ap - bp : b.lat - a.lat;
   });
   return { cities: qualifying.slice(0, 5), minLat };
-}
-
-function kpBlurb(kp: number): string {
-  if (kp >= 8) return `Kp ${kp.toFixed(1)} is an extreme geomagnetic storm — one of the strongest on record. Aurora may be visible as far south as Florida and Texas. Get outside right now if skies are clear.`;
-  if (kp >= 7) return `Kp ${kp.toFixed(1)} is a major storm. Aurora should be visible well into the southern US. This kind of event is rare — don't miss it.`;
-  if (kp >= 6) return `Kp ${kp.toFixed(1)} is a strong storm. Aurora should be visible across most of the upper Midwest, the Northeast, and the Pacific Northwest — even from a suburban backyard.`;
-  if (kp >= 5) return `Kp ${kp.toFixed(1)} is a moderate storm. This is the level where aurora becomes reliably visible across the northern US. Get somewhere dark and look north.`;
-  if (kp >= 4) return `Kp ${kp.toFixed(1)} is slightly elevated above quiet. Aurora is possible in the far northern states but you'll need very dark, rural skies — city light pollution will wash it out.`;
-  if (kp >= 3) return `Kp ${kp.toFixed(1)} is quiet-to-borderline. Aurora is mostly limited to Alaska and the very northern fringe of the lower 48.`;
-  return `Kp ${kp.toFixed(1)} means conditions are quiet. Aurora activity is minimal and only visible in Alaska and northern Canada right now.`;
-}
-
-function locationBlurb(userLat: number, kp: number, label?: string | null): { first: string; rest: string | null } {
-  const minLat = Math.max(30, 67 - kp * 3);
-  const diff = userLat - minLat;
-  const name = label ?? "Your location";
-  if (diff >= 5)   return { first: `${name} is comfortably within the viewing zone at this activity level — good conditions for you tonight.`, rest: null };
-  if (diff >= 0)   return { first: `${name} is just inside the viewing zone tonight.`, rest: `Dark skies away from city lights will make a real difference.` };
-  if (diff >= -3)  return { first: `${name} is just outside the typical viewing zone.`, rest: `Conditions would need to tick up slightly for aurora to reach you.` };
-  const needed = Math.floor(Math.max(0, (67 - userLat) / 3));
-  if (diff >= -8)  return { first: `${name} is outside the viewing zone at this Kp level.`, rest: `Activity would need to reach around Kp ${needed} for aurora to be likely from your area.` };
-  return { first: `${name} is well south of the aurora oval right now.`, rest: `Aurora reaching your area would require a very strong storm — Kp ${needed} or higher.` };
 }
 
 interface ViewingWindowModalProps {
@@ -67,7 +46,7 @@ export function ViewingWindowModal({
 }: ViewingWindowModalProps) {
   const effectiveKp = kp ?? peakKp;
   const { cities, minLat } = visibleCities(effectiveKp);
-  const locBlurb = userLat != null ? locationBlurb(userLat, effectiveKp, userLocationLabel) : null;
+  const locBlurb = userLat != null ? viewingWindowLocationBlurb(userLat, effectiveKp, userLocationLabel) : null;
   const panelRef = useRef<HTMLDivElement>(null);
   useFocusTrap(panelRef, onClose);
 
@@ -132,7 +111,7 @@ export function ViewingWindowModal({
                 What Kp {effectiveKp.toFixed(1)} means
               </div>
               <p className="text-[12px] text-[#64748b] leading-relaxed">
-                {kpBlurb(effectiveKp)}
+                {forecastKpBlurb(effectiveKp)}
               </p>
             </div>
 

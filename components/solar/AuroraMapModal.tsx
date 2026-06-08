@@ -4,16 +4,7 @@ import { useRef } from "react";
 import { X, ChevronRight, Map } from "lucide-react";
 import { useUserLocationContext } from "../../lib/context/UserLocationContext";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
-
-function locationBlurb(prob: number, label: string | null): { first: string; rest: string | null } {
-  const name = label ?? "Your location";
-  if (prob <= 0)  return { first: `${name} is showing no OVATION signal right now.`, rest: `The aurora oval isn't reaching your area.` };
-  if (prob < 5)   return { first: `${name} is showing less than 5% on the OVATION model.`, rest: `The aurora oval is close but not quite overhead — very faint activity at best.` };
-  if (prob < 15)  return { first: `${name} is showing ${Math.round(prob)}% — a faint but real signal.`, rest: `Aurora is present in your region, though it would be subtle. Dark skies and patience required.` };
-  if (prob < 30)  return { first: `${name} is showing ${Math.round(prob)}% — a meaningful reading.`, rest: `There is aurora above your area right now. If skies are clear, it's worth going outside.` };
-  if (prob < 50)  return { first: `${name} is showing ${Math.round(prob)}% — a solid signal.`, rest: `Aurora should be visible from your location under dark skies. Get away from city lights and look north.` };
-  return { first: `${name} is showing ${Math.round(prob)}% — a strong OVATION signal directly over your location.`, rest: `This is an active aurora event at your latitude.` };
-}
+import { mapLocationBlurb } from "../../lib/aurora/conditions";
 
 interface AuroraMapModalProps {
   userProb?: number | null;
@@ -23,7 +14,7 @@ interface AuroraMapModalProps {
 export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
   const { userLocationLabel, userLat } = useUserLocationContext();
   const hasLocation = userLat != null && userProb !== undefined;
-  const locBlurb = hasLocation ? locationBlurb(userProb ?? 0, userLocationLabel) : null;
+  const locBlurb = hasLocation ? mapLocationBlurb(userProb ?? 0, userLocationLabel) : null;
   const panelRef = useRef<HTMLDivElement>(null);
   useFocusTrap(panelRef, onClose);
 
