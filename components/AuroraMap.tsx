@@ -44,7 +44,7 @@ export default function AuroraMap({
   // Restore the user's last map position from localStorage (runs once on mount).
   // Validates every field so a corrupted entry can't break the map.
   const [mapInitialState] = useState<{ center: [number, number]; zoom: number }>(() => {
-    const defaults = { center: [48, -100] as [number, number], zoom: 3 };
+    const defaults = { center: [48, -90] as [number, number], zoom: 3 };
     if (typeof window === "undefined") return defaults;
     try {
       const raw = localStorage.getItem("aurora-map-state");
@@ -204,7 +204,7 @@ export default function AuroraMap({
 
       {/* Legend — z-[20] keeps it above the empty state overlay */}
       <div className="absolute bottom-3 right-3 z-[20] px-3 py-2 text-[10px] text-[#cbd5e1]">
-        <div className="mb-0.5 font-medium tracking-wide">Aurora Probability</div>
+        <div className="mb-0.5 font-medium tracking-wide text-[#94a3b8]">Aurora Probability</div>
         <div className="text-[9px] text-[#475569] mb-1">NOAA OVATION model</div>
         <div
           className="h-2 w-32 rounded-full mb-1 border border-[#1e2937]/50"
