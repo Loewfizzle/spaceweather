@@ -60,6 +60,8 @@ export default defineConfig({
         'lib/hooks/useSolarActivity.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
         // conditions.ts: all 8 blurb functions fully tested; floor at 95
         'lib/aurora/conditions.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
+        // visibleCities.ts: pure function, fully tested; floor at 95
+        'lib/aurora/visibleCities.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
       },
     },
   },

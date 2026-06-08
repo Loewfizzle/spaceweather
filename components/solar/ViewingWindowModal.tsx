@@ -2,28 +2,9 @@
 
 import { useRef } from "react";
 import { X, ChevronRight, Clock } from "lucide-react";
-import { US_CITIES } from "../../lib/constants/usCities";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
 import { forecastKpBlurb, viewingWindowLocationBlurb } from "../../lib/aurora/conditions";
-
-// Prefer well-known city names when building the reference list
-const PREFERRED = new Set([
-  "Fairbanks", "Anchorage", "Juneau", "Seattle", "Spokane", "Portland",
-  "Billings", "Great Falls", "Missoula", "Duluth", "Fargo", "Minneapolis",
-  "Bismarck", "Milwaukee", "Chicago", "Detroit", "Cleveland", "Buffalo",
-  "Burlington", "Boston", "Denver", "Salt Lake City", "Boise",
-]);
-
-function visibleCities(kp: number) {
-  const minLat = Math.max(30, 67 - kp * 3);
-  const qualifying = [...US_CITIES].filter((c) => c.lat >= minLat);
-  qualifying.sort((a, b) => {
-    const ap = PREFERRED.has(a.name) ? 0 : 1;
-    const bp = PREFERRED.has(b.name) ? 0 : 1;
-    return ap !== bp ? ap - bp : b.lat - a.lat;
-  });
-  return { cities: qualifying.slice(0, 5), minLat };
-}
+import { getVisibleCities } from "../../lib/aurora/visibleCities";
 
 interface ViewingWindowModalProps {
   kp: number | null;
@@ -45,7 +26,7 @@ export function ViewingWindowModal({
   onClose,
 }: ViewingWindowModalProps) {
   const effectiveKp = kp ?? peakKp;
-  const { cities, minLat } = visibleCities(effectiveKp);
+  const { cities, minLat } = getVisibleCities(effectiveKp);
   const locBlurb = userLat != null ? viewingWindowLocationBlurb(userLat, effectiveKp, userLocationLabel) : null;
   const panelRef = useRef<HTMLDivElement>(null);
   useFocusTrap(panelRef, onClose);
