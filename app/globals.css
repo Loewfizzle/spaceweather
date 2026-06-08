@@ -278,6 +278,15 @@ body {
   border-color: rgba(167, 139, 250, 0.3);
 }
 
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out both;
+}
+
 /* Leaflet attribution — override default white background to match dark theme */
 .leaflet-control-attribution {
   background: rgba(10, 14, 26, 0.85) !important;
