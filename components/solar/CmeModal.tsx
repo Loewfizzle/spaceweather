@@ -4,6 +4,14 @@ import { TrendingUp, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { CmeSummary } from "../../lib/api/schemas";
 
+function formatCmeAge(isoTime: string): string {
+  const t = new Date(isoTime).getTime();
+  if (!isFinite(t)) return '';
+  return t > Date.now()
+    ? 'just now'
+    : formatDistanceToNow(new Date(t), { addSuffix: true });
+}
+
 export function cmeImpactColor(impact: string | undefined): string {
   if (!impact) return "#eab308";
   const lc = impact.toLowerCase();
@@ -82,7 +90,7 @@ export function CmeModal({
                         </div>
                       )}
                       <div className="text-[10px] text-[#475569] ml-4 mt-1">
-                        Alert issued {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
+                        Alert issued {formatCmeAge(cme.time)}
                       </div>
                     </div>
                   );
