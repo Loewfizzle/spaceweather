@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MapPin, Loader2, Cloud, Navigation, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
@@ -53,17 +53,6 @@ export function HeroOutlook({
   } = useUserLocationContext();
   const [showPicker, setShowPicker] = useState(false);
   const [showConditionsModal, setShowConditionsModal] = useState(false);
-  // Tick every 60 s so the relative timestamp stays current between data refreshes
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick((n) => n + 1), 60_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const isStale =
-    !error &&
-    !!latestUpdate &&
-    Date.now() - latestUpdate.getTime() > 10 * 60 * 1000;
 
   const displayedCities = outlook.cityProbs?.slice(0, 6) ?? [];
   const locationIsSet = locationSource != null;
@@ -78,24 +67,12 @@ export function HeroOutlook({
           <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
             CURRENT DATA SUGGESTS
           </span>
-          <div className="flex items-center gap-3">
-            {latestUpdate && !error && outlook.status !== "Loading" && (
-              <span
-                className={`text-[10px] tabular-nums transition-colors ${
-                  isStale ? "text-amber-400" : "text-[#334155]"
-                }`}
-                title={isStale ? "Data may be stale — retrying" : "Data is current"}
-              >
-                {isStale ? "Stale · " : ""}Updated {formatDistanceToNow(latestUpdate, { addSuffix: true })}
-              </span>
-            )}
-            <button
-              onClick={() => setShowConditionsModal(true)}
-              className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
-            >
-              Details <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          <button
+            onClick={() => setShowConditionsModal(true)}
+            className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+          >
+            Details <ChevronRight className="h-3.5 w-3.5" />
+          </button>
         </div>
         <p className="text-[11px] text-[#475569] mb-3">
           Solar wind and Kp · live OVATION model
