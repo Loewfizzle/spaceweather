@@ -62,6 +62,8 @@ export default defineConfig({
         'lib/aurora/conditions.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
         // visibleCities.ts: pure function, fully tested; floor at 95
         'lib/aurora/visibleCities.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
+        // outlook.ts: all three exported functions tested, all branches covered; floor at 90
+        'lib/aurora/outlook.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
       },
     },
   },
