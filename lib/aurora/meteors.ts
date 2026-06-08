@@ -17,6 +17,9 @@ export function getNextMeteorShower(now: Date = new Date()): { shower: MeteorSho
     }
   }
 
+  // offset=1 pushes every shower from next year unconditionally; only reachable
+  // if MAJOR_METEOR_SHOWERS were empty, which can't happen at runtime.
+  /* v8 ignore next */
   if (candidates.length === 0) return null;
   candidates.sort((a, b) => a.date.getTime() - b.date.getTime());
   const next = candidates[0];

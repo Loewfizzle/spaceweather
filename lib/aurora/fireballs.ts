@@ -17,6 +17,8 @@ export function formatFireballDate(dateStr: string): string {
       }) + " UTC"
     );
   } catch {
+    // toLocaleString never throws in practice; defensive fallback.
+    /* v8 ignore next */
     return dateStr;
   }
 }
