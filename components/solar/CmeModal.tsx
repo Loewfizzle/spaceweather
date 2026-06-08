@@ -82,10 +82,7 @@ export function CmeModal({
                         </div>
                       )}
                       <div className="text-[10px] text-[#475569] ml-4 mt-1">
-                        Alert issued {formatDistanceToNow(
-                          new Date(Math.min(new Date(cme.time).getTime(), Date.now())),
-                          { addSuffix: true }
-                        )}
+                        Alert issued {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
                       </div>
                     </div>
                   );

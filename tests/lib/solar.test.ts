@@ -79,7 +79,7 @@ describe('parseRecentCmes', () => {
   });
 
   it('labels ambiguous CMEs as Monitor for effects', () => {
-    const result = parseRecentCmes([
+    parseRecentCmes([
       makeAlert('AL0001', 'CME observed off the west limb. No Earth-directed component.'),
     ]);
     // "No Earth-directed" does not match the positive /Earth-directed/ test
