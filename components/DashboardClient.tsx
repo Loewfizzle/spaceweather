@@ -110,8 +110,11 @@ function DashboardInner() {
   return (
     <>
       {/* Hero — outer div provides padding for both the normal and error paths */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-4">
-        <div className="section-title">AURORA OUTLOOK</div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-2">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="block h-[5px] w-[5px] rounded-full bg-[#94a3b8] flex-shrink-0" />
+          <span className="text-[13px] font-semibold tracking-[0.08em] uppercase text-[#94a3b8]">Aurora Outlook</span>
+        </div>
         <SectionErrorBoundary message="Outlook unavailable — check back shortly." className="">
           <HeroOutlook
             outlook={tonightOutlook}
@@ -132,7 +135,7 @@ function DashboardInner() {
 
       <SectionErrorBoundary
         message="Forecast window unavailable."
-        className="max-w-7xl mx-auto px-4 sm:px-6 pb-4"
+        className="max-w-7xl mx-auto px-4 sm:px-6 pb-10"
       >
         <ViewingWindow
           kpForecast={kpForecastQuery.data ?? []}
