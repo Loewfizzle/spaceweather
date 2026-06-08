@@ -15,7 +15,14 @@ vi.mock('../../lib/context/UserLocationContext', () => ({
 vi.mock('../../components/ShareButton',              () => ({ ShareButton:              () => null }));
 vi.mock('../../components/NotificationPrompt',       () => ({ NotificationPrompt:       () => null }));
 vi.mock('../../components/InstallPrompt',            () => ({ InstallPrompt:            () => null }));
-vi.mock('../../components/LocationPicker',           () => ({ LocationPicker:           () => null }));
+vi.mock('../../components/LocationPicker', () => ({
+  LocationPicker: ({ onConfirm, onCancel }: { onConfirm: (lat: number, lon: number, label: string) => void; onCancel: () => void }) => (
+    <div data-testid="location-picker">
+      <button onClick={() => onConfirm(45.0, -93.0, 'Minneapolis, MN')}>Confirm location</button>
+      <button onClick={onCancel}>Cancel picker</button>
+    </div>
+  ),
+}));
 vi.mock('../../components/solar/CurrentConditionsModal', () => ({
   CurrentConditionsModal: () => <div data-testid="conditions-modal" />,
 }));
@@ -194,5 +201,58 @@ describe('HeroOutlook', () => {
     });
     render(<HeroOutlook outlook={goodOutlook} />);
     expect(screen.getByText('Locating…')).toBeInTheDocument();
+  });
+
+  it('shows "Enter manually" when onRequestLocation is provided (line 234 true branch)', () => {
+    mockUseUserLocationContext.mockReturnValue({
+      ...defaultContext,
+      onRequestLocation: vi.fn(),
+    });
+    render(<HeroOutlook outlook={goodOutlook} />);
+    expect(screen.getByText('Enter manually')).toBeInTheDocument();
+  });
+
+  it('shows "Set location" when onRequestLocation is absent (line 234 false branch)', () => {
+    render(<HeroOutlook outlook={goodOutlook} />);
+    expect(screen.getByText('Set location')).toBeInTheDocument();
+    expect(screen.queryByText('Enter manually')).not.toBeInTheDocument();
+  });
+
+  it('clicking "Set location" shows the LocationPicker', () => {
+    const setManualLocation = vi.fn();
+    mockUseUserLocationContext.mockReturnValue({
+      ...defaultContext,
+      setManualLocation,
+    });
+    render(<HeroOutlook outlook={goodOutlook} />);
+    expect(screen.queryByTestId('location-picker')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Set location'));
+    expect(screen.getByTestId('location-picker')).toBeInTheDocument();
+  });
+
+  it('confirming a location calls setManualLocation and hides the picker (lines 265–271)', () => {
+    const setManualLocation = vi.fn();
+    mockUseUserLocationContext.mockReturnValue({
+      ...defaultContext,
+      setManualLocation,
+    });
+    render(<HeroOutlook outlook={goodOutlook} />);
+    fireEvent.click(screen.getByText('Set location'));
+    fireEvent.click(screen.getByText('Confirm location'));
+    expect(setManualLocation).toHaveBeenCalledWith(45.0, -93.0, 'Minneapolis, MN');
+    expect(screen.queryByTestId('location-picker')).not.toBeInTheDocument();
+  });
+
+  it('cancelling the picker hides it without calling setManualLocation', () => {
+    const setManualLocation = vi.fn();
+    mockUseUserLocationContext.mockReturnValue({
+      ...defaultContext,
+      setManualLocation,
+    });
+    render(<HeroOutlook outlook={goodOutlook} />);
+    fireEvent.click(screen.getByText('Set location'));
+    fireEvent.click(screen.getByText('Cancel picker'));
+    expect(setManualLocation).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('location-picker')).not.toBeInTheDocument();
   });
 });
