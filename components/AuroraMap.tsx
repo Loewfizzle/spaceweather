@@ -12,7 +12,7 @@ import { TileErrorDetector } from "./map/TileErrorDetector";
 import { UserLocationMarker } from "./map/UserLocationMarker";
 import { MapStateTracker, MapInstanceCapture } from "./map/MapStateTracker";
 
-const DEFAULT_CENTER: [number, number] = [48, -83];
+const DEFAULT_CENTER: [number, number] = [48, -96];
 const DEFAULT_ZOOM = 3;
 
 interface AuroraMapProps {
