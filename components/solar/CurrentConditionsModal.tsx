@@ -120,13 +120,20 @@ export function CurrentConditionsModal({
 
           <div className="px-5 pb-5 pt-4 space-y-5">
 
+            {/* Location box — shown first when location is set */}
+            {ovationUser && (
+              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
+                <p className="text-[12px] text-[#64748b] leading-relaxed">{ovationUser}</p>
+              </div>
+            )}
+
             {/* 1 — The key distinction */}
             <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
               <div className="text-xs font-medium text-[#94a3b8] mb-1.5">Live now vs. tonight&apos;s forecast</div>
               <p className="text-[12px] text-[#64748b] leading-relaxed">
                 <span className="text-[#94a3b8] font-semibold">Live Conditions</span> is the real-time
                 feed — data from NOAA satellites updated minute by minute, like looking out the window
-                right now.{" "}<span className="text-[#94a3b8] font-semibold">Tonight&apos;s Forecast</span> is the
+                right now.{" "}<span className="text-[#94a3b8] font-semibold">Tonight&apos;s Forecast</span>{" "}is the
                 big-picture prediction for the night ahead — a 36-hour outlook that tells you when
                 conditions might peak after sunset. Both matter; this section is about what&apos;s happening
                 this instant.
@@ -183,11 +190,6 @@ export function CurrentConditionsModal({
               <p className="text-[12px] text-[#64748b] leading-relaxed">
                 {ovationNA}
               </p>
-              {ovationUser && (
-                <div className="mt-2.5 rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-3 py-2.5">
-                  <p className="text-[12px] text-[#64748b] leading-relaxed">{ovationUser}</p>
-                </div>
-              )}
             </div>
 
             {/* NOAA link */}
