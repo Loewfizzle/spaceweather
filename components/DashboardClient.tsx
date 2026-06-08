@@ -21,6 +21,8 @@ import { MeteorActivity } from "./MeteorActivity";
 import { DataUnderstanding } from "./DataUnderstanding";
 import { AlertsPanel } from "./AlertsPanel";
 import { ViewingWindow } from "./ViewingWindow";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { ErrorState } from "./ErrorState";
 import { SectionErrorBoundary } from "./SectionErrorBoundary";
 
 const MapSectionSkeleton = () => (
@@ -211,7 +213,18 @@ function DashboardInner() {
 export function DashboardClient() {
   return (
     <UserLocationProvider>
-      <DashboardInner />
+      <ErrorBoundary
+        fallback={(reset) => (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+            <ErrorState
+              message="The dashboard encountered an unexpected error. Please try again or refresh the page."
+              onRetry={reset}
+            />
+          </div>
+        )}
+      >
+        <DashboardInner />
+      </ErrorBoundary>
     </UserLocationProvider>
   );
 }
