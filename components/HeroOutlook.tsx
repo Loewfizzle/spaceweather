@@ -231,7 +231,6 @@ export function HeroOutlook({
               ) : !showPicker ? (
                 /* no location set — stack vertically */
                 <div className="flex flex-col gap-2">
-                  <p className="text-[11px] text-[#475569]">See your exact aurora probability and cloud cover forecast</p>
                   {onRequestLocation && (
                     <button
                       onClick={onRequestLocation}
@@ -256,6 +255,7 @@ export function HeroOutlook({
                     <MapPin className="h-3.5 w-3.5" />
                     {onRequestLocation ? "Enter manually" : "Set location"}
                   </button>
+                  <p className="text-[11px] text-[#475569]">See your exact aurora probability and cloud cover forecast</p>
                 </div>
               ) : null}
             </div>
