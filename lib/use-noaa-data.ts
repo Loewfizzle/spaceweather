@@ -1,21 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { logDataError } from "./utils/retry";
 import {
-  exponentialBackoff,
-  shouldRetryCritical,
-  shouldRetryNonCritical,
-  logDataError,
-} from "./utils/retry";
-// Network + Zod validation (single source for all external data)
-import {
-  fetchOvation,
-  fetchKpIndex,
-  fetchKpForecast,
-  fetchPlasma,
-  fetchMag,
-} from "./api/fetchers";
+  useOvationData,
+  useKpData,
+  useSolarWindData,
+  useKpForecast,
+} from "./hooks/useNoaaQueries";
 
 // Pure business logic and display helpers
 import { latest } from "./noaa";
@@ -32,92 +24,7 @@ import type { ViewingWindowData } from "./utils/viewingWindow";
 import { useDerivedConditions } from "./hooks/useDerivedConditions";
 import { useStableRefetch } from "./hooks/useStableRefetch";
 
-import type {
-  // Types from the Zod schemas (single source of truth for shapes)
-  OvationResponse,
-  KpEntry,
-  KpForecastEntry,
-  PlasmaEntry,
-  MagEntry,
-  Fireball,
-} from "./api/schemas";
-
-/**
- * Error handling philosophy: critical vs. non-critical data.
- *
- * Critical (surfaces as .error to the section): Kp + OVATION (hero outlook), flares + alerts (solar section).
- * Non-critical (graceful null fallback): solar wind plasma/mag, sunspot regions, fireballs.
- *
- * Solar wind errors do not bubble to the hero — they show a subtle "data delayed" note instead.
- * This keeps the dashboard usable when individual NOAA endpoints are temporarily unavailable.
- */
-export function useOvationData() {
-  return useQuery<OvationResponse>({
-    queryKey: ["ovation"],
-    queryFn: fetchOvation,
-    staleTime: 1000 * 60 * 2,
-    gcTime: 1000 * 60 * 360,
-    refetchInterval: 1000 * 60 * 2,
-    refetchIntervalInBackground: false, // pause polling when tab is hidden (TanStack v5 default; explicit for clarity)
-    retry: shouldRetryCritical,
-    retryDelay: exponentialBackoff,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useKpData() {
-  return useQuery<KpEntry[]>({
-    queryKey: ["kp"],
-    queryFn: fetchKpIndex,
-    staleTime: 1000 * 60 * 3,
-    gcTime: 1000 * 60 * 360,
-    refetchInterval: 1000 * 60 * 3,
-    refetchIntervalInBackground: false,
-    retry: shouldRetryCritical,
-    retryDelay: exponentialBackoff,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useSolarWindData() {
-  const plasmaQuery = useQuery<PlasmaEntry[]>({
-    queryKey: ["plasma"],
-    queryFn: fetchPlasma,
-    staleTime: 1000 * 60 * 1,
-    gcTime: 1000 * 60 * 60,
-    refetchInterval: 1000 * 60,
-    refetchIntervalInBackground: false,
-    retry: shouldRetryNonCritical,
-    retryDelay: exponentialBackoff,
-  });
-
-  const magQuery = useQuery<MagEntry[]>({
-    queryKey: ["mag"],
-    queryFn: fetchMag,
-    staleTime: 1000 * 60 * 1,
-    gcTime: 1000 * 60 * 60,
-    refetchInterval: 1000 * 60,
-    refetchIntervalInBackground: false,
-    retry: shouldRetryNonCritical,
-    retryDelay: exponentialBackoff,
-  });
-
-  const currentPlasma = plasmaQuery.data ? latest(plasmaQuery.data) : null;
-  const currentMag = magQuery.data ? latest(magQuery.data) : null;
-
-  return {
-    plasma: plasmaQuery,
-    mag: magQuery,
-    current: {
-      speed: currentPlasma?.speed ?? null,
-      density: currentPlasma?.density ?? null,
-      bz: currentMag?.bz_gsm ?? null,
-      bt: currentMag?.bt ?? null,
-    },
-    isLoading: plasmaQuery.isLoading || magQuery.isLoading,
-    error: plasmaQuery.error || magQuery.error,
-  };
-}
+import type { Fireball } from "./api/schemas";
 
 // Combined hook for current conditions + aurora guidance
 export function useCurrentConditions() {
@@ -197,20 +104,8 @@ export function useCurrentConditions() {
   };
 }
 
-export function useKpForecast() {
-  return useQuery<KpForecastEntry[]>({
-    queryKey: ['kp-forecast'],
-    queryFn: fetchKpForecast,
-    staleTime: 1000 * 60 * 30,
-    gcTime: 1000 * 60 * 60,
-    refetchInterval: 1000 * 60 * 30,
-    refetchIntervalInBackground: false,
-    retry: shouldRetryNonCritical,
-    retryDelay: exponentialBackoff,
-  });
-}
-
 // Re-exports from lib/hooks/ — convenience barrel for UI consumers that already import hooks here.
+export { useOvationData, useKpData, useSolarWindData, useKpForecast } from "./hooks/useNoaaQueries";
 export { useSolarActivity } from "./hooks/useSolarActivity";
 export { useFireballs } from "./hooks/useFireballs";
 
