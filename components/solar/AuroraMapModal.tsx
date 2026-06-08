@@ -3,14 +3,14 @@
 import { X, ChevronRight, Map } from "lucide-react";
 import { useUserLocationContext } from "../../lib/context/UserLocationContext";
 
-function locationBlurb(prob: number, label: string | null): string {
+function locationBlurb(prob: number, label: string | null): { first: string; rest: string | null } {
   const name = label ?? "Your location";
-  if (prob <= 0)  return `${name} is showing no OVATION signal right now. The aurora oval isn't reaching your area.`;
-  if (prob < 5)   return `${name} is showing less than 5% on the OVATION model. The aurora oval is close but not quite overhead — very faint activity at best.`;
-  if (prob < 15)  return `${name} is showing ${Math.round(prob)}% — a faint but real signal. Aurora is present in your region, though it would be subtle. Dark skies and patience required.`;
-  if (prob < 30)  return `${name} is showing ${Math.round(prob)}% — a meaningful reading. There is aurora above your area right now. If skies are clear, it's worth going outside.`;
-  if (prob < 50)  return `${name} is showing ${Math.round(prob)}% — a solid signal. Aurora should be visible from your location under dark skies. Get away from city lights and look north.`;
-  return `${name} is showing ${Math.round(prob)}% — a strong OVATION signal directly over your location. This is an active aurora event at your latitude.`;
+  if (prob <= 0)  return { first: `${name} is showing no OVATION signal right now.`, rest: `The aurora oval isn't reaching your area.` };
+  if (prob < 5)   return { first: `${name} is showing less than 5% on the OVATION model.`, rest: `The aurora oval is close but not quite overhead — very faint activity at best.` };
+  if (prob < 15)  return { first: `${name} is showing ${Math.round(prob)}% — a faint but real signal.`, rest: `Aurora is present in your region, though it would be subtle. Dark skies and patience required.` };
+  if (prob < 30)  return { first: `${name} is showing ${Math.round(prob)}% — a meaningful reading.`, rest: `There is aurora above your area right now. If skies are clear, it's worth going outside.` };
+  if (prob < 50)  return { first: `${name} is showing ${Math.round(prob)}% — a solid signal.`, rest: `Aurora should be visible from your location under dark skies. Get away from city lights and look north.` };
+  return { first: `${name} is showing ${Math.round(prob)}% — a strong OVATION signal directly over your location.`, rest: `This is an active aurora event at your latitude.` };
 }
 
 interface AuroraMapModalProps {
@@ -21,6 +21,7 @@ interface AuroraMapModalProps {
 export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
   const { userLocationLabel, userLat } = useUserLocationContext();
   const hasLocation = userLat != null && userProb !== undefined;
+  const locBlurb = hasLocation ? locationBlurb(userProb ?? 0, userLocationLabel) : null;
 
   return (
     <div
@@ -53,6 +54,16 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
           </div>
 
           <div className="px-5 pb-5 pt-4 space-y-5">
+
+            {/* Location context — first when location is set */}
+            {locBlurb && (
+              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
+                <p className="text-[12px] leading-relaxed">
+                  <span className="font-semibold text-[#94a3b8]">{locBlurb.first}</span>
+                  {locBlurb.rest && <>{" "}<span className="text-[#64748b]">{locBlurb.rest}</span></>}
+                </p>
+              </div>
+            )}
 
             {/* 1 — What the map is showing */}
             <div>
@@ -129,16 +140,7 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
               </p>
             </div>
 
-            {/* 5 — Location context (conditional) */}
-            {hasLocation && (
-              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-                <p className="text-[12px] text-[#64748b] leading-relaxed">
-                  {locationBlurb(userProb ?? 0, userLocationLabel)}
-                </p>
-              </div>
-            )}
-
-            {/* 6 — Limitations */}
+            {/* Limitations */}
             <div>
               <div className="text-xs font-medium text-[#94a3b8] mb-1.5">What the map can&apos;t tell you</div>
               <div className="space-y-2">
