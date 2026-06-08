@@ -15,7 +15,15 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
     (a) => !STORM_WATCH_IDS.has(a.product_id) && /CME|Coronal Mass Ejection/i.test(a.message)
   );
 
-  const candidates = [...stormWatches, ...cmeBodyAlerts].slice(0, 2);
+  const fourDaysMs = 4 * 24 * 60 * 60 * 1000;
+  const candidates = [...stormWatches, ...cmeBodyAlerts]
+    .filter((a) => {
+      const raw = a.issue_datetime.trim().replace(' ', 'T');
+      const withTz = /[Z+-]\d*$/.test(raw) ? raw : raw + 'Z';
+      const t = Date.parse(withTz);
+      return isFinite(t) && Date.now() - t <= fourDaysMs;
+    })
+    .slice(0, 2);
 
   return candidates.map((a) => {
     const msg = a.message;
@@ -48,12 +56,12 @@ export interface EarthImpactAssessment {
 
 /**
  * Derive a plain-English Earth-impact assessment from recent CME data.
- * Ignores CMEs older than 5 days — by then they've already arrived or missed.
+ * Ignores CMEs older than 4 days — by then they've already arrived or missed.
  */
 export function assessEarthImpact(recentCmes: CmeSummary[]): EarthImpactAssessment {
   const fresh = recentCmes.filter((c) => {
     const t = new Date(c.time).getTime();
-    return isFinite(t) && Date.now() - t < 1000 * 60 * 60 * 24 * 5;
+    return isFinite(t) && Date.now() - t < 1000 * 60 * 60 * 24 * 4;
   });
 
   const likely = fresh.find((c) => c.earthImpact === "Likely Earth impact");

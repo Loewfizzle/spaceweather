@@ -13,6 +13,12 @@ import { SdoImage, SDO_DATA_URL } from "./solar/SdoImage";
 const SDO_SUNSPOT_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg";
 const SDO_CORONAL_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0193.jpg";
 
+function formatCmeIssued(isoTime: string): string {
+  const t = new Date(isoTime).getTime();
+  if (!isFinite(t) || t > Date.now()) return 'just now';
+  return formatDistanceToNow(new Date(t), { addSuffix: true });
+}
+
 export function SolarActivity() {
   const solarActivity = useSolarActivity();
   const [openModal, setOpenModal] = useState<"flare" | "cme" | "sunspot" | "coronal" | null>(null);
@@ -124,7 +130,7 @@ export function SolarActivity() {
                     )}
 
                     <div className="text-[10px] text-[#475569] mt-0.5">
-                      Alert issued {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
+                      Alert issued {formatCmeIssued(cme.time)}
                       {solarActivity.recentCmes.length > 1 && ` · ${solarActivity.recentCmes.length} total`}
                     </div>
                   </div>

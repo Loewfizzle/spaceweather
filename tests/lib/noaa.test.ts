@@ -433,6 +433,10 @@ describe('getCityAuroraProbabilities', () => {
 })
 
 describe('parseRecentCmes', () => {
+  // Dynamic timestamps so tests don't rot as dates pass the 4-day staleness cutoff
+  const T1 = new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()  // 1 hour ago
+  const T2 = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()  // 2 hours ago
+  const T3 = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()  // 3 hours ago
   it('returns empty array for undefined', () => {
     expect(parseRecentCmes(undefined)).toEqual([])
   })
@@ -443,7 +447,7 @@ describe('parseRecentCmes', () => {
 
   it('extracts CMEs from alerts', () => {
     const alerts: Alert[] = [
-      { message: 'CME alert: 1200 km/s Earth-directed halo', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'CME alert: 1200 km/s Earth-directed halo', issue_datetime: T1 } as Alert,
     ]
     const cmes = parseRecentCmes(alerts)
     expect(cmes.length).toBe(1)
@@ -452,17 +456,17 @@ describe('parseRecentCmes', () => {
 
   it('WATA storm watch IDs take priority and appear first', () => {
     const alerts: Alert[] = [
-      { message: 'Body CME mention 750 km/s', issue_datetime: '2026-06-03T08:00Z', product_id: 'ALTXX' },
-      { message: 'G2 watch issued', issue_datetime: '2026-06-04T08:00Z', product_id: 'WATA20' },
+      { message: 'Body CME mention 750 km/s', issue_datetime: T2, product_id: 'ALTXX' },
+      { message: 'G2 watch issued', issue_datetime: T1, product_id: 'WATA20' },
     ]
     const cmes = parseRecentCmes(alerts)
     expect(cmes.length).toBe(2)
-    expect(cmes[0].time).toBe('2026-06-04T08:00Z') // WATA first
+    expect(cmes[0].time).toBe(T1) // WATA first
   })
 
   it('includes non-storm-watch body CME mention when no WATA exists', () => {
     const alerts: Alert[] = [
-      { message: 'Coronal Mass Ejection detected at 900 km/s', issue_datetime: '2026-06-05T06:00Z', product_id: 'ALTXX' },
+      { message: 'Coronal Mass Ejection detected at 900 km/s', issue_datetime: T3, product_id: 'ALTXX' },
     ]
     const cmes = parseRecentCmes(alerts)
     expect(cmes.length).toBe(1)
@@ -471,15 +475,15 @@ describe('parseRecentCmes', () => {
 
   it('excludes alerts that are neither WATA nor body CME mentions', () => {
     const alerts: Alert[] = [
-      { message: 'Solar flare detected — no relevant events', issue_datetime: '2026-06-05T06:00Z', product_id: 'K05A' },
+      { message: 'Solar flare detected — no relevant events', issue_datetime: T1, product_id: 'K05A' },
     ]
     expect(parseRecentCmes(alerts)).toHaveLength(0)
   })
 
   it('caps candidates at 2 even when more than 2 match', () => {
     const alerts: Alert[] = [
-      { message: 'CME 1', issue_datetime: '2026-06-05T08:00Z', product_id: 'WATA30' },
-      { message: 'CME 2', issue_datetime: '2026-06-05T07:00Z', product_id: 'WATA20' },
+      { message: 'CME 1', issue_datetime: T1, product_id: 'WATA30' },
+      { message: 'CME 2', issue_datetime: T2, product_id: 'WATA20' },
       { message: 'CME body mention', issue_datetime: '2026-06-05T06:00Z', product_id: 'ALTXX' },
     ]
     expect(parseRecentCmes(alerts)).toHaveLength(2)
@@ -487,28 +491,28 @@ describe('parseRecentCmes', () => {
 
   it('sets earthImpact to "Likely Earth impact" for Earth-directed messages', () => {
     const alerts: Alert[] = [
-      { message: 'Earth-directed CME at 1500 km/s detected', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'Earth-directed CME at 1500 km/s detected', issue_datetime: T1 } as Alert,
     ]
     expect(parseRecentCmes(alerts)[0].earthImpact).toBe('Likely Earth impact')
   })
 
   it('sets earthImpact to "Monitor for effects" for non-Earth-directed messages', () => {
     const alerts: Alert[] = [
-      { message: 'CME detected moving southward, 800 km/s', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'CME detected moving southward, 800 km/s', issue_datetime: T1 } as Alert,
     ]
     expect(parseRecentCmes(alerts)[0].earthImpact).toBe('Monitor for effects')
   })
 
   it('extracts "geomagnetic storm" as Likely Earth impact trigger', () => {
     const alerts: Alert[] = [
-      { message: 'CME expected. Geomagnetic storm watch issued.', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'CME expected. Geomagnetic storm watch issued.', issue_datetime: T1 } as Alert,
     ]
     expect(parseRecentCmes(alerts)[0].earthImpact).toBe('Likely Earth impact')
   })
 
   it('extracts direction for "full halo CME"', () => {
     const alerts: Alert[] = [
-      { message: 'Full halo CME detected, Earth-directed, 1200 km/s', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'Full halo CME detected, Earth-directed, 1200 km/s', issue_datetime: T1 } as Alert,
     ]
     const direction = parseRecentCmes(alerts)[0].direction
     expect(direction).toMatch(/halo/i)
@@ -516,28 +520,28 @@ describe('parseRecentCmes', () => {
 
   it('extracts direction for "partial halo"', () => {
     const alerts: Alert[] = [
-      { message: 'Partial halo CME at 600 km/s observed', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'Partial halo CME at 600 km/s observed', issue_datetime: T1 } as Alert,
     ]
     expect(parseRecentCmes(alerts)[0].direction).toMatch(/halo/i)
   })
 
   it('leaves direction undefined when no direction pattern matches', () => {
     const alerts: Alert[] = [
-      { message: 'CME detected, southward trajectory, 800 km/s', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'CME detected, southward trajectory, 800 km/s', issue_datetime: T1 } as Alert,
     ]
     expect(parseRecentCmes(alerts)[0].direction).toBeUndefined()
   })
 
   it('leaves speed undefined when no speed pattern matches', () => {
     const alerts: Alert[] = [
-      { message: 'CME detected, speed unknown', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'CME detected, speed unknown', issue_datetime: T1 } as Alert,
     ]
     expect(parseRecentCmes(alerts)[0].speed).toBeUndefined()
   })
 
   it('does not match 2-digit "speeds" (word-boundary guard)', () => {
     const alerts: Alert[] = [
-      { message: 'CME at 99 km/s observed', issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: 'CME at 99 km/s observed', issue_datetime: T1 } as Alert,
     ]
     // \b(\d{3,4})\s*km\/s requires 3-4 digits
     expect(parseRecentCmes(alerts)[0].speed).toBeUndefined()
@@ -546,7 +550,7 @@ describe('parseRecentCmes', () => {
   it('truncates note to 140 chars with ellipsis for long messages', () => {
     const line = 'CME detected. ' + 'A'.repeat(160) // must contain CME to pass body filter
     const alerts: Alert[] = [
-      { message: line, issue_datetime: '2026-06-05T08:00Z' } as Alert,
+      { message: line, issue_datetime: T1 } as Alert,
     ]
     const note = parseRecentCmes(alerts)[0].note
     expect(note.endsWith('…')).toBe(true)

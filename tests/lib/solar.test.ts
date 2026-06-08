@@ -92,6 +92,16 @@ describe('parseRecentCmes', () => {
     expect(result2[0].earthImpact).toBe('Monitor for effects');
   });
 
+  it('drops alerts older than 4 days', () => {
+    const staleDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+    expect(parseRecentCmes([{ product_id: 'WATA30', issue_datetime: staleDate, message: 'CME Earth-directed 800 km/s' }])).toHaveLength(0);
+  });
+
+  it('keeps alerts within 4 days', () => {
+    const freshDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    expect(parseRecentCmes([{ product_id: 'WATA30', issue_datetime: freshDate, message: 'CME Earth-directed 800 km/s' }])).toHaveLength(1);
+  });
+
   it('truncates the note at 140 characters when the message is long', () => {
     const longMsg = 'Coronal Mass Ejection detected. ' + 'A'.repeat(200);
     const result = parseRecentCmes([makeAlert('AL0001', longMsg)]);
@@ -108,7 +118,7 @@ describe('assessEarthImpact', () => {
     expect(result).toMatchObject({ level: 'none', cme: null });
   });
 
-  it('filters out CMEs older than 5 days', () => {
+  it('filters out CMEs older than 4 days', () => {
     const oldCme = { time: OLD, earthImpact: 'Likely Earth impact', note: '', speed: 800 };
     expect(assessEarthImpact([oldCme])).toMatchObject({ level: 'none' });
   });
