@@ -171,6 +171,7 @@ interface CurrentConditionsProps {
   solarWindSpeed: number | null;
   solarWindDensity: number | null;
   bz: number | null;
+  bzHistory?: number[];
   kp: number | null;
   maxAuroraProbNA: number | null;
   isLoading: boolean;
@@ -180,10 +181,33 @@ interface CurrentConditionsProps {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+function BzSparkline({ data }: { data: number[] }) {
+  if (data.length < 3) return null;
+  const W = 100;
+  const H = 28;
+  const pad = 1.5;
+  const min = Math.min(...data, -2);
+  const max = Math.max(...data, 2);
+  const range = max - min || 1;
+  const toX = (i: number) => pad + (i / (data.length - 1)) * (W - pad * 2);
+  const toY = (v: number) => H - pad - ((v - min) / range) * (H - pad * 2);
+  const zeroY = toY(0);
+  const points = data.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
+  const latest = data[data.length - 1];
+  const lineColor = latest <= -5 ? '#22c55e' : latest <= -2 ? '#94a3b8' : '#475569';
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2" style={{ height: 28 }} aria-hidden="true">
+      <line x1={pad} y1={zeroY} x2={W - pad} y2={zeroY} stroke="#1e2937" strokeWidth="1" />
+      <polyline points={points} fill="none" stroke={lineColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
+    </svg>
+  );
+}
+
 export function CurrentConditions({
   solarWindSpeed,
   solarWindDensity,
   bz,
+  bzHistory,
   kp,
   maxAuroraProbNA,
   isLoading,
@@ -270,6 +294,7 @@ export function CurrentConditions({
             <div className="text-sm text-[#64748b] -mt-1">
               nT <span className="text-xs ml-1">• Southward = favorable</span>
             </div>
+            {bzHistory && bzHistory.length >= 3 && <BzSparkline data={bzHistory} />}
             <div className="text-[10px] text-[#475569] mt-auto pt-2">Updates every minute</div>
           </div>
 

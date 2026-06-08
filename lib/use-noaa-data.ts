@@ -177,6 +177,10 @@ export function useCurrentConditions() {
     solarWindSpeed: solarWind.current.speed,
     solarWindDensity: solarWind.current.density,
     bz: solarWind.current.bz,
+    bzHistory: (solarWind.mag.data ?? [])
+      .slice(-90)
+      .map((e) => e.bz_gsm)
+      .filter((v): v is number => v != null),
     guidance,
     riskLevel,
     isLoading: kpQuery.isLoading || ovationQuery.isLoading || solarWind.isLoading,

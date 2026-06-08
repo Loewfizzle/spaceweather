@@ -56,6 +56,7 @@ function DashboardInner() {
     solarWindSpeed,
     solarWindDensity,
     bz,
+    bzHistory,
     guidance,
     riskLevel,
     isLoading,
@@ -162,6 +163,7 @@ function DashboardInner() {
           solarWindSpeed={solarWindSpeed}
           solarWindDensity={solarWindDensity}
           bz={bz}
+          bzHistory={bzHistory}
           kp={kp}
           maxAuroraProbNA={maxAuroraProbNA}
           isLoading={isLoading}
