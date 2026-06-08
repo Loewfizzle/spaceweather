@@ -109,47 +109,46 @@ function DashboardInner() {
 
   return (
     <>
-      {/* Hero — outer div provides padding for both the normal and error paths */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-2">
+      {/* Primary Answer Zone — HeroOutlook + ViewingWindow */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-10 border-b border-[#0d1420]">
         <div className="flex items-center gap-2 mb-3">
           <span className="block h-[5px] w-[5px] rounded-full bg-[#94a3b8] flex-shrink-0" />
           <span className="text-[13px] font-semibold tracking-[0.08em] uppercase text-[#94a3b8]">Aurora Outlook</span>
         </div>
-        <SectionErrorBoundary message="Outlook unavailable — check back shortly." className="">
-          <HeroOutlook
-            outlook={tonightOutlook}
-            error={error}
-            isFetching={isFetching}
-            userLocationProb={userLocationProb}
-            cloudCoverPct={cloudCoverPct}
-            cloudCoverLabel={cloudCoverLabel}
-            kp={kp}
-            bz={bz}
-            solarWindSpeed={solarWindSpeed}
-            maxAuroraProbNA={maxAuroraProbNA}
-            ovationProcessed={ovationProcessed}
-            latestUpdate={latestGlobalUpdate}
-          />
-        </SectionErrorBoundary>
-      </div>
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:items-start">
+          <SectionErrorBoundary message="Outlook unavailable — check back shortly." className="">
+            <HeroOutlook
+              outlook={tonightOutlook}
+              error={error}
+              isFetching={isFetching}
+              userLocationProb={userLocationProb}
+              cloudCoverPct={cloudCoverPct}
+              cloudCoverLabel={cloudCoverLabel}
+              kp={kp}
+              bz={bz}
+              solarWindSpeed={solarWindSpeed}
+              maxAuroraProbNA={maxAuroraProbNA}
+              ovationProcessed={ovationProcessed}
+              latestUpdate={latestGlobalUpdate}
+            />
+          </SectionErrorBoundary>
+          <SectionErrorBoundary message="Forecast window unavailable.">
+            <ViewingWindow
+              kpForecast={kpForecastQuery.data ?? []}
+              kpHistory={kpHistory}
+              cloudCoverPct={cloudCoverPct}
+              cloudCoverLabel={cloudCoverLabel}
+              locationGranted={locationState.status === "set"}
+              isLoading={isLoading || kpForecastQuery.isLoading}
+              viewingWindow={viewingWindow}
+              kp={kp}
+              wrapperClassName=""
+            />
+          </SectionErrorBoundary>
+        </div>
+      </section>
 
-      <SectionErrorBoundary
-        message="Forecast window unavailable."
-        className="max-w-7xl mx-auto px-4 sm:px-6 pb-10"
-      >
-        <ViewingWindow
-          kpForecast={kpForecastQuery.data ?? []}
-          kpHistory={kpHistory}
-          cloudCoverPct={cloudCoverPct}
-          cloudCoverLabel={cloudCoverLabel}
-          locationGranted={locationState.status === "set"}
-          isLoading={isLoading || kpForecastQuery.isLoading}
-          viewingWindow={viewingWindow}
-          kp={kp}
-        />
-      </SectionErrorBoundary>
-
-      <SectionErrorBoundary message="Aurora map unavailable.">
+      <SectionErrorBoundary message="Aurora map unavailable." className="pt-10">
         <Suspense fallback={<MapSectionSkeleton />}>
           <AuroraMapSection userProb={userLocationProb} ovationPoints={ovationPoints} />
         </Suspense>

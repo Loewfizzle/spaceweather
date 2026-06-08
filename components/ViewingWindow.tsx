@@ -17,6 +17,7 @@ interface ViewingWindowProps {
   isLoading?: boolean;
   viewingWindow?: ViewingWindowData | null;
   kp?: number | null;
+  wrapperClassName?: string;
 }
 
 function formatET(date: Date): string {
@@ -43,7 +44,7 @@ function peakToLabel(kp: number): { label: string; color: string; guidance: stri
   return { label, color, guidance };
 }
 
-export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, locationGranted, isLoading, viewingWindow: viewingWindowProp, kp }: ViewingWindowProps) {
+export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, locationGranted, isLoading, viewingWindow: viewingWindowProp, kp, wrapperClassName }: ViewingWindowProps) {
   const windowData = useMemo(
     () => viewingWindowProp ?? computeViewingWindow(kpForecast),
     [viewingWindowProp, kpForecast]
@@ -54,7 +55,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
 
   if (!windowData.hasData && !lastNight) {
     if (isLoading) return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+      <div className={wrapperClassName ?? "max-w-7xl mx-auto px-4 sm:px-6 pb-4"}>
         <div className="card p-5 animate-pulse">
           <div className="flex items-center gap-2 mb-3">
             <div className="h-3 w-3 rounded bg-[#1e2937]" />
@@ -71,7 +72,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
       </div>
     );
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+      <div className={wrapperClassName ?? "max-w-7xl mx-auto px-4 sm:px-6 pb-4"}>
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="h-3 w-3 text-[#64748b]" />
@@ -94,7 +95,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+      <div className={wrapperClassName ?? "max-w-7xl mx-auto px-4 sm:px-6 pb-4"}>
         <div className="card p-5">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
