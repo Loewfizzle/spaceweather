@@ -7,6 +7,7 @@ import { DataStatus } from "./DataStatus";
 import { useModalState } from "../lib/hooks/useModalState";
 import { useUnreadAlerts } from "../lib/hooks/useUnreadAlerts";
 import { RecentAlertsModal } from "./RecentAlertsModal";
+import { Portal } from "./Portal";
 
 export function LiveHeader() {
   const { kp } = useCurrentConditions();
@@ -48,10 +49,12 @@ export function LiveHeader() {
       <DataStatus />
 
       {isOpen && (
-        <RecentAlertsModal
-          alerts={alerts ?? []}
-          onClose={close}
-        />
+        <Portal>
+          <RecentAlertsModal
+            alerts={alerts ?? []}
+            onClose={close}
+          />
+        </Portal>
       )}
     </div>
   );

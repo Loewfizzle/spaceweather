@@ -12,6 +12,7 @@ import { CurrentConditionsModal } from "./solar/CurrentConditionsModal";
 import { NotificationPrompt } from "./NotificationPrompt";
 import { InstallPrompt } from "./InstallPrompt";
 import { LocationPicker } from "./LocationPicker";
+import { Portal } from "./Portal";
 
 interface HeroOutlookProps {
   outlook: TonightOutlook;
@@ -307,15 +308,17 @@ export function HeroOutlook({
       )}
 
       {showConditionsModal && (
-        <CurrentConditionsModal
-          kp={kp ?? null}
-          bz={bz ?? null}
-          solarWindSpeed={solarWindSpeed ?? null}
-          maxAuroraProbNA={maxAuroraProbNA ?? null}
-          ovationProcessed={ovationProcessed}
-          userLocationProb={userLocationProb}
-          onClose={() => setShowConditionsModal(false)}
-        />
+        <Portal>
+          <CurrentConditionsModal
+            kp={kp ?? null}
+            bz={bz ?? null}
+            solarWindSpeed={solarWindSpeed ?? null}
+            maxAuroraProbNA={maxAuroraProbNA ?? null}
+            ovationProcessed={ovationProcessed}
+            userLocationProb={userLocationProb}
+            onClose={() => setShowConditionsModal(false)}
+          />
+        </Portal>
       )}
     </div>
   );
