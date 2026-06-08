@@ -41,7 +41,7 @@ test.describe('AuroraWatch smoke tests', () => {
 
   test('METEOR ACTIVITY section is visible', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('div.section-title', { hasText: 'METEOR ACTIVITY' })).toBeVisible();
+    await expect(page.locator('div.section-title', { hasText: 'METEOR ACTIVITY' }).first()).toBeVisible();
   });
 
   test('AURORA ALERTS section is visible', async ({ page }) => {
