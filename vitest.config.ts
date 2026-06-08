@@ -27,14 +27,14 @@ export default defineConfig({
         'next.config.ts',
       ],
       thresholds: {
-        // Global floor — raised after rounds 4-6 of coverage work + LocationPicker tests.
-        // Actuals as of this commit: ~48.9% stmt/lines, ~91.9% branches, ~85.7% functions.
-        // Functions actual is capped by the many "use client" hooks/components that are
-        // legitimately hard to unit-test in jsdom; threshold set ~3 pp below actual.
-        statements: 46,
-        lines: 46,
-        branches: 89,
-        functions: 83,
+        // Global floor — raised after rounds 4-7 of coverage work.
+        // Actuals: ~51.8% stmt/lines, ~94.1% branches, ~88.6% functions.
+        // Functions actual is capped by untested "use client" hooks/components (useCloudCover,
+        // useNotifications, etc.) that are integration-tested via E2E; threshold ~3 pp below actual.
+        statements: 49,
+        lines: 49,
+        branches: 92,
+        functions: 86,
         // Critical pure-logic files: lock in high existing coverage
         'lib/aurora/solar.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
         'lib/aurora/kp.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
@@ -45,8 +45,10 @@ export default defineConfig({
         // CurrentConditions: the MetricInfoModal code paths (4 card types) are
         // partially covered; functions/branches stay below 70% because many
         // modal code paths require separate opens per card.
-        'components/CurrentConditions.tsx': { statements: 70, branches: 35, functions: 40, lines: 70 },
-        'components/ViewingWindow.tsx': { statements: 70, branches: 60, functions: 60, lines: 70 },
+        // CurrentConditions: all 4 info modals + dotColor branches + null values tested
+        'components/CurrentConditions.tsx': { statements: 90, branches: 95, functions: 85, lines: 90 },
+        // ViewingWindow: last-night section, modal open, time-range null, tier labels tested
+        'components/ViewingWindow.tsx': { statements: 90, branches: 92, functions: 77, lines: 90 },
         // Hook tests added — lock in the coverage these tests provide
         'lib/hooks/useUserLocation.ts': { statements: 80, branches: 70, functions: 85, lines: 80 },
         // viewingWindow: 100% actual after branch-gap tests; floor at 95
@@ -87,6 +89,10 @@ export default defineConfig({
         // LocationPicker: 14 tests — lat/lon shortcut, API success/error/loading; one uncovered
         // branch at line 28 (empty-query early return unreachable while button is disabled)
         'components/LocationPicker.tsx': { statements: 95, branches: 93, functions: 95, lines: 95 },
+        // location-search route: all buildLabel branches + request path tested; 4 branches on
+        // lines 35/68-71 are the postcode-filter sub-expression and slice(0,5) guard (unreachable
+        // via Nominatim which always honours limit=5) — floor 3 pp below actual 86.66%
+        'app/api/location-search/route.ts': { statements: 95, branches: 84, functions: 95, lines: 95 },
       },
     },
   },

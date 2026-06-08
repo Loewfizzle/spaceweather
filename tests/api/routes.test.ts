@@ -285,3 +285,152 @@ describe('GET /api/fireballs', () => {
     expect(url).toContain('limit=10');
   });
 });
+
+// ============================================
+// GET /api/location-search
+// ============================================
+describe('GET /api/location-search', () => {
+  afterEach(() => vi.resetAllMocks());
+
+  async function locationSearch(params: Record<string, string> = {}) {
+    const { GET } = await import('../../app/api/location-search/route');
+    return GET(makeReq('/api/location-search', params));
+  }
+
+  function nominatimHit(overrides: {
+    lat?: string;
+    lon?: string;
+    display_name?: string;
+    address?: Record<string, string>;
+  } = {}) {
+    return {
+      lat: '45.0',
+      lon: '-93.0',
+      display_name: 'Minneapolis, Hennepin County, Minnesota, United States',
+      address: {},
+      ...overrides,
+    };
+  }
+
+  function mockNominatim(results: unknown[]) {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => results });
+  }
+
+  it('returns empty results when q param is missing', async () => {
+    const res = await locationSearch({});
+    const body = await res.json();
+    expect(body.results).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns empty results when q is a single character', async () => {
+    const res = await locationSearch({ q: 'a' });
+    const body = await res.json();
+    expect(body.results).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns empty results when Nominatim responds with non-ok status', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 503 });
+    const res = await locationSearch({ q: 'Chicago' });
+    const body = await res.json();
+    expect(body.results).toEqual([]);
+  });
+
+  it('returns empty results when fetch throws', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('network error'));
+    const res = await locationSearch({ q: 'Chicago' });
+    const body = await res.json();
+    expect(body.results).toEqual([]);
+  });
+
+  it('formats US cities as "City, State"', async () => {
+    mockNominatim([nominatimHit({ address: { city: 'Chicago', state: 'Illinois', country_code: 'us' } })]);
+    const res = await locationSearch({ q: 'Chicago' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('Chicago, Illinois');
+  });
+
+  it('formats Canadian cities as "City, Province"', async () => {
+    mockNominatim([nominatimHit({ address: { city: 'Toronto', state: 'Ontario', country_code: 'ca' } })]);
+    const res = await locationSearch({ q: 'Toronto' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('Toronto, Ontario');
+  });
+
+  it('formats non-US/CA cities as "City, Country"', async () => {
+    mockNominatim([nominatimHit({ address: { city: 'London', country: 'United Kingdom', country_code: 'gb' } })]);
+    const res = await locationSearch({ q: 'London' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('London, United Kingdom');
+  });
+
+  it('returns just the city name when no country field is present', async () => {
+    mockNominatim([nominatimHit({ address: { city: 'Nuuk', country_code: 'gl' } })]);
+    const res = await locationSearch({ q: 'Nuuk' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('Nuuk');
+  });
+
+  it('falls back to town when city is absent', async () => {
+    mockNominatim([nominatimHit({ address: { town: 'Stowe', state: 'Vermont', country_code: 'us' } })]);
+    const res = await locationSearch({ q: 'Stowe' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('Stowe, Vermont');
+  });
+
+  it('falls back to village when city and town are absent', async () => {
+    mockNominatim([nominatimHit({ address: { village: 'Woodstock', state: 'Vermont', country_code: 'us' } })]);
+    const res = await locationSearch({ q: 'Woodstock' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('Woodstock, Vermont');
+  });
+
+  it('falls back to suburb when city/town/village/hamlet/municipality are absent', async () => {
+    mockNominatim([nominatimHit({ address: { suburb: 'Midtown', state: 'New York', country_code: 'us' } })]);
+    const res = await locationSearch({ q: 'Midtown' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('Midtown, New York');
+  });
+
+  it('formats a postcode query as "postcode, state, country"', async () => {
+    mockNominatim([nominatimHit({
+      display_name: '48101, Michigan, USA',
+      address: { postcode: '48101', state: 'Michigan', country: 'United States' },
+    })]);
+    const res = await locationSearch({ q: '48101' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('48101, Michigan, United States');
+  });
+
+  it('falls back to the first two display_name segments when no city or postcode', async () => {
+    mockNominatim([nominatimHit({ display_name: 'Pacific Ocean, Pacific, Global', address: {} })]);
+    const res = await locationSearch({ q: 'Pacific' });
+    const body = await res.json();
+    expect(body.results[0].label).toBe('Pacific Ocean, Pacific');
+  });
+
+  it('limits results to 5 even when Nominatim returns more', async () => {
+    const many = Array.from({ length: 7 }, (_, i) =>
+      nominatimHit({ lat: String(40 + i), address: { city: `City${i}`, state: 'State', country_code: 'us' } })
+    );
+    mockNominatim(many);
+    const res = await locationSearch({ q: 'City' });
+    const body = await res.json();
+    expect(body.results).toHaveLength(5);
+  });
+
+  it('converts lat/lon strings to numbers in the result', async () => {
+    mockNominatim([nominatimHit({ lat: '44.9778', lon: '-93.2650', address: { city: 'Minneapolis', state: 'Minnesota', country_code: 'us' } })]);
+    const res = await locationSearch({ q: 'Minneapolis' });
+    const body = await res.json();
+    expect(body.results[0].lat).toBe(44.9778);
+    expect(body.results[0].lon).toBe(-93.265);
+  });
+
+  it('includes a Cache-Control header on a successful response', async () => {
+    mockNominatim([nominatimHit({ address: { city: 'Denver', state: 'Colorado', country_code: 'us' } })]);
+    const res = await locationSearch({ q: 'Denver' });
+    expect(res.headers.get('Cache-Control')).toBe('public, s-maxage=3600');
+  });
+});
