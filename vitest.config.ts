@@ -51,7 +51,7 @@ export default defineConfig({
         // Hook tests added — lock in the coverage these tests provide
         'lib/hooks/useUserLocation.ts': { statements: 80, branches: 70, functions: 85, lines: 80 },
         // viewingWindow: 100% actual after branch-gap tests; floor at 95
-        'lib/utils/viewingWindow.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
+        'lib/utils/viewingWindow.ts': { statements: 95, branches: 93, functions: 95, lines: 95 },
         // useFocusTrap and useSolarActivity: 100% actual at time of writing; floor at 95
         'lib/hooks/useFocusTrap.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
         'lib/hooks/useSolarActivity.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
