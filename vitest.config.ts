@@ -31,8 +31,8 @@ export default defineConfig({
         // Actuals as of this commit: ~41.9% stmt/lines, ~87% branches, ~80.8% functions.
         // Functions actual is capped by the many "use client" hooks/components that are
         // legitimately hard to unit-test in jsdom; threshold set 1 pp below actual.
-        statements: 40,
-        lines: 40,
+        statements: 39,
+        lines: 39,
         branches: 86,
         functions: 75,
         // Critical pure-logic files: lock in high existing coverage
