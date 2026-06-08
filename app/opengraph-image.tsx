@@ -60,7 +60,7 @@ function colorFromKp(kp: number): string {
 export default async function OGImage() {
   const [kp, bz] = await Promise.all([fetchKp(), fetchBz()]);
 
-  const outlook = kp !== null ? getTonightOutlook(kp, null, null) : null;
+  const outlook = kp !== null ? getTonightOutlook(kp, bz, null) : null;
   const label = outlook?.status ?? 'No Data';
   const accent = kp !== null ? colorFromKp(kp) : '#64748b';
   const message = outlook?.message ?? 'Real-time aurora visibility for the northern United States.';
