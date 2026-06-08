@@ -103,4 +103,25 @@ describe('ViewingWindowModal', () => {
     expect(text).toContain('Partly cloudy');
     expect(text).toContain('25%');
   });
+
+  it('shows "great for viewing" when cloudCoverPct <= 20 (line 138 true branch)', () => {
+    render(<ViewingWindowModal {...defaultProps} cloudCoverPct={10} cloudCoverLabel="Clear" />);
+    expect(screen.getByText(/great for viewing/i)).toBeInTheDocument();
+  });
+
+  it('shows "keep watching for gaps" when cloudCoverPct is between 21 and 50 (line 140)', () => {
+    render(<ViewingWindowModal {...defaultProps} cloudCoverPct={35} cloudCoverLabel="Partly cloudy" />);
+    expect(screen.getByText(/keep watching for gaps/i)).toBeInTheDocument();
+  });
+
+  it('shows "Significant cloud cover" when cloudCoverPct > 50 (else branch)', () => {
+    render(<ViewingWindowModal {...defaultProps} cloudCoverPct={75} cloudCoverLabel="Mostly cloudy" />);
+    expect(screen.getByText(/Significant cloud cover/i)).toBeInTheDocument();
+  });
+
+  it('shows Alaska/Canada fallback message when Kp is too low for any city (lines 122–125)', () => {
+    // kp=0 → minLat=67; no US city in the dataset reaches 67°N → cities=[]
+    render(<ViewingWindowModal kp={0} peakKp={0} onClose={vi.fn()} />);
+    expect(screen.getByText(/visible mainly in Alaska and northern Canada/i)).toBeInTheDocument();
+  });
 });

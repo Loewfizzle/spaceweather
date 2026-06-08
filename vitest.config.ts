@@ -73,6 +73,8 @@ export default defineConfig({
         'components/ErrorState.tsx': { statements: 90, branches: 90, functions: 90, lines: 90 },
         // KpForecast: all loading/error/empty states + stormDays branches tested; floor at 90
         'components/KpForecast.tsx': { statements: 90, branches: 90, functions: 90, lines: 90 },
+        // ViewingWindowModal: all cloud cover branches + cities=0 fallback covered; floor at 90
+        'components/solar/ViewingWindowModal.tsx': { statements: 90, branches: 90, functions: 90, lines: 90 },
       },
     },
   },
