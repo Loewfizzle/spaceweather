@@ -45,8 +45,7 @@ export function useDerivedConditions({
 
   const maxAuroraProbNA = useMemo(
     () => (ovationData ? maxOvationNorthAmerica(ovationPoints) : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- ovationData gates nullability only; exclude to avoid rescanning on every poll tick
-    [ovationPoints]
+    [ovationData, ovationPoints]
   );
 
   // True when the NOAA fetch itself succeeded — even if the aurora oval happened
