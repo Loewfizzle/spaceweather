@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { X, ChevronRight, Map } from "lucide-react";
 import { useUserLocationContext } from "../../lib/context/UserLocationContext";
+import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
 
 function locationBlurb(prob: number, label: string | null): { first: string; rest: string | null } {
   const name = label ?? "Your location";
@@ -22,6 +24,8 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
   const { userLocationLabel, userLat } = useUserLocationContext();
   const hasLocation = userLat != null && userProb !== undefined;
   const locBlurb = hasLocation ? locationBlurb(userProb ?? 0, userLocationLabel) : null;
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, onClose);
 
   return (
     <div
@@ -33,6 +37,7 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
     >
       <div className="flex min-h-full items-center justify-center p-4">
         <div
+          ref={panelRef}
           className="bg-[#0d1425] border border-[#1e2937] rounded-2xl w-full max-w-sm"
           onClick={(e) => e.stopPropagation()}
         >

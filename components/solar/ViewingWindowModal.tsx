@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { X, ChevronRight, Clock } from "lucide-react";
 import { US_CITIES } from "../../lib/constants/usCities";
+import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
 
 // Prefer well-known city names when building the reference list
 const PREFERRED = new Set([
@@ -66,6 +68,8 @@ export function ViewingWindowModal({
   const effectiveKp = kp ?? peakKp;
   const { cities, minLat } = visibleCities(effectiveKp);
   const locBlurb = userLat != null ? locationBlurb(userLat, effectiveKp, userLocationLabel) : null;
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, onClose);
 
   return (
     <div
@@ -77,6 +81,7 @@ export function ViewingWindowModal({
     >
       <div className="flex min-h-full items-center justify-center p-4">
         <div
+          ref={panelRef}
           className="bg-[#0d1425] border border-[#1e2937] rounded-2xl w-full max-w-sm"
           onClick={(e) => e.stopPropagation()}
         >

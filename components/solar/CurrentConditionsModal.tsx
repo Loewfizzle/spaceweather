@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { X, ChevronRight, Activity } from "lucide-react";
 import { useUserLocationContext } from "../../lib/context/UserLocationContext";
+import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
 
 // ── Dynamic blurb helpers ─────────────────────────────────────────────────────
 
@@ -81,6 +83,8 @@ export function CurrentConditionsModal({
   onClose,
 }: CurrentConditionsModalProps) {
   const { userLocationLabel } = useUserLocationContext();
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, onClose);
 
   const wind = windBlurb(solarWindSpeed);
   const bzData = bzBlurb(bz);
@@ -98,6 +102,7 @@ export function CurrentConditionsModal({
     >
       <div className="flex min-h-full items-center justify-center p-4">
         <div
+          ref={panelRef}
           className="bg-[#0d1425] border border-[#1e2937] rounded-2xl w-full max-w-sm"
           onClick={(e) => e.stopPropagation()}
         >
