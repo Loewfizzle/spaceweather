@@ -52,6 +52,11 @@ export default defineConfig({
         'components/ViewingWindow.tsx': { statements: 70, branches: 60, functions: 60, lines: 70 },
         // Hook tests added — lock in the coverage these tests provide
         'lib/hooks/useUserLocation.ts': { statements: 80, branches: 70, functions: 85, lines: 80 },
+        // useFocusTrap and useSolarActivity: 100% actual at time of writing; floor at 95
+        'lib/hooks/useFocusTrap.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
+        'lib/hooks/useSolarActivity.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
+        // conditions.ts: all 8 blurb functions fully tested; floor at 95
+        'lib/aurora/conditions.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
       },
     },
   },
