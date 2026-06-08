@@ -19,6 +19,13 @@ describe('getNearestCityName', () => {
     const result = getNearestCityName(47.6, -122.3);
     expect(result).toContain('Seattle');
   });
+
+  it('handles antimeridian wrap: coordinate at lon=+175 (Russia) resolves to western Alaska (line 12 true branch)', () => {
+    // user at lon=+175; nearest US city is in western Alaska ~lon=-170.
+    // dLonRaw = -170 - 175 = -345; |dLonRaw| > 180 → true branch fires.
+    const result = getNearestCityName(65, 175);
+    expect(result).toMatch(/^.+, AK$/);
+  });
 });
 
 // ── approximateLocation ───────────────────────────────────────────────────────

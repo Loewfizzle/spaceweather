@@ -113,6 +113,6 @@ export function approximateLocation(lat: number, lon: number): string {
     if (rule.match(lat, lon)) return rule.name;
   }
   // The catch-all ocean rules cover every lat/lon; this path is unreachable.
-  /* v8 ignore next */
+  /* v8 ignore next 2 */
   return "";
 }
