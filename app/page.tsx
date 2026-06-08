@@ -43,23 +43,25 @@ export default function AuroraWatch() {
         </div>
       </header>
 
-      {/* Hero copy — server-rendered for LCP + crawlability */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-0">
-        <div className="max-w-3xl">
-          <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-3">
-            LIVE • NOAA SWPC DATA
+      <main id="main-content">
+        {/* Hero copy — server-rendered for LCP + crawlability */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-0">
+          <div className="max-w-3xl">
+            <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-3">
+              LIVE • NOAA SWPC DATA
+            </div>
+            <h1 className="text-6xl sm:text-7xl font-semibold tracking-tighter leading-[0.92] mb-5">
+              Space &amp; Sky Events
+            </h1>
+            <p className="text-2xl text-[#94a3b8] tracking-tight max-w-2xl">
+              Live aurora forecasts, solar weather, meteor activity, and more across the United States.
+            </p>
           </div>
-          <h1 className="text-6xl sm:text-7xl font-semibold tracking-tighter leading-[0.92] mb-5">
-            Space &amp; Sky Events
-          </h1>
-          <p className="text-2xl text-[#94a3b8] tracking-tight max-w-2xl">
-            Live aurora forecasts, solar weather, meteor activity, and more across the United States.
-          </p>
         </div>
-      </div>
 
-      {/* All dynamic sections — single client boundary */}
-      <DashboardClient />
+        {/* All dynamic sections — single client boundary */}
+        <DashboardClient />
+      </main>
 
       {/* Footer — server-rendered */}
       <footer className="border-t border-[#1e2937] pt-8 pb-10 text-xs text-[#64748b]">

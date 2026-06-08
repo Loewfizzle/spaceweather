@@ -66,6 +66,12 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="min-h-full flex flex-col bg-[#05070f] text-[#f1f5f9]">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded focus:bg-[#0d1425] focus:px-4 focus:py-2 focus:text-sm focus:text-[#94a3b8] focus:outline focus:outline-[#1e2937]"
+        >
+          Skip to main content
+        </a>
         <Providers>{children}</Providers>
         <Analytics />
       </body>

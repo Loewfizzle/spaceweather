@@ -51,12 +51,23 @@ export function LiveIndicator() {
   const isLive = now - lastFetchedAt < LIVE_THRESHOLD_MS;
   const dotColor = isLive ? "#22c55e" : "#64748b";
 
+  const ageText = formatDistanceToNow(latestGlobalUpdate, { addSuffix: true });
+
   return (
     <span
+      aria-live="polite"
+      aria-atomic="true"
       className="flex items-center gap-1 tabular-nums"
       title="Most recent data across all sources"
     >
-      <span className="relative flex h-1.5 w-1.5 shrink-0">
+      {/* Screen-reader label — announces when data age changes */}
+      <span className="sr-only">
+        {isLive
+          ? `Space weather data live — updated ${ageText}`
+          : `Space weather data stale — last updated ${ageText}`}
+      </span>
+
+      <span aria-hidden="true" className="relative flex h-1.5 w-1.5 shrink-0">
         {isLive && (
           <span
             className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
@@ -70,17 +81,17 @@ export function LiveIndicator() {
       </span>
 
       {/* Desktop: prose age of the NOAA data itself */}
-      <span className="hidden sm:inline">
-        {formatDistanceToNow(latestGlobalUpdate, { addSuffix: true })}
+      <span aria-hidden="true" className="hidden sm:inline">
+        {ageText}
       </span>
 
       {/* Mobile: "LIVE" when recently fetched; compact data age otherwise */}
       {isLive ? (
-        <span className="sm:hidden text-[9px] font-medium tracking-wider text-[#22c55e]">
+        <span aria-hidden="true" className="sm:hidden text-[9px] font-medium tracking-wider text-[#22c55e]">
           LIVE
         </span>
       ) : (
-        <span className="sm:hidden text-[9px] tabular-nums text-[#64748b]">
+        <span aria-hidden="true" className="sm:hidden text-[9px] tabular-nums text-[#64748b]">
           {compactAge(now, latestGlobalUpdate)}
         </span>
       )}
