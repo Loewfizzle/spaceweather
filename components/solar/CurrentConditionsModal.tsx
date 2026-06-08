@@ -49,14 +49,14 @@ function ovationNABlurb(prob: number | null, processed?: boolean): string {
   return `At ${Math.round(prob)}%, OVATION is showing a very active aurora oval. This is a strong aurora event.`;
 }
 
-function ovationUserBlurb(prob: number | null, label?: string | null): string | null {
+function ovationUserBlurb(prob: number | null, label?: string | null): { first: string; rest: string | null } | null {
   if (prob === null) return null;
   const name = label ?? "Your location";
-  if (prob <= 1)  return `${name} is showing less than 1% on the OVATION model — the aurora oval isn't reaching your area right now.`;
-  if (prob < 10)  return `${name} is showing ${Math.round(prob)}% — a faint signal at your latitude. Aurora could be present but would be very faint and hard to see.`;
-  if (prob < 25)  return `${name} is showing ${Math.round(prob)}% — a marginal but real signal. Dark skies and patience could be rewarded tonight.`;
-  if (prob < 50)  return `${name} is showing ${Math.round(prob)}% — a solid reading. Aurora is plausibly visible from your location right now. Worth going outside.`;
-  return `${name} is showing ${Math.round(prob)}% — a strong OVATION signal at your location. Aurora overhead right now.`;
+  if (prob <= 1)  return { first: `${name} is showing less than 1% on the OVATION model — the aurora oval isn't reaching your area right now.`, rest: null };
+  if (prob < 10)  return { first: `${name} is showing ${Math.round(prob)}% — a faint signal at your latitude.`, rest: `Aurora could be present but would be very faint and hard to see.` };
+  if (prob < 25)  return { first: `${name} is showing ${Math.round(prob)}% — a marginal but real signal.`, rest: `Dark skies and patience could be rewarded tonight.` };
+  if (prob < 50)  return { first: `${name} is showing ${Math.round(prob)}% — a solid reading.`, rest: `Aurora is plausibly visible from your location right now. Worth going outside.` };
+  return { first: `${name} is showing ${Math.round(prob)}% — a strong OVATION signal directly over your location.`, rest: `Aurora overhead right now.` };
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
@@ -123,7 +123,10 @@ export function CurrentConditionsModal({
             {/* Location box — shown first when location is set */}
             {ovationUser && (
               <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-                <p className="text-[12px] text-[#64748b] leading-relaxed">{ovationUser}</p>
+                <p className="text-[12px] leading-relaxed">
+                  <span className="font-semibold text-[#94a3b8]">{ovationUser.first}</span>
+                  {ovationUser.rest && <>{" "}<span className="text-[#64748b]">{ovationUser.rest}</span></>}
+                </p>
               </div>
             )}
 
