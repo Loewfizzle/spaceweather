@@ -12,6 +12,9 @@ import { TileErrorDetector } from "./map/TileErrorDetector";
 import { UserLocationMarker } from "./map/UserLocationMarker";
 import { MapStateTracker, MapInstanceCapture } from "./map/MapStateTracker";
 
+const DEFAULT_CENTER: [number, number] = [48, -83];
+const DEFAULT_ZOOM = 3;
+
 interface AuroraMapProps {
   minProb?: number;
   /** Granted geolocation latitude; undefined/null → no pin rendered. */
@@ -44,7 +47,7 @@ export default function AuroraMap({
   // Restore the user's last map position from localStorage (runs once on mount).
   // Validates every field so a corrupted entry can't break the map.
   const [mapInitialState] = useState<{ center: [number, number]; zoom: number }>(() => {
-    const defaults = { center: [48, -83] as [number, number], zoom: 3 };
+    const defaults = { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM };
     if (typeof window === "undefined") return defaults;
     try {
       const raw = localStorage.getItem("aurora-map-state");
@@ -193,7 +196,7 @@ export default function AuroraMap({
       {/* Reset button — outside MapContainer so overflow-hidden doesn't clip it */}
       {mapInstance && (
         <button
-          onClick={(e) => { e.stopPropagation(); mapInstance.setView([48, -100], 3); }}
+          onClick={(e) => { e.stopPropagation(); mapInstance.setView(DEFAULT_CENTER, DEFAULT_ZOOM); }}
           className="absolute bottom-3 left-3 z-[20] flex items-center justify-center rounded-lg border border-[#1e2937] bg-[#0f1425]/95 p-1.5 shadow backdrop-blur-sm hover:bg-[#1e2937] transition-colors"
           title="Reset view"
           aria-label="Reset map view"
