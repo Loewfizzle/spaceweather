@@ -142,7 +142,6 @@ function DashboardInner() {
               isLoading={isLoading || kpForecastQuery.isLoading}
               viewingWindow={viewingWindow}
               kp={kp}
-              wrapperClassName=""
             />
           </SectionErrorBoundary>
         </div>

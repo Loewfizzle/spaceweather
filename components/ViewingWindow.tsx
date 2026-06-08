@@ -17,7 +17,6 @@ interface ViewingWindowProps {
   isLoading?: boolean;
   viewingWindow?: ViewingWindowData | null;
   kp?: number | null;
-  wrapperClassName?: string;
 }
 
 function formatET(date: Date): string {
@@ -44,7 +43,7 @@ function peakToLabel(kp: number): { label: string; color: string; guidance: stri
   return { label, color, guidance };
 }
 
-export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, locationGranted, isLoading, viewingWindow: viewingWindowProp, kp, wrapperClassName }: ViewingWindowProps) {
+export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCoverLabel, locationGranted, isLoading, viewingWindow: viewingWindowProp, kp }: ViewingWindowProps) {
   const windowData = useMemo(
     () => viewingWindowProp ?? computeViewingWindow(kpForecast),
     [viewingWindowProp, kpForecast]
@@ -55,35 +54,31 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
 
   if (!windowData.hasData && !lastNight) {
     if (isLoading) return (
-      <div className={wrapperClassName ?? "max-w-7xl mx-auto px-4 sm:px-6 pb-4"}>
-        <div className="card p-5 animate-pulse">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-3 w-3 rounded bg-[#1e2937]" />
-            <div className="h-2.5 w-40 rounded bg-[#1e2937]" />
+      <div className="card p-5 animate-pulse">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-3 w-3 rounded bg-[#1e2937]" />
+          <div className="h-2.5 w-40 rounded bg-[#1e2937]" />
+        </div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 space-y-2">
+            <div className="h-6 w-48 rounded bg-[#1e2937]" />
+            <div className="h-3 w-56 rounded bg-[#1e2937]" />
           </div>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 space-y-2">
-              <div className="h-6 w-48 rounded bg-[#1e2937]" />
-              <div className="h-3 w-56 rounded bg-[#1e2937]" />
-            </div>
-            <div className="h-10 w-12 rounded bg-[#1e2937]" />
-          </div>
+          <div className="h-10 w-12 rounded bg-[#1e2937]" />
         </div>
       </div>
     );
     return (
-      <div className={wrapperClassName ?? "max-w-7xl mx-auto px-4 sm:px-6 pb-4"}>
-        <div className="card p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-3 w-3 text-[#64748b]" />
-            <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
-              TONIGHT&apos;S FORECAST
-            </span>
-          </div>
-          <p className="text-sm text-[#475569]">
-            No forecast data available for tonight&apos;s viewing window.
-          </p>
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Clock className="h-3 w-3 text-[#64748b]" />
+          <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
+            TONIGHT&apos;S FORECAST
+          </span>
         </div>
+        <p className="text-sm text-[#475569]">
+          No forecast data available for tonight&apos;s viewing window.
+        </p>
       </div>
     );
   }
@@ -95,8 +90,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
 
   return (
     <>
-      <div className={wrapperClassName ?? "max-w-7xl mx-auto px-4 sm:px-6 pb-4"}>
-        <div className="card p-5">
+      <div className="card p-5">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <Clock className="h-3 w-3 text-[#64748b]" />
@@ -179,7 +173,6 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
               </div>
             </div>
           )}
-        </div>
       </div>
 
       {showModal && (
