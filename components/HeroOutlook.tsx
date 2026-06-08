@@ -100,8 +100,9 @@ export function HeroOutlook({
               )}
             </div>
 
-            <p className={`text-[#cbd5e1] text-[15px] leading-relaxed ${outlook.reasons.length > 0 ? 'mb-1' : 'mb-3'}`}>
-              {outlook.message}
+            <p className={`text-[15px] leading-relaxed ${outlook.reasons.length > 0 ? 'mb-1' : 'mb-3'}`}>
+              <span className="text-[#64748b]">Current indicators — </span>
+              <span className="text-[#cbd5e1]">{outlook.message}</span>
             </p>
             {outlook.reasons.length > 0 && (
               <ul className="mb-3 space-y-0.5">
