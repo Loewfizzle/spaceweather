@@ -97,7 +97,7 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
               </div>
               <p className="text-[12px] text-[#64748b] leading-relaxed">
                 When you see <span className="text-[#f97316]">orange</span> or{" "}
-                <span className="text-[#a78bfa]">purple</span> over your area — that&apos;s your signal to head outside.
+                <span className="text-[#a78bfa]">purple</span>{" "}over your area — that&apos;s your signal to head outside.
               </p>
             </div>
 
@@ -106,12 +106,12 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
               <div className="text-xs font-medium text-[#94a3b8] mb-1.5">What the percentages actually mean</div>
               <p className="text-[12px] text-[#64748b] leading-relaxed">
                 These are the OVATION model&apos;s estimate of how likely aurora is to be present in
-                the <span className="text-[#94a3b8]">upper atmosphere</span> above each location —
+                the <span className="text-[#94a3b8]">upper atmosphere</span>{" "}above each location —
                 roughly 100 km up. They&apos;re not a simple &ldquo;chance of seeing it from your
                 backyard&rdquo; number, because cloud cover and light pollution aren&apos;t in the model.
               </p>
-              <p className="text-[12px] text-[#64748b] leading-relaxed mt-2">
-                <span className="text-[#94a3b8] font-semibold">Don&apos;t dismiss moderate values.</span>{" "}
+              <div className="text-xs font-medium text-[#94a3b8] mt-2 mb-1">Don&apos;t dismiss moderate values</div>
+              <p className="text-[12px] text-[#64748b] leading-relaxed">
                 A reading of 20–30% over your area means there is real aurora above you right now.
                 Whether you can see it depends on your skies — but the aurora is there. Anything
                 above 15–20% is genuinely worth going outside for if conditions are clear.
