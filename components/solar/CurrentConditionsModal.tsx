@@ -92,7 +92,10 @@ export function CurrentConditionsModal({
               <p className="text-[12px] text-[#64748b] leading-relaxed">
                 <span className="text-[#94a3b8] font-semibold">Live Conditions</span> is the real-time
                 feed — data from NOAA satellites updated minute by minute, like looking out the window
-                right now.{" "}<span className="text-[#94a3b8] font-semibold">Tonight&apos;s Forecast</span>{" "}is the
+                right now.
+              </p>
+              <p className="text-[12px] text-[#64748b] leading-relaxed mt-2">
+                <span className="text-[#94a3b8] font-semibold">Tonight&apos;s Forecast</span> is the
                 big-picture prediction for the night ahead — a 36-hour outlook that tells you when
                 conditions might peak after sunset. Both matter; this section is about what&apos;s happening
                 this instant.
