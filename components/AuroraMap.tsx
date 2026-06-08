@@ -23,6 +23,9 @@ interface AuroraMapProps {
   /** Pre-filtered NA OvationPoint[] from useCurrentConditions. When provided,
    *  skips the 65k-entry filterOvationCoordinates scan and applies minProb in O(k). */
   ovationPoints?: OvationPoint[];
+  /** When true, suppresses the map's own border and border-radius so the parent
+   *  card provides the container styling. */
+  insideCard?: boolean;
 }
 
 export default function AuroraMap({
@@ -31,6 +34,7 @@ export default function AuroraMap({
   userLon,
   userProb,
   ovationPoints: ovationPointsProp,
+  insideCard = false,
 }: AuroraMapProps) {
   const { data: ovationData, isLoading, error, refetch } = useOvationData();
   const [tilesFailed, setTilesFailed] = useState(false);
@@ -96,9 +100,13 @@ export default function AuroraMap({
     userLat != null && userLon != null &&
     isFinite(userLat) && isFinite(userLon);
 
+  const placeholderCls = insideCard
+    ? "h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center bg-[#0c1222]"
+    : "map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center";
+
   if (isLoading) {
     return (
-      <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
+      <div className={placeholderCls}>
         <div className="text-center">
           <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
           <div className="text-[#64748b] text-sm">Syncing OVATION aurora data…</div>
@@ -109,7 +117,7 @@ export default function AuroraMap({
 
   if (error) {
     return (
-      <div className="map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center">
+      <div className={placeholderCls}>
         <div className="text-center text-sm">
           <div className="text-[#94a3b8] mb-2">Aurora data temporarily unavailable.</div>
           <button
@@ -123,8 +131,12 @@ export default function AuroraMap({
     );
   }
 
+  const wrapperCls = insideCard
+    ? "relative overflow-hidden bg-[#05070f]"
+    : "relative overflow-hidden rounded-2xl border border-[#1e2937] bg-[#05070f]";
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-[#1e2937] bg-[#05070f]">
+    <div className={wrapperCls}>
       <div className="h-[420px] sm:h-[480px] md:h-[520px]">
         <MapContainer
           center={mapInitialState.center}
@@ -192,7 +204,8 @@ export default function AuroraMap({
 
       {/* Legend — z-[20] keeps it above the empty state overlay */}
       <div className="absolute bottom-3 right-3 z-[20] rounded-lg border border-[#1e2937] bg-[#0f1425]/95 px-3 py-2 text-[10px] text-[#cbd5e1] shadow backdrop-blur-sm">
-        <div className="mb-1 font-medium tracking-wide">Aurora Probability</div>
+        <div className="mb-0.5 font-medium tracking-wide">Aurora Probability</div>
+        <div className="text-[9px] text-[#475569] mb-1">NOAA OVATION model</div>
         <div
           className="h-2 w-32 rounded-full mb-1 border border-[#1e2937]/50"
           style={{
