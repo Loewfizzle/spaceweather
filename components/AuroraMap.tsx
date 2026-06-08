@@ -44,7 +44,7 @@ export default function AuroraMap({
   // Restore the user's last map position from localStorage (runs once on mount).
   // Validates every field so a corrupted entry can't break the map.
   const [mapInitialState] = useState<{ center: [number, number]; zoom: number }>(() => {
-    const defaults = { center: [48, -90] as [number, number], zoom: 3 };
+    const defaults = { center: [48, -83] as [number, number], zoom: 3 };
     if (typeof window === "undefined") return defaults;
     try {
       const raw = localStorage.getItem("aurora-map-state");
