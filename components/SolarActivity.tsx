@@ -42,10 +42,9 @@ export function SolarActivity() {
       ) : (
         <div className="grid grid-cols-2 gap-3 mb-3">
           {/* Latest Flare — clickable when data is available */}
-          <button
-            className="metric text-left w-full hover:border-[#293548] transition-colors group disabled:cursor-default"
+          <div
+            className={`metric transition-colors ${latestFlare ? 'hover:border-[#293548] cursor-pointer' : 'cursor-default'}`}
             onClick={() => latestFlare && setOpenModal("flare")}
-            disabled={!latestFlare}
           >
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
@@ -56,9 +55,12 @@ export function SolarActivity() {
                 LATEST FLARE
               </div>
               {latestFlare && (
-                <span className="text-xs text-[#64748b] group-hover:text-[#94a3b8] transition-colors flex items-center gap-0.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setOpenModal("flare"); }}
+                  className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                >
                   Details <ChevronRight className="h-3.5 w-3.5" />
-                </span>
+                </button>
               )}
             </div>
 
@@ -87,7 +89,7 @@ export function SolarActivity() {
                 No flares detected recently.
               </div>
             )}
-          </button>
+          </div>
 
           {/* Recent CMEs */}
           <div className="metric">
