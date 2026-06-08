@@ -134,14 +134,14 @@ export function getTonightOutlook(
 
   if (kp >= 7 || (kp >= 6 && (strongFavorableBz || highProb)) || (kp >= 5 && veryHighSpeed && isFavorableBz)) {
     status = 'Excellent';
-    message = 'Strong chance across the northern tier, reaching well into the Great Lakes region.';
+    message = 'Strong aurora activity expected across the northern US, with a good chance extending well south of typical viewing areas.';
     accentColor = AURORA_TIERS.storm.color;
     if (strongFavorableBz) reasons.push('Strong southward Bz currently boosting chances');
     if (veryHighSpeed && solarWindSpeed) reasons.push(`Very high solar wind speed (${Math.round(solarWindSpeed)} km/s) amplifying activity`);
     if (highProb && !veryHighSpeed) reasons.push('Elevated OVATION probabilities across North America');
   } else if (kp >= 5 || (kp >= 4 && isFavorableBz) || (kp >= 4 && highSpeed) || (kp >= 3 && highSpeed && isFavorableBz) || highProb) {
     status = 'Good';
-    message = 'Good chance tonight for northern-tier states and the Great Lakes region.';
+    message = 'Good chance tonight for northern-tier states — best visibility under dark skies away from city lights.';
     accentColor = AURORA_TIERS.strong.color;
     if (isFavorableBz) reasons.push('Southward Bz currently favorable');
     if (highSpeed && solarWindSpeed) reasons.push(`Elevated solar wind speed (${Math.round(solarWindSpeed)} km/s) enhancing coupling`);

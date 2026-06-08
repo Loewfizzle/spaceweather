@@ -54,7 +54,7 @@ export function HeroOutlook({
   const [showPicker, setShowPicker] = useState(false);
   const [showConditionsModal, setShowConditionsModal] = useState(false);
 
-  const displayedCities = outlook.cityProbs?.slice(0, 6) ?? [];
+  const displayedCities = (outlook.cityProbs ?? []).filter((c) => c.prob > 0).slice(0, 6);
   const locationIsSet = locationSource != null;
 
   return (
@@ -100,15 +100,25 @@ export function HeroOutlook({
               )}
             </div>
 
-            <p className="text-[#cbd5e1] text-[15px] leading-relaxed mb-3">
-              Current indicators show {outlook.status.toLowerCase()} chance of auroras tonight
+            <p className={`text-[#cbd5e1] text-[15px] leading-relaxed ${outlook.reasons.length > 0 ? 'mb-1' : 'mb-3'}`}>
+              {outlook.message}
             </p>
+            {outlook.reasons.length > 0 && (
+              <ul className="mb-3 space-y-0.5">
+                {outlook.reasons.map((reason, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[#64748b]">
+                    <span className="mt-[7px] h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
+                    {reason}
+                  </li>
+                ))}
+              </ul>
+            )}
           </>
         )}
 
         {outlook.status !== "Loading" && (
           <div className="space-y-1 mb-2">
-            {displayedCities.length > 0 && (
+            {(displayedCities.length > 0 || userLocationProb != null) && (
               <div className="border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
                 <span className="text-[11px] text-[#64748b]">Aurora in the sky right now</span>
               </div>
@@ -158,6 +168,14 @@ export function HeroOutlook({
                 </span>
               </div>
             ))}
+
+            {displayedCities.length === 0 && userLocationProb == null && (
+              <div className="border-t border-[#1e2937] pt-2 mt-1">
+                <p className="text-[11px] text-[#475569]">
+                  No aurora expected at surveyed US locations under current conditions.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

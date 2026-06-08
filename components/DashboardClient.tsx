@@ -11,11 +11,16 @@ import { getLocationAuroraProb } from "../lib/aurora/outlook";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
 import { useCloudCover } from "../lib/hooks/useCloudCover";
 import { UserLocationProvider, useUserLocationContext } from "../lib/context/UserLocationContext";
+import dynamic from "next/dynamic";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { HeroOutlook } from "./HeroOutlook";
 import { CurrentConditions } from "./CurrentConditions";
 import { AuroraMapSection } from "./AuroraMapSection";
-import { KpForecast } from "./KpForecast";
+
+// Chart.js is ~200 KB — load it only when the Kp chart section mounts
+const KpForecast = dynamic(
+  () => import("./KpForecast").then((m) => ({ default: m.KpForecast }))
+);
 import { SolarActivity } from "./SolarActivity";
 import { MeteorActivity } from "./MeteorActivity";
 import { DataUnderstanding } from "./DataUnderstanding";
