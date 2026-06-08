@@ -40,8 +40,8 @@ describe('computeLastNightPeak', () => {
   })
 
   it('returns null when past entries are outside the aurora window (daytime)', () => {
-    // UTC 11:00 = 7am EDT → outside window (not >=20, not <6)
-    expect(computeLastNightPeak([kpEntry('2026-06-05T11:00:00Z', 5.0)])).toBeNull()
+    // UTC 11:30 = 7:30am EDT — past the 11h window boundary (nightEnd = T11:00Z)
+    expect(computeLastNightPeak([kpEntry('2026-06-05T11:30:00Z', 5.0)])).toBeNull()
   })
 
   it('recognises 9pm EDT (UTC 01:00) as inside the aurora window', () => {
@@ -71,7 +71,7 @@ describe('computeLastNightPeak', () => {
   it('excludes daytime entries even when they have higher Kp', () => {
     const entries = [
       kpEntry('2026-06-05T01:00:00Z', 3.0),   // 9pm EDT — IN window
-      kpEntry('2026-06-05T11:00:00Z', 7.0),   // 7am EDT — outside window
+      kpEntry('2026-06-05T11:30:00Z', 7.0),   // 7:30am EDT — past 11h boundary
     ]
     const result = computeLastNightPeak(entries)
     expect(result?.peakKp).toBe(3.0)

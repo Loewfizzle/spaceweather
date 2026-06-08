@@ -59,7 +59,10 @@ export function computeLastNightPeak(
     ((now.getUTCHours() + now.getUTCMinutes() / 60 + offset) % 24 + 24) % 24;
 
   const nightStart = new Date(now.getTime() - (nowEtH + 4) * msPerHour);
-  const nightEnd   = new Date(nightStart.getTime() + 10 * msPerHour); // 8 pm → 6 am
+  // 11h instead of 10h: during spring-forward DST the real 6 am arrives after only 9 clock-hours,
+  // so a 10h window undershoots and misses the tail of the night. The +1h buffer covers this.
+  // The windowEnd cap below ensures this never pulls in future entries.
+  const nightEnd   = new Date(nightStart.getTime() + 11 * msPerHour);
   // Cap at now so an ongoing night doesn't try to include future entries
   const windowEnd  = nightEnd < now ? nightEnd : now;
 
