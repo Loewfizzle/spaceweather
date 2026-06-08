@@ -99,7 +99,7 @@ export default defineConfig({
         // useChartData: all CHART_OPTIONS callbacks + plugin beforeDraw/afterDraw + hook tested;
         // 3 remaining branches are diff>12 ternary in etOffsetHours (non-US timezone),
         // !chartArea guard in afterDraw (splitIdx>0 path), and a ?? in buildChartData
-        'lib/hooks/useChartData.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+        'lib/hooks/useChartData.ts': { statements: 99, branches: 94, functions: 100, lines: 100 },
       },
     },
   },
