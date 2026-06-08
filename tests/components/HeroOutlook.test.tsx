@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { HeroOutlook } from '../../components/HeroOutlook';
 import type { UserLocationContextValue } from '../../lib/context/UserLocationContext';
@@ -12,10 +12,13 @@ vi.mock('../../lib/context/UserLocationContext', () => ({
   useUserLocationContext: () => mockUseUserLocationContext(),
 }));
 
-vi.mock('../../components/ShareButton',         () => ({ ShareButton:         () => null }));
-vi.mock('../../components/NotificationPrompt',  () => ({ NotificationPrompt:  () => null }));
-vi.mock('../../components/InstallPrompt',       () => ({ InstallPrompt:       () => null }));
-vi.mock('../../components/LocationPicker',      () => ({ LocationPicker:      () => null }));
+vi.mock('../../components/ShareButton',              () => ({ ShareButton:              () => null }));
+vi.mock('../../components/NotificationPrompt',       () => ({ NotificationPrompt:       () => null }));
+vi.mock('../../components/InstallPrompt',            () => ({ InstallPrompt:            () => null }));
+vi.mock('../../components/LocationPicker',           () => ({ LocationPicker:           () => null }));
+vi.mock('../../components/solar/CurrentConditionsModal', () => ({
+  CurrentConditionsModal: () => <div data-testid="conditions-modal" />,
+}));
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -132,5 +135,64 @@ describe('HeroOutlook', () => {
     expect(screen.getByText('Your skies tonight:')).toBeInTheDocument();
     expect(screen.getByText(/Partly cloudy/)).toBeInTheDocument();
     expect(screen.getByText('· 8pm–6am avg')).toBeInTheDocument();
+  });
+
+  it('opens CurrentConditionsModal when the Details button is clicked', () => {
+    render(<HeroOutlook outlook={goodOutlook} />);
+    expect(screen.queryByTestId('conditions-modal')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /details/i }));
+    expect(screen.getByTestId('conditions-modal')).toBeInTheDocument();
+  });
+
+  it('shows Navigation icon and Change button when locationSource is "gps"', () => {
+    mockUseUserLocationContext.mockReturnValue({
+      ...defaultContext,
+      locationSource: 'gps',
+      userLocationLabel: 'Anchorage, AK',
+    });
+    render(<HeroOutlook outlook={goodOutlook} />);
+    expect(screen.getByText('Anchorage, AK')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /change/i })).toBeInTheDocument();
+  });
+
+  it('shows MapPin icon and Change button when locationSource is "manual"', () => {
+    mockUseUserLocationContext.mockReturnValue({
+      ...defaultContext,
+      locationSource: 'manual',
+      userLocationLabel: 'Denver, CO',
+    });
+    render(<HeroOutlook outlook={goodOutlook} />);
+    expect(screen.getByText('Denver, CO')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /change/i })).toBeInTheDocument();
+  });
+
+  it('displays "< 1%" when userLocationProb is 0', () => {
+    render(<HeroOutlook outlook={goodOutlook} userLocationProb={0} />);
+    expect(screen.getByText('< 1%')).toBeInTheDocument();
+  });
+
+  it('displays the numeric percentage when userLocationProb is > 0', () => {
+    render(<HeroOutlook outlook={goodOutlook} userLocationProb={42} />);
+    expect(screen.getByText('42%')).toBeInTheDocument();
+  });
+
+  it('shows "locationTimedOut" retry text on the GPS button', () => {
+    mockUseUserLocationContext.mockReturnValue({
+      ...defaultContext,
+      onRequestLocation: vi.fn(),
+      locationTimedOut: true,
+    });
+    render(<HeroOutlook outlook={goodOutlook} />);
+    expect(screen.getByText('Try again')).toBeInTheDocument();
+  });
+
+  it('shows "Locating…" text while location is being fetched', () => {
+    mockUseUserLocationContext.mockReturnValue({
+      ...defaultContext,
+      onRequestLocation: vi.fn(),
+      isLocating: true,
+    });
+    render(<HeroOutlook outlook={goodOutlook} />);
+    expect(screen.getByText('Locating…')).toBeInTheDocument();
   });
 });
