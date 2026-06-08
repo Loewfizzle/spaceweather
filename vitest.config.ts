@@ -68,6 +68,8 @@ export default defineConfig({
         'lib/aurora/location.ts':  { statements: 95, branches: 95, functions: 95, lines: 95 },
         'lib/aurora/fireballs.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
         'lib/aurora/meteors.ts':   { statements: 95, branches: 95, functions: 95, lines: 95 },
+        // ErrorState: both standalone variants + onRetry tested; floor at 90
+        'components/ErrorState.tsx': { statements: 90, branches: 90, functions: 90, lines: 90 },
       },
     },
   },
