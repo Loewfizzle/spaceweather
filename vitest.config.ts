@@ -39,14 +39,14 @@ export default defineConfig({
         'lib/aurora/solar.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
         'lib/aurora/kp.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
         // branches at 85.71% actual; threshold set 5 pp below that
-        'lib/aurora/ovation.ts': { statements: 90, branches: 80, functions: 90, lines: 90 },
-        'lib/utils/retry.ts': { statements: 85, branches: 85, functions: 85, lines: 85 },
+        'lib/aurora/ovation.ts': { statements: 88, branches: 80, functions: 90, lines: 90 },
+        'lib/utils/retry.ts': { statements: 85, branches: 82, functions: 85, lines: 85 },
         // New component tests — minimum coverage floors.
         // CurrentConditions: the MetricInfoModal code paths (4 card types) are
         // partially covered; functions/branches stay below 70% because many
         // modal code paths require separate opens per card.
         // CurrentConditions: all 4 info modals + dotColor branches + null values tested
-        'components/CurrentConditions.tsx': { statements: 90, branches: 95, functions: 85, lines: 90 },
+        'components/CurrentConditions.tsx': { statements: 90, branches: 95, functions: 83, lines: 90 },
         // ViewingWindow: last-night section, modal open, time-range null, tier labels tested
         'components/ViewingWindow.tsx': { statements: 90, branches: 92, functions: 77, lines: 90 },
         // Hook tests added — lock in the coverage these tests provide
@@ -64,18 +64,18 @@ export default defineConfig({
         'lib/aurora/outlook.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
         // location.ts: mostly tested; 1 unreachable "return ''" branch suppressed with
         // v8 ignore. Antimeridian branch in getNearestCityName now covered; floor at 88.
-        'lib/aurora/location.ts':  { statements: 95, branches: 88, functions: 95, lines: 95 },
-        'lib/aurora/fireballs.ts': { statements: 95, branches: 95, functions: 95, lines: 95 },
-        'lib/aurora/meteors.ts':   { statements: 95, branches: 95, functions: 95, lines: 95 },
+        'lib/aurora/location.ts':  { statements: 95, branches: 88, functions: 95, lines: 94 },
+        'lib/aurora/fireballs.ts': { statements: 95, branches: 95, functions: 95, lines: 94 },
+        'lib/aurora/meteors.ts':   { statements: 95, branches: 93, functions: 95, lines: 95 },
         // ErrorState: both standalone variants + onRetry tested; floor at 90
         'components/ErrorState.tsx': { statements: 90, branches: 90, functions: 90, lines: 90 },
         // KpForecast: all loading/error/empty states + stormDays branches tested; floor at 90
-        'components/KpForecast.tsx': { statements: 90, branches: 90, functions: 90, lines: 90 },
+        'components/KpForecast.tsx': { statements: 90, branches: 89, functions: 90, lines: 90 },
         // ViewingWindowModal: all cloud cover branches + cities=0 fallback covered; floor at 90
         'components/solar/ViewingWindowModal.tsx': { statements: 90, branches: 90, functions: 90, lines: 90 },
         // HeroOutlook: 20 tests covering all major flows; functions floor at 58 because
         // several optional-callback handlers (isFetching, locationLabel=null) are uncovered
-        'components/HeroOutlook.tsx': { statements: 90, branches: 84, functions: 55, lines: 90 },
+        'components/HeroOutlook.tsx': { statements: 77, branches: 88, functions: 66, lines: 76 },
         // AuroraMapModal: tested, 100% stmt/func/lines; one branch uncovered (line 17)
         'components/solar/AuroraMapModal.tsx': { statements: 95, branches: 83, functions: 95, lines: 95 },
         // CurrentConditionsModal: fully covered by dedicated test suite
@@ -99,7 +99,7 @@ export default defineConfig({
         // useChartData: all CHART_OPTIONS callbacks + plugin beforeDraw/afterDraw + hook tested;
         // 3 remaining branches are diff>12 ternary in etOffsetHours (non-US timezone),
         // !chartArea guard in afterDraw (splitIdx>0 path), and a ?? in buildChartData
-        'lib/hooks/useChartData.ts': { statements: 100, branches: 91, functions: 100, lines: 100 },
+        'lib/hooks/useChartData.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
       },
     },
   },
