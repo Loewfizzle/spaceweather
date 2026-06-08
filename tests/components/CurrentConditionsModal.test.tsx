@@ -57,10 +57,10 @@ describe('CurrentConditionsModal', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('renders the Live Conditions header via accessible dialog name', () => {
+  it('derives its accessible name from the heading via aria-labelledby', () => {
     render(<CurrentConditionsModal {...defaultProps} />);
-    // "Live Conditions" appears in both the header and in section copy; test the aria-label
-    expect(screen.getByRole('dialog', { name: /live conditions explained/i })).toBeInTheDocument();
+    // aria-labelledby points to the heading span; accessible name = heading text content
+    expect(screen.getByRole('dialog', { name: /live conditions/i })).toBeInTheDocument();
   });
 
   it('renders all four metric section headings', () => {

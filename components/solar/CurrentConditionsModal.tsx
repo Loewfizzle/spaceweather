@@ -49,7 +49,7 @@ export function CurrentConditionsModal({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Live conditions explained"
+      aria-labelledby="current-conditions-modal-title"
     >
       <div className="flex min-h-full items-center justify-center p-4">
         <div
@@ -61,7 +61,7 @@ export function CurrentConditionsModal({
           <div className="flex items-center justify-between px-5 pt-5 pb-0">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-[#64748b]" />
-              <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+              <span id="current-conditions-modal-title" className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
                 Live Conditions
               </span>
             </div>

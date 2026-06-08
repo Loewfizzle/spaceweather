@@ -56,7 +56,7 @@ export function ViewingWindowModal({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Tonight's forecast details"
+      aria-labelledby="viewing-window-modal-title"
     >
       <div className="flex min-h-full items-center justify-center p-4">
         <div
@@ -68,7 +68,7 @@ export function ViewingWindowModal({
           <div className="flex items-center justify-between px-5 pt-5 pb-0">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-[#64748b]" />
-              <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+              <span id="viewing-window-modal-title" className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
                 Tonight&apos;s Forecast
               </span>
             </div>

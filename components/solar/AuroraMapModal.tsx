@@ -24,7 +24,7 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Aurora map explained"
+      aria-labelledby="aurora-map-modal-title"
     >
       <div className="flex min-h-full items-center justify-center p-4">
         <div
@@ -36,7 +36,7 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
           <div className="flex items-center justify-between px-5 pt-5 pb-0">
             <div className="flex items-center gap-2">
               <Map className="h-4 w-4 text-[#64748b]" />
-              <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+              <span id="aurora-map-modal-title" className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
                 Aurora Map
               </span>
             </div>
