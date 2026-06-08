@@ -215,15 +215,7 @@ export function HeroOutlook({
                   >
                     {userLocationLabel ?? "Your location"}
                   </span>
-                  <span className="text-[#2d3748] shrink-0">·</span>
-                  <button
-                    onClick={() => setShowPicker(!showPicker)}
-                    className="shrink-0 whitespace-nowrap text-[#475569] hover:text-[#94a3b8] transition-colors"
-                  >
-                    {showPicker ? "Cancel" : "Change"}
-                  </button>
-                  {/* Clear only shown when picker is closed — avoids two actions fighting */}
-                  {!showPicker && onClearLocation && (
+                  {onClearLocation && (
                     <>
                       <span className="text-[#2d3748] shrink-0">·</span>
                       <button
@@ -280,7 +272,7 @@ export function HeroOutlook({
           {!showPicker && (
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
               {cloudCoverPct != null && (
-                <div className="flex items-center gap-1.5 text-xs text-[#64748b]">
+                <div className="flex items-center gap-1.5 text-xs text-[#94a3b8]">
                   <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
                   <span>Your skies tonight:</span>
                   <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>

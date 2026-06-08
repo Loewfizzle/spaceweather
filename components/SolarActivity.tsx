@@ -124,7 +124,7 @@ export function SolarActivity() {
                     )}
 
                     <div className="text-[10px] text-[#475569] mt-0.5">
-                      {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
+                      Alert issued {formatDistanceToNow(new Date(cme.time), { addSuffix: true })}
                       {solarActivity.recentCmes.length > 1 && ` · ${solarActivity.recentCmes.length} total`}
                     </div>
                   </div>

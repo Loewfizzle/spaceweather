@@ -151,26 +151,28 @@ describe('HeroOutlook', () => {
     expect(screen.getByTestId('conditions-modal')).toBeInTheDocument();
   });
 
-  it('shows Navigation icon and Change button when locationSource is "gps"', () => {
+  it('shows location label and Clear button when locationSource is "gps"', () => {
     mockUseUserLocationContext.mockReturnValue({
       ...defaultContext,
       locationSource: 'gps',
       userLocationLabel: 'Anchorage, AK',
     });
-    render(<HeroOutlook outlook={goodOutlook} />);
+    render(<HeroOutlook outlook={goodOutlook} onClearLocation={vi.fn()} />);
     expect(screen.getByText('Anchorage, AK')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /change/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /clear saved location/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /change/i })).not.toBeInTheDocument();
   });
 
-  it('shows MapPin icon and Change button when locationSource is "manual"', () => {
+  it('shows location label and Clear button when locationSource is "manual"', () => {
     mockUseUserLocationContext.mockReturnValue({
       ...defaultContext,
       locationSource: 'manual',
       userLocationLabel: 'Denver, CO',
     });
-    render(<HeroOutlook outlook={goodOutlook} />);
+    render(<HeroOutlook outlook={goodOutlook} onClearLocation={vi.fn()} />);
     expect(screen.getByText('Denver, CO')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /change/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /clear saved location/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /change/i })).not.toBeInTheDocument();
   });
 
   it('displays "< 1%" when userLocationProb is 0', () => {

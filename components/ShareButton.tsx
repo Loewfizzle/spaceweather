@@ -69,7 +69,7 @@ export function ShareButton({ accentColor = '#94a3b8' }: ShareButtonProps) {
       ) : (
         <>
           <Share2 className="h-3.5 w-3.5" />
-          <span>Share forecast</span>
+          <span>Share</span>
         </>
       )}
     </button>
