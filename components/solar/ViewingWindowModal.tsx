@@ -32,16 +32,16 @@ function kpBlurb(kp: number): string {
   return `Kp ${kp.toFixed(1)} means conditions are quiet. Aurora activity is minimal and only visible in Alaska and northern Canada right now.`;
 }
 
-function locationBlurb(userLat: number, kp: number, label?: string | null): string {
+function locationBlurb(userLat: number, kp: number, label?: string | null): { first: string; rest: string | null } {
   const minLat = Math.max(30, 67 - kp * 3);
   const diff = userLat - minLat;
   const name = label ?? "Your location";
-  if (diff >= 5)   return `${name} is comfortably within the viewing zone at this activity level — good conditions for you tonight.`;
-  if (diff >= 0)   return `${name} is just inside the viewing zone tonight. Dark skies away from city lights will make a real difference.`;
-  if (diff >= -3)  return `${name} is just outside the typical viewing zone. Conditions would need to tick up slightly for aurora to reach you.`;
+  if (diff >= 5)   return { first: `${name} is comfortably within the viewing zone at this activity level — good conditions for you tonight.`, rest: null };
+  if (diff >= 0)   return { first: `${name} is just inside the viewing zone tonight.`, rest: `Dark skies away from city lights will make a real difference.` };
+  if (diff >= -3)  return { first: `${name} is just outside the typical viewing zone.`, rest: `Conditions would need to tick up slightly for aurora to reach you.` };
   const needed = Math.floor(Math.max(0, (67 - userLat) / 3));
-  if (diff >= -8)  return `${name} is outside the viewing zone at this Kp level. Activity would need to reach around Kp ${needed} for aurora to be likely from your area.`;
-  return `${name} is well south of the aurora oval right now. Aurora reaching your area would require a very strong storm — Kp ${needed} or higher.`;
+  if (diff >= -8)  return { first: `${name} is outside the viewing zone at this Kp level.`, rest: `Activity would need to reach around Kp ${needed} for aurora to be likely from your area.` };
+  return { first: `${name} is well south of the aurora oval right now.`, rest: `Aurora reaching your area would require a very strong storm — Kp ${needed} or higher.` };
 }
 
 interface ViewingWindowModalProps {
@@ -65,6 +65,7 @@ export function ViewingWindowModal({
 }: ViewingWindowModalProps) {
   const effectiveKp = kp ?? peakKp;
   const { cities, minLat } = visibleCities(effectiveKp);
+  const locBlurb = userLat != null ? locationBlurb(userLat, effectiveKp, userLocationLabel) : null;
 
   return (
     <div
@@ -97,6 +98,16 @@ export function ViewingWindowModal({
           </div>
 
           <div className="px-5 pb-5 pt-4 space-y-5">
+
+            {/* User location context — first when location is set */}
+            {locBlurb && (
+              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
+                <p className="text-[12px] leading-relaxed">
+                  <span className="font-semibold text-[#94a3b8]">{locBlurb.first}</span>
+                  {locBlurb.rest && <>{" "}<span className="text-[#64748b]">{locBlurb.rest}</span></>}
+                </p>
+              </div>
+            )}
 
             {/* What this card is */}
             <div>
@@ -149,15 +160,6 @@ export function ViewingWindowModal({
                 </p>
               )}
             </div>
-
-            {/* User location context */}
-            {userLat != null && (
-              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-                <p className="text-[12px] text-[#64748b] leading-relaxed">
-                  {locationBlurb(userLat, effectiveKp, userLocationLabel)}
-                </p>
-              </div>
-            )}
 
             {/* What affects visibility */}
             <div>
