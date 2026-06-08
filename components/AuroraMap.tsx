@@ -54,12 +54,13 @@ export default function AuroraMap({
       if (raw) {
         const parsed: unknown = JSON.parse(raw);
         if (typeof parsed !== 'object' || parsed === null) return defaults;
-        const { lat, lng, zoom } = parsed as { lat: number; lng: number; zoom: number };
+        const { lat, lng, zoom, _v } = parsed as { lat: number; lng: number; zoom: number; _v?: number };
+        if (_v !== 1) return defaults;
         if (
           isFinite(lat) && isFinite(lng) && isFinite(zoom) &&
           lat >= -90 && lat <= 90 &&
           lng >= -180 && lng <= 180 &&
-          zoom >= 1 && zoom <= 18
+          zoom >= 2 && zoom <= 18
         ) {
           return { center: [lat, lng], zoom: Math.round(zoom) };
         }

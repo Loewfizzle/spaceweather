@@ -17,7 +17,7 @@ export function MapStateTracker() {
       try {
         localStorage.setItem(
           "aurora-map-state",
-          JSON.stringify({ lat, lng, zoom })
+          JSON.stringify({ lat, lng, zoom, _v: 1 })
         );
       } catch { /* storage full or unavailable */ }
     };
