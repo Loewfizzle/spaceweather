@@ -235,6 +235,15 @@ describe('computeViewingWindow', () => {
     expect(result.hasData).toBe(true)
     expect(result.windowStart?.toISOString()).toBe('2026-06-06T00:00:00.000Z')
   })
+
+  it('uses EST offset (UTC-5) in winter — 8pm EST = Jan 16 01:00Z is in aurora window', () => {
+    // Pin to Jan 15 12:00Z (7am EST, no DST) — isDST returns false, offset = -5h.
+    // Aurora window (8pm–6am EST) for Jan 15 evening = Jan 16 01:00Z–Jan 16 11:00Z.
+    vi.setSystemTime(new Date('2026-01-15T12:00:00Z'))
+    const result = computeViewingWindow([forecastEntry('2026-01-16T01:00:00Z', 4.0)])
+    expect(result.hasData).toBe(true)
+    expect(result.peakKp).toBe(4.0)
+  })
 })
 
 // ── computeLastNightPeak — alternative NOW values ─────────────────────────────
@@ -242,6 +251,14 @@ describe('computeViewingWindow', () => {
 // daytime fixture used by the tests above.
 describe('computeLastNightPeak — alternative NOW values', () => {
   afterEach(() => vi.useRealTimers())
+
+  it('uses EST offset (UTC-5) in winter — 9pm EST = 02:00Z falls in last-night window', () => {
+    // Jan 15 12:00Z = 7am EST (UTC-5, no DST) — daytime, so isDST = false.
+    // Last-night window (8pm–6am EST) = Jan 15 01:00Z–Jan 15 11:00Z.
+    vi.setSystemTime(new Date('2026-01-15T12:00:00Z'))
+    const result = computeLastNightPeak([kpEntry('2026-01-15T02:00:00Z', 3.0)])
+    expect(result?.peakKp).toBe(3.0)
+  })
 
   it('caps windowEnd at now when we are still inside the overnight aurora window', () => {
     // NOW = 2026-06-05T05:00:00Z = 1am EDT (inside aurora window).

@@ -14,25 +14,18 @@ function kpTierLabel(kp: number): string {
 }
 
 // "Tonight" for aurora watching = 20:00–05:59 Eastern Time.
-// Uses Intl.DateTimeFormat for exact DST offset — same pattern as viewingWindow.ts.
-function etOffsetHours(date: Date): number {
-  const utcH = date.getUTCHours();
-  const etH =
-    parseInt(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/New_York',
-        hour: 'numeric',
-        hour12: false,
-      }).format(date),
-      10,
-    ) % 24;
-  const diff = ((etH - utcH) % 24 + 24) % 24;
-  return diff > 12 ? diff - 24 : diff;
+// Uses direct millisecond offset to avoid Intl hour12:false returning 24 for midnight.
+function isDST(date: Date): boolean {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    timeZoneName: 'short',
+  }).format(date).includes('EDT');
 }
 
 function isTonightAuroraWindow(utcDate: Date): boolean {
-  const offset = etOffsetHours(utcDate);
-  const etHour = ((utcDate.getUTCHours() + offset) % 24 + 24) % 24;
+  const ET_OFFSET_MS = isDST(utcDate) ? -4 * 3600000 : -5 * 3600000;
+  const etMs = utcDate.getTime() + ET_OFFSET_MS;
+  const etHour = Math.floor((etMs % 86400000) / 3600000 + 24) % 24;
   return etHour >= 20 || etHour < 6;
 }
 

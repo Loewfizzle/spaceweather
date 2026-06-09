@@ -1,26 +1,12 @@
 import type { KpEntry, KpForecastEntry } from '../api/schemas';
 
-// Determine the UTC offset for America/New_York at a given date.
-// Returns -4 (EDT, summer) or -5 (EST, winter).
-// Uses Intl rather than a month-range approximation so the two annual DST
-// transitions (second Sunday of March, first Sunday of November) are exact.
-function etOffsetHours(date: Date): number {
-  const utcH = date.getUTCHours();
-  const etH =
-    parseInt(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/New_York',
-        hour: 'numeric',
-        hour12: false,
-      }).format(date),
-      10
-    ) % 24;
-  const diff = ((etH - utcH) % 24 + 24) % 24;
-  // diff is always 19 or 20 for America/New_York (EST/EDT), so the `diff - 24`
-  // branch always fires. The `diff` fallback is a defensive guard for other
-  // time zones and cannot be reached in practice for Eastern Time.
-  /* v8 ignore next */
-  return diff > 12 ? diff - 24 : diff; // -4 or -5
+// Returns true when America/New_York is in daylight saving time (UTC-4 / EDT).
+// Avoids Intl hour12:false which can return 24 for midnight instead of 0.
+function isDST(date: Date): boolean {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    timeZoneName: 'short',
+  }).format(date).includes('EDT');
 }
 
 // NOAA time_tag strings ("2026-06-07 03:00:00") have a space separator and no
@@ -34,8 +20,9 @@ function normalizeTimeTag(tag: string): string {
 
 // Return true if `date` falls within the northern US aurora viewing window (8 pm–6 am ET).
 function inAuroraViewingWindow(date: Date): boolean {
-  const offset = etOffsetHours(date);
-  const etHour = ((date.getUTCHours() + offset) % 24 + 24) % 24;
+  const ET_OFFSET_MS = isDST(date) ? -4 * 3600000 : -5 * 3600000;
+  const etMs = date.getTime() + ET_OFFSET_MS;
+  const etHour = Math.floor((etMs % 86400000) / 3600000 + 24) % 24;
   return etHour >= 20 || etHour < 6;
 }
 
@@ -65,19 +52,12 @@ export function computeLastNightPeak(
   const now = new Date();
   const msPerHour = 60 * 60 * 1000;
 
-  const offset = etOffsetHours(now);
+  const ET_OFFSET_MS = isDST(now) ? -4 * 3600000 : -5 * 3600000;
+  const nowEtMs = now.getTime() + ET_OFFSET_MS;
   // Integer ET hour determines which 8pm boundary to target
-  const etHour =
-    parseInt(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/New_York',
-        hour: 'numeric',
-        hour12: false,
-      }).format(now),
-      10
-    ) % 24;
+  const etHour = Math.floor((nowEtMs % 86400000) / 3600000 + 24) % 24;
   // Fractional ET hour for sub-hour precision when placing nightStart
-  const nowEtHFrac = ((now.getUTCHours() + now.getUTCMinutes() / 60 + offset) % 24 + 24) % 24;
+  const nowEtHFrac = etHour + (now.getUTCMinutes() / 60);
   const hoursAgo = etHour >= 20 ? nowEtHFrac - 20 : nowEtHFrac + 4;
 
   const nightStart = new Date(now.getTime() - hoursAgo * msPerHour);
