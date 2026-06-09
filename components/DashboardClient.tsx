@@ -30,6 +30,14 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { ErrorState } from "./ErrorState";
 import { SectionErrorBoundary } from "./SectionErrorBoundary";
 
+function getAuroraGlow(kp: number | null): { rgba: string; duration: string } | null {
+  if (kp === null || kp < 4) return null;
+  if (kp >= 7) return { rgba: 'rgba(167, 139, 250, 0.11)', duration: '0.8s'  };
+  if (kp >= 6) return { rgba: 'rgba(249, 115, 22,  0.09)', duration: '1.5s'  };
+  if (kp >= 5) return { rgba: 'rgba(234, 179, 8,   0.07)', duration: '2.5s'  };
+  return             { rgba: 'rgba(34,  197, 94,  0.06)', duration: '4s'    };
+}
+
 const MapSectionSkeleton = () => (
   <LoadingSkeleton variant="map" className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" />
 );
@@ -108,8 +116,19 @@ function DashboardInner() {
     return () => { document.title = prev; };
   }, [kp, riskLevel]);
 
+  const auroraGlow = getAuroraGlow(kp);
+
   return (
     <>
+      {auroraGlow && (
+        <div
+          className="aurora-bg-glow"
+          style={{
+            background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${auroraGlow.rgba} 0%, transparent 70%)`,
+            animationDuration: auroraGlow.duration,
+          }}
+        />
+      )}
       {/* Primary Answer Zone — HeroOutlook + ViewingWindow */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-12">
         <div className="flex items-center gap-2 mb-3">

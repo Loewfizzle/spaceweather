@@ -287,6 +287,33 @@ body {
   animation: fade-in 0.15s ease-out both;
 }
 
+/* ── Aurora background glow ──────────────────────────────────────────────────
+ * Pulses the div's opacity so the radial-gradient tints the top of the page.
+ * Color and animation-duration are set inline per Kp tier.
+ * ─────────────────────────────────────────────────────────────────────────── */
+@keyframes aurora-bg-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 1;   }
+}
+
+.aurora-bg-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40vh;
+  pointer-events: none;
+  z-index: 0;
+  animation: aurora-bg-pulse ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-bg-glow {
+    animation: none;
+    opacity: 0.65;
+  }
+}
+
 /* Leaflet attribution — override default white background to match dark theme */
 .leaflet-control-attribution {
   background: rgba(10, 14, 26, 0.85) !important;
