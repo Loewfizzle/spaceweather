@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useEffect } from "react";
+import { Suspense, useMemo, useEffect, useState } from "react";
 import {
   useCurrentConditions,
   useSolarActivity,
@@ -21,6 +21,12 @@ import { AuroraMapSection } from "./AuroraMapSection";
 const KpForecast = dynamic(
   () => import("./KpForecast").then((m) => ({ default: m.KpForecast }))
 );
+
+// Replaced with null at build time — zero production footprint
+const DevKpSimulator =
+  process.env.NODE_ENV === 'development'
+    ? dynamic(() => import('./DevKpSimulator').then((m) => ({ default: m.DevKpSimulator })), { ssr: false })
+    : null;
 import { SolarActivity } from "./SolarActivity";
 import { MeteorActivity } from "./MeteorActivity";
 import { DataUnderstanding } from "./DataUnderstanding";
@@ -116,7 +122,8 @@ function DashboardInner() {
     return () => { document.title = prev; };
   }, [kp, riskLevel]);
 
-  const auroraGlow = getAuroraGlow(kp);
+  const [simKp, setSimKp] = useState<number | null>(null);
+  const auroraGlow = getAuroraGlow(simKp ?? kp);
 
   return (
     <>
@@ -233,6 +240,8 @@ function DashboardInner() {
           alertsLoading={solarActivity.isLoading}
         />
       </SectionErrorBoundary>
+
+      {DevKpSimulator && <DevKpSimulator simKp={simKp} onSimKp={setSimKp} />}
     </>
   );
 }
