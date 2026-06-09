@@ -41,13 +41,19 @@ async function fetchCloudCover(lat: number, lon: number): Promise<CloudCoverResu
 
   // Average cloud cover over the next contiguous dark window (20:00–06:00 local).
   // Open-Meteo returns local-timezone strings (e.g. "2026-06-05T22:00") with timezone=auto.
+  // If utc_offset_seconds is missing or invalid, skip the tonight average entirely rather
+  // than defaulting to UTC=0, which would compute the wrong dark window for non-UTC users.
+  const utcOffsetMs = typeof data.utc_offset_seconds === 'number' && isFinite(data.utc_offset_seconds)
+    ? data.utc_offset_seconds * 1000
+    : null;
+
   const tonightAvg: number | null =
-    Array.isArray(data?.hourly?.time) && Array.isArray(data?.hourly?.cloud_cover)
+    utcOffsetMs !== null && Array.isArray(data?.hourly?.time) && Array.isArray(data?.hourly?.cloud_cover)
       ? nextDarkWindowAverage(
           data.hourly.time as string[],
           data.hourly.cloud_cover as number[],
           Date.now(),
-          (typeof data.utc_offset_seconds === 'number' ? data.utc_offset_seconds : 0) * 1000,
+          utcOffsetMs,
         )
       : null;
 
