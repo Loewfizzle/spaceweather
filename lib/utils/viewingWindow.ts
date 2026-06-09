@@ -79,7 +79,11 @@ export function computeLastNightPeak(
 
   const entries = kpHistory
     .filter((e) => e.time_tag && e.Kp != null)
-    .map((e) => ({ time: new Date(e.time_tag!), kp: e.Kp! }))
+    .map((e) => {
+      const iso = e.time_tag!.trim().replace(' ', 'T');
+      const withZ = iso.endsWith('Z') || /[+-]\d\d:\d\d$/.test(iso) ? iso : iso + 'Z';
+      return { time: new Date(withZ), kp: e.Kp! };
+    })
     .filter((e) => e.time >= nightStart && e.time <= windowEnd);
 
   if (entries.length === 0) return null;
