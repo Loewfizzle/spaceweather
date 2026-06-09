@@ -108,6 +108,12 @@ function DashboardInner() {
     return getLocationAuroraProb(locationState.lat, locationState.lon, ovationPoints, kp, bz);
   }, [locationState, ovationPoints, kp, bz]);
 
+  const cloudCoverQuery = useCloudCover(userLat, userLon);
+  const cloudCoverData = cloudCoverQuery.data;
+  const cloudCoverPct = cloudCoverData?.tonightAvg ?? cloudCoverData?.currentPct ?? null;
+  const cloudCoverLabel = cloudCoverData?.label ?? null;
+  const kpForecastQuery = useKpForecast();
+
   const forecastPeakKp = viewingWindow?.hasData ? viewingWindow.peakKp : null;
 
   const displayOutlook = useMemo(() => {
@@ -121,12 +127,6 @@ function DashboardInner() {
       cloudCoverPct ?? null,
     );
   }, [locationState, userLocationProb, userLat, tonightOutlook, forecastPeakKp, cloudCoverPct]);
-
-  const cloudCoverQuery = useCloudCover(userLat, userLon);
-  const cloudCoverData = cloudCoverQuery.data;
-  const cloudCoverPct = cloudCoverData?.tonightAvg ?? cloudCoverData?.currentPct ?? null;
-  const cloudCoverLabel = cloudCoverData?.label ?? null;
-  const kpForecastQuery = useKpForecast();
 
   const [simKp, setSimKp] = useState<number | null>(null);
 

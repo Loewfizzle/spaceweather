@@ -275,10 +275,7 @@ describe('getPersonalizedOutlook', () => {
   });
 
   it('uses generic low message when not too far south', () => {
-    // High latitude so not tooFarSouth, but low prob
-    const out = getPersonalizedOutlook(base, 3, 65.0, 'Fairbanks', 1.5, null);
-    // boundary = 72 - 1.5*4 = 66 → 65 < 66 → tooFarSouth, so message contains Kp
-    // Let's use lat=70 which is above boundary
+    // lat=65 is tooFarSouth for Kp 1.5 (boundary=66); use lat=70 which is above boundary
     const out2 = getPersonalizedOutlook(base, 3, 70.0, 'Utqiagvik', 1.5, null);
     // boundary = 66 → 70 >= 66 → NOT tooFarSouth
     expect(out2.status).toBe('Low');
