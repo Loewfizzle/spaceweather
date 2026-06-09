@@ -38,10 +38,10 @@ const DevKpSimulator =
 
 function getAuroraGlow(kp: number | null): { rgba: string; duration: string } | null {
   if (kp === null || kp < 4) return null;
-  if (kp >= 7) return { rgba: 'rgba(167, 139, 250, 0.11)', duration: '0.8s'  };
-  if (kp >= 6) return { rgba: 'rgba(249, 115, 22,  0.09)', duration: '1.5s'  };
-  if (kp >= 5) return { rgba: 'rgba(234, 179, 8,   0.07)', duration: '2.5s'  };
-  return             { rgba: 'rgba(34,  197, 94,  0.06)', duration: '4s'    };
+  if (kp >= 7) return { rgba: 'rgba(167, 139, 250, 0.30)', duration: '0.8s'  };
+  if (kp >= 6) return { rgba: 'rgba(249, 115, 22,  0.23)', duration: '1.5s'  };
+  if (kp >= 5) return { rgba: 'rgba(234, 179, 8,   0.17)', duration: '2.5s'  };
+  return             { rgba: 'rgba(34,  197, 94,  0.13)', duration: '4s'    };
 }
 
 const MapSectionSkeleton = () => (
@@ -140,7 +140,7 @@ function DashboardInner() {
         <div
           className="aurora-bg-glow"
           style={{
-            background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${displayGlow.rgba} 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse 90% 55% at 50% 0%, ${displayGlow.rgba} 0%, transparent 75%)`,
             animationDuration: displayGlow.duration,
             // Dev: raise above header (z-index:50) and disable pulse so the glow
             // holds at full opacity. pointer-events:none keeps everything clickable.
