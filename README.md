@@ -1,4 +1,4 @@
-# AuroraWatch
+# SkyGlow
 
 Real-time aurora and space weather dashboard for the United States and northern North America. Live NOAA SWPC + NASA data, location-aware aurora probability, interactive map, browser notifications.
 
