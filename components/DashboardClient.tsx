@@ -164,6 +164,7 @@ function DashboardInner() {
               maxAuroraProbNA={maxAuroraProbNA}
               ovationProcessed={ovationProcessed}
               latestUpdate={latestGlobalUpdate}
+              forecastPeakKp={viewingWindow?.hasData ? viewingWindow.peakKp : null}
             />
           </SectionErrorBoundary>
           <SectionErrorBoundary message="Forecast window unavailable.">

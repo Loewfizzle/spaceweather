@@ -174,3 +174,62 @@ export function getTonightOutlook(
 
   return { status, message, reasons, accentColor, drivers };
 }
+
+/**
+ * Personalise the HeroOutlook result for a user who has set their location.
+ * Primary signal is userLocationProb (OVATION probability at their lat/lon).
+ * peakKp + userLat drive messaging when probability is low.
+ * cloudCoverPct adds a note when significant cover is forecast.
+ */
+export function getPersonalizedOutlook(
+  base: TonightOutlook,
+  userLocationProb: number,
+  userLat: number,
+  locationLabel: string | null,
+  peakKp: number | null,
+  cloudCoverPct: number | null,
+): TonightOutlook {
+  const name = locationLabel ?? 'your location';
+
+  // Boundary latitude for forecast Kp — aurora oval equatorward edge.
+  const tooFarSouth = peakKp !== null && userLat < (72 - peakKp * 4);
+
+  const cloudNote =
+    cloudCoverPct !== null && cloudCoverPct >= 70
+      ? ' Thick cloud cover will likely prevent any visual sighting tonight.'
+      : cloudCoverPct !== null && cloudCoverPct >= 40
+      ? ' Partial clouds may interfere with viewing tonight.'
+      : '';
+
+  let status: TonightOutlook['status'];
+  let message: string;
+  let accentColor: string;
+
+  if (userLocationProb >= 35) {
+    status = 'Excellent';
+    accentColor = AURORA_TIERS.storm.color;
+    message = `Strong aurora signal directly overhead in ${name} — conditions at your latitude are as good as it gets tonight.${cloudNote}`;
+  } else if (userLocationProb >= 15) {
+    status = 'Good';
+    accentColor = AURORA_TIERS.strong.color;
+    message = `Good chance overhead in ${name} tonight — real activity is reaching your latitude.${cloudNote}`;
+  } else if (userLocationProb >= 6) {
+    status = 'Moderate';
+    accentColor = AURORA_TIERS.active.color;
+    message = `Some aurora activity reaching ${name} tonight — dark skies will make a real difference.${cloudNote}`;
+  } else if (userLocationProb >= 2) {
+    status = 'Low';
+    accentColor = AURORA_TIERS.moderate.color;
+    message = tooFarSouth && peakKp !== null
+      ? `Aurora unlikely to reach ${name} tonight — forecast Kp ${peakKp.toFixed(1)} keeps the oval to your north.${cloudNote}`
+      : `Faint aurora possible at ${name} tonight, though conditions are marginal for your latitude.${cloudNote}`;
+  } else {
+    status = 'very low';
+    accentColor = '#64748b';
+    message = tooFarSouth && peakKp !== null
+      ? `Aurora unlikely to reach ${name} tonight — forecast Kp ${peakKp.toFixed(1)} keeps the oval well to your north.${cloudNote}`
+      : `No meaningful aurora expected at ${name} under current conditions.${cloudNote}`;
+  }
+
+  return { ...base, status, message, accentColor, reasons: [] };
+}

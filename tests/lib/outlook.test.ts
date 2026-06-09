@@ -3,6 +3,7 @@ import {
   getCityAuroraProbabilities,
   getLocationAuroraProb,
   getTonightOutlook,
+  getPersonalizedOutlook,
 } from '../../lib/aurora/outlook';
 import type { OvationPoint } from '../../lib/aurora/ovation';
 
@@ -196,5 +197,98 @@ describe('getTonightOutlook', () => {
     // Excellent branch can push up to 3 reasons; verify it is sliced to 2
     const out = getTonightOutlook(7, -12, 30, [], null, 750);
     expect(out.reasons.length).toBeLessThanOrEqual(2);
+  });
+});
+
+// ── getPersonalizedOutlook ────────────────────────────────────────────────────
+
+describe('getPersonalizedOutlook', () => {
+  // base outlook to spread through all tests
+  const base = getTonightOutlook(3, null, null);
+
+  it('upgrades to Excellent for Fairbanks-level probability (prob >= 35)', () => {
+    const out = getPersonalizedOutlook(base, 40, 64.84, 'Fairbanks', 4.0, null);
+    expect(out.status).toBe('Excellent');
+    expect(out.message).toContain('Fairbanks');
+  });
+
+  it('upgrades to Good when prob >= 15', () => {
+    const out = getPersonalizedOutlook(base, 18, 47.0, 'Duluth', 4.0, null);
+    expect(out.status).toBe('Good');
+    expect(out.message).toContain('Duluth');
+  });
+
+  it('returns Moderate when prob >= 6', () => {
+    const out = getPersonalizedOutlook(base, 8, 47.0, 'Duluth', 3.5, null);
+    expect(out.status).toBe('Moderate');
+  });
+
+  it('downgrades to very low for mid-latitude city with low Kp forecast (Grand Rapids case)', () => {
+    // Grand Rapids lat ~43°N, forecast Kp 3.3 → boundary = 72 - 3.3*4 = 58.8
+    // 43 < 58.8 → tooFarSouth
+    const out = getPersonalizedOutlook(base, 0, 43.0, 'Grand Rapids', 3.3, null);
+    expect(out.status).toBe('very low');
+    expect(out.message).toContain('Grand Rapids');
+    expect(out.message).toContain('3.3');
+    expect(out.message).toContain('north');
+  });
+
+  it('uses "your location" fallback when locationLabel is null', () => {
+    const out = getPersonalizedOutlook(base, 0, 43.0, null, 3.0, null);
+    expect(out.message).toContain('your location');
+  });
+
+  it('appends cloud note for heavy cloud cover (>= 70%)', () => {
+    const out = getPersonalizedOutlook(base, 20, 65.0, 'Fairbanks', 5.0, 80);
+    expect(out.message).toContain('cloud cover');
+  });
+
+  it('appends partial-cloud note for moderate cover (>= 40%, < 70%)', () => {
+    const out = getPersonalizedOutlook(base, 20, 65.0, 'Fairbanks', 5.0, 55);
+    expect(out.message).toContain('Partial clouds');
+  });
+
+  it('does not append cloud note when cloud cover is low', () => {
+    const out = getPersonalizedOutlook(base, 20, 65.0, 'Fairbanks', 5.0, 20);
+    expect(out.message).not.toContain('cloud');
+  });
+
+  it('clears reasons', () => {
+    const baseWithReasons = getTonightOutlook(5, -8, 25);
+    expect(baseWithReasons.reasons.length).toBeGreaterThan(0);
+    const out = getPersonalizedOutlook(baseWithReasons, 25, 65.0, 'Fairbanks', 5.0, null);
+    expect(out.reasons).toEqual([]);
+  });
+
+  it('preserves drivers from base outlook', () => {
+    const baseWithDrivers = getTonightOutlook(4, -3.0, null, [], null, 500);
+    const out = getPersonalizedOutlook(baseWithDrivers, 20, 65.0, 'Fairbanks', 4.0, null);
+    expect(out.drivers).toBe(baseWithDrivers.drivers);
+  });
+
+  it('uses non-tooFarSouth low message when latitude is in the marginal zone', () => {
+    // Duluth at 47°N, Kp forecast 5 → boundary = 72 - 20 = 52 → 47 < 52 → tooFarSouth
+    // But with prob=3 (Low tier), should show the "Kp X.X keeps oval to your north" message
+    const out = getPersonalizedOutlook(base, 3, 47.0, 'Duluth', 5.0, null);
+    expect(out.status).toBe('Low');
+    expect(out.message).toContain('5.0');
+  });
+
+  it('uses generic low message when not too far south', () => {
+    // High latitude so not tooFarSouth, but low prob
+    const out = getPersonalizedOutlook(base, 3, 65.0, 'Fairbanks', 1.5, null);
+    // boundary = 72 - 1.5*4 = 66 → 65 < 66 → tooFarSouth, so message contains Kp
+    // Let's use lat=70 which is above boundary
+    const out2 = getPersonalizedOutlook(base, 3, 70.0, 'Utqiagvik', 1.5, null);
+    // boundary = 66 → 70 >= 66 → NOT tooFarSouth
+    expect(out2.status).toBe('Low');
+    expect(out2.message).toContain('marginal');
+  });
+
+  it('peakKp null does not cause crash and omits Kp figure from message', () => {
+    const out = getPersonalizedOutlook(base, 0, 43.0, 'Grand Rapids', null, null);
+    expect(out.status).toBe('very low');
+    // No peakKp to cite, so falls back to generic message
+    expect(out.message).not.toMatch(/Kp \d/);
   });
 });

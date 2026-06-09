@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MapPin, Loader2, Cloud, Navigation, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { TonightOutlook } from "../lib/use-noaa-data";
 import { cloudCoverColor } from "../lib/aurora/kp";
+import { getPersonalizedOutlook } from "../lib/aurora/outlook";
 import { getAuroraColor } from "../lib/aurora/ovation";
 import { useUserLocationContext } from "../lib/context/UserLocationContext";
 import { ShareButton } from "./ShareButton";
@@ -27,6 +28,7 @@ interface HeroOutlookProps {
   solarWindSpeed?: number | null;
   maxAuroraProbNA?: number | null;
   ovationProcessed?: boolean;
+  forecastPeakKp?: number | null;
 }
 
 export function HeroOutlook({
@@ -42,10 +44,12 @@ export function HeroOutlook({
   maxAuroraProbNA,
   ovationProcessed,
   latestUpdate,
+  forecastPeakKp,
 }: HeroOutlookProps) {
   const {
     userLocationLabel,
     locationSource,
+    userLat,
     onRequestLocation,
     isLocating,
     locationTimedOut,
@@ -55,13 +59,26 @@ export function HeroOutlook({
   const [showPicker, setShowPicker] = useState(false);
   const [showConditionsModal, setShowConditionsModal] = useState(false);
 
-  const displayedCities = (outlook.cityProbs ?? []).filter((c) => c.prob > 0).slice(0, 6);
   const locationIsSet = locationSource != null;
+
+  const displayOutlook = useMemo(() => {
+    if (!locationIsSet || userLocationProb == null || userLat == null) return outlook;
+    return getPersonalizedOutlook(
+      outlook,
+      userLocationProb,
+      userLat,
+      userLocationLabel,
+      forecastPeakKp ?? null,
+      cloudCoverPct ?? null,
+    );
+  }, [locationIsSet, userLocationProb, userLat, userLocationLabel, forecastPeakKp, cloudCoverPct, outlook]);
+
+  const displayedCities = (displayOutlook.cityProbs ?? []).filter((c) => c.prob > 0).slice(0, 6);
 
   return (
     <div
       className="card p-5 border-l-4"
-      style={{ borderLeftColor: outlook.accentColor }}
+      style={{ borderLeftColor: displayOutlook.accentColor }}
     >
       <div>
         <div className="flex items-center justify-between mb-1">
@@ -79,7 +96,7 @@ export function HeroOutlook({
           Solar wind and Kp · live OVATION model
         </p>
 
-        {outlook.status === "Loading" ? (
+        {displayOutlook.status === "Loading" ? (
           <div className="mb-3">
             <div className="h-10 w-40 rounded animate-pulse bg-[#1e2937] mb-3" />
             <div className="h-4 w-full rounded animate-pulse bg-[#1e2937] mb-2" />
@@ -90,24 +107,24 @@ export function HeroOutlook({
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
               <div
                 className="text-4xl font-semibold tracking-tighter"
-                style={{ color: outlook.accentColor }}
+                style={{ color: displayOutlook.accentColor }}
               >
-                {outlook.status}
+                {displayOutlook.status}
               </div>
-              {outlook.drivers && (
+              {displayOutlook.drivers && (
                 <div className="text-sm text-[#64748b] tabular-nums font-medium">
-                  {outlook.drivers}
+                  {displayOutlook.drivers}
                 </div>
               )}
             </div>
 
-            <p className={`text-[15px] leading-relaxed ${outlook.reasons.length > 0 ? 'mb-1' : 'mb-3'}`}>
+            <p className={`text-[15px] leading-relaxed ${displayOutlook.reasons.length > 0 ? 'mb-1' : 'mb-3'}`}>
               <span className="text-[#64748b]">Current indicators — </span>
-              <span className="text-[#cbd5e1]">{outlook.message}</span>
+              <span className="text-[#cbd5e1]">{displayOutlook.message}</span>
             </p>
-            {outlook.reasons.length > 0 && (
+            {displayOutlook.reasons.length > 0 && (
               <ul className="mb-3 space-y-0.5">
-                {outlook.reasons.map((reason, i) => (
+                {displayOutlook.reasons.map((reason, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-[#64748b]">
                     <span className="mt-[7px] h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
                     {reason}
@@ -118,7 +135,7 @@ export function HeroOutlook({
           </>
         )}
 
-        {outlook.status !== "Loading" && (
+        {displayOutlook.status !== "Loading" && (
           <div className="space-y-1 mb-2">
             {(displayedCities.length > 0 || userLocationProb != null) && (
               <div className="border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
@@ -130,7 +147,7 @@ export function HeroOutlook({
               <div className="flex items-center gap-2 py-0.5 animate-fade-in">
                 <span
                   className="block h-1.5 w-1.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: outlook.accentColor }}
+                  style={{ backgroundColor: displayOutlook.accentColor }}
                 />
                 <span className="flex-1 text-[15px] font-semibold text-white leading-tight">
                   {userLocationLabel ?? "Your location"}
@@ -193,7 +210,7 @@ export function HeroOutlook({
         </div>
       )}
 
-      {outlook.status !== "Loading" && (
+      {displayOutlook.status !== "Loading" && (
         <div className="mt-2 pt-3 border-t border-[#1e2937]">
 
           {/* Primary row: location controls LEFT, Share forecast RIGHT */}
