@@ -170,13 +170,10 @@ export function FlareModal({
           {/* Earth impact assessment */}
           {(() => {
             const dotColor =
-              impact.level === "likely"
-                ? "#f97316"
-                : impact.level === "glancing"
-                ? "#eab308"
-                : impact.level === "possible"
-                ? "#eab308"
-                : "#475569";
+              impact.level === "likely"   ? "#a78bfa"  // purple — highest severity, matches CME card
+              : impact.level === "glancing" ? "#f97316"  // orange — stepped down
+              : impact.level === "possible" ? "#eab308"  // yellow — uncertain
+              : "#475569";                               // gray — none
             return (
               <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
                 <div className="flex items-center gap-2 mb-2">
