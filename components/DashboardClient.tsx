@@ -7,7 +7,7 @@ import {
   useKpForecast,
   getTonightOutlook,
 } from "../lib/use-noaa-data";
-import { getLocationAuroraProb } from "../lib/aurora/outlook";
+import { getLocationAuroraProb, getPersonalizedOutlook } from "../lib/aurora/outlook";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
 import { useCloudCover } from "../lib/hooks/useCloudCover";
 import { UserLocationProvider, useUserLocationContext } from "../lib/context/UserLocationContext";
@@ -108,6 +108,20 @@ function DashboardInner() {
     return getLocationAuroraProb(locationState.lat, locationState.lon, ovationPoints, kp, bz);
   }, [locationState, ovationPoints, kp, bz]);
 
+  const forecastPeakKp = viewingWindow?.hasData ? viewingWindow.peakKp : null;
+
+  const displayOutlook = useMemo(() => {
+    if (locationState.status !== "set" || userLocationProb == null || userLat == null) return tonightOutlook;
+    return getPersonalizedOutlook(
+      tonightOutlook,
+      userLocationProb,
+      userLat,
+      locationState.label ?? null,
+      forecastPeakKp,
+      cloudCoverPct ?? null,
+    );
+  }, [locationState, userLocationProb, userLat, tonightOutlook, forecastPeakKp, cloudCoverPct]);
+
   const cloudCoverQuery = useCloudCover(userLat, userLon);
   const cloudCoverData = cloudCoverQuery.data;
   const cloudCoverPct = cloudCoverData?.tonightAvg ?? cloudCoverData?.currentPct ?? null;
@@ -144,7 +158,7 @@ function DashboardInner() {
         <div className="flex items-center gap-2 mb-3">
           <span className="block h-[5px] w-[5px] rounded-full bg-[#94a3b8] flex-shrink-0" />
           <span
-            style={{ color: tonightOutlook.status === 'Loading' ? '#94a3b8' : tonightOutlook.accentColor }}
+            style={{ color: displayOutlook.status === 'Loading' ? '#94a3b8' : displayOutlook.accentColor }}
             className="text-[13px] font-semibold tracking-[0.08em] uppercase"
           >Aurora Outlook</span>
         </div>
@@ -152,7 +166,7 @@ function DashboardInner() {
           {/* className="" strips the default max-w wrapper — parent grid handles layout */}
           <SectionErrorBoundary message="Outlook unavailable — check back shortly." className="">
             <HeroOutlook
-              outlook={tonightOutlook}
+              outlook={displayOutlook}
               error={error}
               isFetching={isFetching}
               userLocationProb={userLocationProb}
@@ -164,7 +178,6 @@ function DashboardInner() {
               maxAuroraProbNA={maxAuroraProbNA}
               ovationProcessed={ovationProcessed}
               latestUpdate={latestGlobalUpdate}
-              forecastPeakKp={viewingWindow?.hasData ? viewingWindow.peakKp : null}
             />
           </SectionErrorBoundary>
           <SectionErrorBoundary message="Forecast window unavailable.">

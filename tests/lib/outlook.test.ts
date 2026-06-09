@@ -176,9 +176,9 @@ describe('getTonightOutlook', () => {
     expect(out.reasons.some((r) => /flare/i.test(r))).toBe(true);
   });
 
-  it('returns "very low" when all conditions are quiet', () => {
+  it('returns "Very low" when all conditions are quiet', () => {
     const out = getTonightOutlook(1, 2, 5);
-    expect(out.status).toBe('very low');
+    expect(out.status).toBe('Very low');
   });
 
   it('includes drivers string with Kp and Bz', () => {
@@ -223,11 +223,11 @@ describe('getPersonalizedOutlook', () => {
     expect(out.status).toBe('Moderate');
   });
 
-  it('downgrades to very low for mid-latitude city with low Kp forecast (Grand Rapids case)', () => {
+  it('downgrades to Very low for mid-latitude city with low Kp forecast (Grand Rapids case)', () => {
     // Grand Rapids lat ~43°N, forecast Kp 3.3 → boundary = 72 - 3.3*4 = 58.8
     // 43 < 58.8 → tooFarSouth
     const out = getPersonalizedOutlook(base, 0, 43.0, 'Grand Rapids', 3.3, null);
-    expect(out.status).toBe('very low');
+    expect(out.status).toBe('Very low');
     expect(out.message).toContain('Grand Rapids');
     expect(out.message).toContain('3.3');
     expect(out.message).toContain('north');
@@ -287,7 +287,7 @@ describe('getPersonalizedOutlook', () => {
 
   it('peakKp null does not cause crash and omits Kp figure from message', () => {
     const out = getPersonalizedOutlook(base, 0, 43.0, 'Grand Rapids', null, null);
-    expect(out.status).toBe('very low');
+    expect(out.status).toBe('Very low');
     // No peakKp to cite, so falls back to generic message
     expect(out.message).not.toMatch(/Kp \d/);
   });

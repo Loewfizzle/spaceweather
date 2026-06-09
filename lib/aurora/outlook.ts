@@ -9,7 +9,7 @@ export interface CityAuroraProb {
 }
 
 export interface TonightOutlook {
-  status: 'Excellent' | 'Good' | 'Moderate' | 'Low' | 'very low' | 'Loading';
+  status: 'Excellent' | 'Good' | 'Moderate' | 'Low' | 'Very low' | 'Loading';
   message: string;
   reasons: string[];
   accentColor: string;
@@ -159,7 +159,7 @@ export function getTonightOutlook(
     accentColor = AURORA_TIERS.moderate.color;
     if (isFavorableBz) reasons.push('Southward Bz provides some opportunity');
   } else {
-    status = 'very low';
+    status = 'Very low';
     message = 'Very low chance tonight.';
     accentColor = '#64748b';
   }
@@ -224,7 +224,7 @@ export function getPersonalizedOutlook(
       ? `Aurora unlikely to reach ${name} tonight — forecast Kp ${peakKp.toFixed(1)} keeps the oval to your north.${cloudNote}`
       : `Faint aurora possible at ${name} tonight, though conditions are marginal for your latitude.${cloudNote}`;
   } else {
-    status = 'very low';
+    status = 'Very low';
     accentColor = '#64748b';
     message = tooFarSouth && peakKp !== null
       ? `Aurora unlikely to reach ${name} tonight — forecast Kp ${peakKp.toFixed(1)} keeps the oval well to your north.${cloudNote}`

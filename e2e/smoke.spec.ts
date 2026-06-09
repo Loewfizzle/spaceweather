@@ -21,7 +21,7 @@ test.describe('AuroraWatch smoke tests', () => {
   test('hero status heading is present after data loads', async ({ page }) => {
     await page.goto('/');
     // Mocked Kp=3.33 → outlook resolves to a non-Loading status
-    const statusTexts = ['very low', 'Low', 'Good', 'Moderate', 'Excellent'];
+    const statusTexts = ['Very low', 'Low', 'Good', 'Moderate', 'Excellent'];
     const found = await Promise.any(
       statusTexts.map((t) =>
         expect(
