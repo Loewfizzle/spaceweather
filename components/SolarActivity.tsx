@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { Sun, TrendingUp, Zap, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
+import { normalizeTimeTag } from "../lib/utils/viewingWindow";
 import { FlareModal, flareClassInfo } from "./solar/FlareModal";
 import { CmeModal, cmeImpactColor } from "./solar/CmeModal";
 import { SunspotModal, sunspotContext } from "./solar/SunspotModal";
@@ -14,7 +15,7 @@ const SDO_SUNSPOT_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024
 const SDO_CORONAL_URL = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0193.jpg";
 
 function formatCmeIssued(isoTime: string): string {
-  const t = new Date(isoTime).getTime();
+  const t = new Date(normalizeTimeTag(isoTime)).getTime();
   if (!isFinite(t) || t > Date.now()) return 'just now';
   return formatDistanceToNow(new Date(t), { addSuffix: true });
 }
@@ -85,7 +86,7 @@ export function SolarActivity() {
 
             <div className="text-xs text-[#64748b] mt-0.5">
               {flareTime
-                ? formatDistanceToNow(new Date(flareTime), { addSuffix: true })
+                ? formatDistanceToNow(new Date(normalizeTimeTag(flareTime)), { addSuffix: true })
                 : "—"}
               {latestFlare?.region != null && ` · Region ${latestFlare.region}`}
             </div>
@@ -265,7 +266,7 @@ export function SolarActivity() {
         {solarActivity.flareTime && (
           <span className="ml-2">
             Flares last updated{" "}
-            {formatDistanceToNow(new Date(solarActivity.flareTime), { addSuffix: true })}
+            {formatDistanceToNow(new Date(normalizeTimeTag(solarActivity.flareTime)), { addSuffix: true })}
           </span>
         )}
       </div>

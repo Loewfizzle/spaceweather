@@ -6,6 +6,7 @@ import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { formatDistanceToNow } from "date-fns";
 import type { XrayFlare, CmeSummary } from "../../lib/api/schemas";
 import { assessEarthImpact } from "../../lib/aurora/solar";
+import { normalizeTimeTag } from "../../lib/utils/viewingWindow";
 
 const GOES_FLUX_URL = "https://services.swpc.noaa.gov/images/goes-xray-flux-1-minute.png";
 
@@ -52,7 +53,7 @@ function flareDuration(begin?: string, end?: string): string | null {
 function formatUTC(iso: string | undefined): string {
   if (!iso) return "—";
   return (
-    new Date(iso).toLocaleTimeString("en-US", {
+    new Date(normalizeTimeTag(iso)).toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
@@ -133,7 +134,7 @@ export function FlareModal({
             </div>
             {peakTime && (
               <div className="text-xs text-[#475569] mt-0.5">
-                {formatDistanceToNow(new Date(peakTime), { addSuffix: true })}
+                {formatDistanceToNow(new Date(normalizeTimeTag(peakTime)), { addSuffix: true })}
               </div>
             )}
           </div>
@@ -194,7 +195,7 @@ export function FlareModal({
                 {impact.cme && (
                   <div className="mt-1.5 text-[10px] text-[#475569]">
                     Detected{" "}
-                    {formatDistanceToNow(new Date(impact.cme.time), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(normalizeTimeTag(impact.cme.time)), { addSuffix: true })}
                   </div>
                 )}
               </div>

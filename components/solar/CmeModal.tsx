@@ -4,9 +4,10 @@ import { TrendingUp, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { CmeSummary } from "../../lib/api/schemas";
 import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
+import { normalizeTimeTag } from "../../lib/utils/viewingWindow";
 
 function formatCmeAge(isoTime: string): string {
-  const t = new Date(isoTime).getTime();
+  const t = new Date(normalizeTimeTag(isoTime)).getTime();
   if (!isFinite(t)) return '';
   return t > Date.now()
     ? 'just now'
