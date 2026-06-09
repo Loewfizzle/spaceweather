@@ -1,6 +1,7 @@
 import { BrandIcon } from "../components/BrandIcon";
 import { LiveHeader } from "../components/LiveHeader";
 import { LiveIndicator } from "../components/LiveIndicator";
+import { IosInstallPrompt } from "../components/IosInstallPrompt";
 import { DashboardClient } from "../components/DashboardClient";
 
 // No "use client" — this is a Server Component.
@@ -32,6 +33,9 @@ export default function AuroraWatch() {
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-[#64748b] leading-none">
                 <span>Aurora · solar · sky events</span>
                 <LiveIndicator />
+                <span className="sm:hidden">
+                  <IosInstallPrompt />
+                </span>
               </div>
             </div>
           </div>

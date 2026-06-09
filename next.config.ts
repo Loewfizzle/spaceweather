@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https://*.basemaps.cartocdn.com https://sdo.gsfc.nasa.gov https://services.swpc.noaa.gov",
               "connect-src 'self' https://services.swpc.noaa.gov https://va.vercel-scripts.com https://vitals.vercel-insights.com",
