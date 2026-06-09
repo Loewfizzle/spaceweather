@@ -256,6 +256,22 @@ describe('computeViewingWindow', () => {
     expect(result.hasData).toBe(true)
     expect(result.peakKp).toBe(4.0)
   })
+
+  it('stops at the first daytime gap — blocks from a second night are excluded', () => {
+    // NOW = June 5 12:00Z. First dark window (tonight): June 6 00:00Z–09:00Z.
+    // Second dark window (tomorrow night): June 7 00:00Z onward.
+    // The gap between June 6 09:00Z and June 7 00:00Z is 15 h → daytime break.
+    // Only the two first-night blocks should be in allBlocks; the second-night
+    // block with a higher Kp must not influence peakBlock or the range.
+    const result = computeViewingWindow([
+      forecastEntry('2026-06-06T00:00:00Z', 3.0),  // tonight  8 PM EDT
+      forecastEntry('2026-06-06T03:00:00Z', 4.5),  // tonight 11 PM EDT
+      forecastEntry('2026-06-07T00:00:00Z', 7.0),  // tomorrow 8 PM EDT — must be excluded
+      forecastEntry('2026-06-07T03:00:00Z', 7.5),  // tomorrow 11 PM EDT — must be excluded
+    ])
+    expect(result.allBlocks).toHaveLength(2)
+    expect(result.peakKp).toBe(4.5)
+  })
 })
 
 // ── computeLastNightPeak — alternative NOW values ─────────────────────────────

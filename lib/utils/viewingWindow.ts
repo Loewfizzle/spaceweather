@@ -120,14 +120,28 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
     return { hasData: false, peakKp: 0, windowStart: null, windowEnd: null, allBlocks: [] };
   }
 
-  const peakBlock = tonightBlocks.reduce(
+  // Trim to the first contiguous dark window. The NOAA 3-day feed contains
+  // in-window blocks across all three nights; consecutive blocks within the
+  // same night are exactly 3 h apart, while the gap to the next night is
+  // always ≥ 14 h. Stop collecting at the first gap wider than 3 hours.
+  const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+  let firstNightEnd = 1;
+  while (
+    firstNightEnd < tonightBlocks.length &&
+    tonightBlocks[firstNightEnd].time.getTime() - tonightBlocks[firstNightEnd - 1].time.getTime() <= THREE_HOURS_MS
+  ) {
+    firstNightEnd++;
+  }
+  const firstNight = tonightBlocks.slice(0, firstNightEnd);
+
+  const peakBlock = firstNight.reduce(
     (best, b) => (b.kp > best.kp ? b : best),
-    tonightBlocks[0]
+    firstNight[0]
   );
 
   // Contiguous "good" window: blocks within 1 Kp of the peak, floored at 2.5
   const threshold = Math.max(peakBlock.kp - 1, 2.5);
-  const goodBlocks = tonightBlocks.filter((b) => b.kp >= threshold);
+  const goodBlocks = firstNight.filter((b) => b.kp >= threshold);
 
   const windowStart = goodBlocks.length > 0 ? goodBlocks[0].time : peakBlock.time;
   const lastGood    = goodBlocks[goodBlocks.length - 1] ?? peakBlock;
@@ -141,7 +155,7 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
   /* v8 ignore start */
   if (process.env.NODE_ENV === 'development') {
     console.log('[AuroraWatch] computeViewingWindow', {
-      tonightBlocksCount: tonightBlocks.length,
+      tonightBlocksCount: firstNight.length,
       peakKp: peakBlock.kp,
       threshold,
       goodBlocksCount: goodBlocks.length,
@@ -156,6 +170,6 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
     peakKp: peakBlock.kp,
     windowStart,
     windowEnd,
-    allBlocks: tonightBlocks,
+    allBlocks: firstNight,
   };
 }
