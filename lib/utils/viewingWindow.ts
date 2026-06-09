@@ -108,10 +108,12 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
   const tonightBlocks = kpForecast
     .filter((e) => {
       if (!e.time_tag) return false;
+      if (e.kp == null) return false;
+      if (e.observed === 'observed') return false;
       const t = new Date(normalizeTimeTag(e.time_tag));
       return t > now && inAuroraViewingWindow(t);
     })
-    .map((e) => ({ time: new Date(normalizeTimeTag(e.time_tag!)), kp: e.kp ?? 0 }))
+    .map((e) => ({ time: new Date(normalizeTimeTag(e.time_tag!)), kp: e.kp! }))
     .sort((a, b) => a.time.getTime() - b.time.getTime());
 
   if (tonightBlocks.length === 0) {

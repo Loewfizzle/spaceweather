@@ -194,13 +194,25 @@ describe('computeViewingWindow', () => {
     expect(result.peakKp).toBe(4.0)
   })
 
-  it('treats null kp as 0 via nullish coalescing (line 93)', () => {
-    // e.kp ?? 0 fires when kp is null; entry should be included with kp=0
+  it('excludes entries with null kp (line 93)', () => {
+    // null kp entries are filtered out entirely; a feed with only null-kp entries
+    // in the viewing window returns hasData: false
     const result = computeViewingWindow([
       { time_tag: '2026-06-06T00:00:00Z', kp: null } as unknown as KpForecastEntry,
     ])
+    expect(result.hasData).toBe(false)
+  })
+
+  it('excludes entries with observed === "observed" (already happened)', () => {
+    // Past-observed entries are real data but belong in kpHistory, not the forecast window.
+    // A forecast array whose only in-window entry is observed should return hasData: false.
+    const result = computeViewingWindow([
+      { time_tag: '2026-06-06T00:00:00Z', kp: 4.5, observed: 'observed' } as unknown as KpForecastEntry,
+      forecastEntry('2026-06-06T03:00:00Z', 3.0),
+    ])
     expect(result.hasData).toBe(true)
-    expect(result.peakKp).toBe(0)
+    expect(result.allBlocks).toHaveLength(1)
+    expect(result.peakKp).toBe(3.0)
   })
 
   it('windowEnd is exactly 3 h after windowStart for a single in-window block', () => {
