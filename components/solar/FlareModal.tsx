@@ -11,7 +11,7 @@ const GOES_FLUX_URL = "https://services.swpc.noaa.gov/images/goes-xray-flux-1-mi
 
 type FlareInfo = { color: string; tier: string; impact: string };
 
-export function flareClassInfo(cls: string | undefined): FlareInfo {
+export function flareClassInfo(cls: string | null | undefined): FlareInfo {
   const letter = cls?.[0]?.toUpperCase() ?? "";
   if (letter === "X") return {
     color: "#a78bfa",

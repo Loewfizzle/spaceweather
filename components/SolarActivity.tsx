@@ -26,7 +26,7 @@ export function SolarActivity() {
   const sunCtx = solarActivity.sunspotNumber !== null ? sunspotContext(solarActivity.sunspotNumber) : null;
 
   const latestFlare = solarActivity.latestFlare;
-  const flareClass = latestFlare?.max_class || latestFlare?.current_class;
+  const flareClass = latestFlare?.max_class ?? latestFlare?.current_class ?? undefined;
   const flareInfo = flareClassInfo(flareClass);
   const flareTime = latestFlare?.max_time || solarActivity.flareTime;
 
