@@ -202,7 +202,7 @@ export function HeroOutlook({
             {/* LEFT: location state or picker trigger */}
             <div className="min-w-0 flex-1">
               {locationIsSet ? (
-                /* active location row — icon, truncated label, Change, Clear */
+                /* active location row — icon, truncated label, Clear */
                 <div className="flex items-center gap-1.5 min-w-0 text-xs">
                   {locationSource === "gps" ? (
                     <Navigation className="h-3.5 w-3.5 shrink-0" style={{ color: '#94a3b8' }} />
@@ -210,7 +210,7 @@ export function HeroOutlook({
                     <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: '#94a3b8' }} />
                   )}
                   <span
-                    className="font-medium truncate min-w-0 flex-1"
+                    className="font-medium truncate min-w-0"
                     style={{ color: '#94a3b8' }}
                   >
                     {userLocationLabel ?? "Your location"}
