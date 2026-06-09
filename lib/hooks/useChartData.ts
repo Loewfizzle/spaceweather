@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { KpEntry, KpForecastEntry } from "../api/schemas";
+import { normalizeTimeTag } from "../utils/viewingWindow";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -167,7 +168,7 @@ function makeForecastBoundaryPlugin(splitIdx: number): Record<string, any> {
 // ── Label formatter ───────────────────────────────────────────────────────────
 
 function formatTimeLabel(timeTag: string, referenceUtcDate: string): string {
-  const d = new Date(timeTag);
+  const d = new Date(normalizeTimeTag(timeTag));
   const time = d.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
@@ -185,37 +186,39 @@ function formatTimeLabel(timeTag: string, referenceUtcDate: string): string {
 // ── Core computation (exported for unit tests) ────────────────────────────────
 
 export function buildChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry[] = []) {
-  // Last ~12 entries (~36 hours of 3h Kp data)
+  // Last ~12 entries (~36 hours of 3h Kp data); skip entries with null Kp so
+  // they don't coerce to 0 and create spurious dips on the chart.
   const recent = kpHistory
-    .filter((entry) => !!entry.time_tag && !isNaN(new Date(entry.time_tag).getTime()))
+    .filter((entry) => !!entry.time_tag && entry.Kp != null && !isNaN(new Date(normalizeTimeTag(entry.time_tag)).getTime()))
     .slice(-12);
 
   const todayUtc =
     recent.length > 0
-      ? new Date(recent[recent.length - 1].time_tag!).toLocaleDateString("en-US", {
+      ? new Date(normalizeTimeTag(recent[recent.length - 1].time_tag!)).toLocaleDateString("en-US", {
           timeZone: "UTC",
         })
       : "";
 
   const historicalLabels = recent.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
-  const historicalValues = recent.map((entry) => entry.Kp ?? 0);
-  const historicalTonightMask = recent.map((e) => isTonightAuroraWindow(new Date(e.time_tag!)));
+  const historicalValues = recent.map((entry) => entry.Kp!);
+  const historicalTonightMask = recent.map((e) => isTonightAuroraWindow(new Date(normalizeTimeTag(e.time_tag!))));
 
   const lastHistoricalTime =
-    recent.length > 0 ? new Date(recent[recent.length - 1].time_tag!).getTime() : 0;
+    recent.length > 0 ? new Date(normalizeTimeTag(recent[recent.length - 1].time_tag!)).getTime() : 0;
 
   const futureForecast = kpForecast
     .filter(
       (e) =>
         !!e.time_tag &&
-        !isNaN(new Date(e.time_tag).getTime()) &&
-        new Date(e.time_tag).getTime() > lastHistoricalTime,
+        e.kp != null &&
+        !isNaN(new Date(normalizeTimeTag(e.time_tag)).getTime()) &&
+        new Date(normalizeTimeTag(e.time_tag)).getTime() > lastHistoricalTime,
     )
     .slice(0, 12); // next 36 hours
 
   const forecastLabels = futureForecast.map((e) => formatTimeLabel(e.time_tag!, todayUtc));
-  const forecastValues = futureForecast.map((e) => e.kp ?? 0);
-  const forecastTonightMask = futureForecast.map((e) => isTonightAuroraWindow(new Date(e.time_tag!)));
+  const forecastValues = futureForecast.map((e) => e.kp!);
+  const forecastTonightMask = futureForecast.map((e) => isTonightAuroraWindow(new Date(normalizeTimeTag(e.time_tag!))));
 
   const fullMask = [...historicalTonightMask, ...forecastTonightMask];
   const hasTonight = fullMask.some((v) => v);

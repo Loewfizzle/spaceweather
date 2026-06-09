@@ -17,6 +17,7 @@ import {
 import { ChevronRight, TrendingUp } from "lucide-react";
 import { ErrorState } from "./ErrorState";
 import { KpForecastModal } from "./solar/KpForecastModal";
+import { normalizeTimeTag } from "../lib/utils/viewingWindow";
 import type { KpEntry, KpForecastEntry } from "../lib/api/schemas";
 
 ChartJS.register(
@@ -66,7 +67,7 @@ function useStormDays(kpForecast: KpForecastEntry[]): StormDay[] {
 
     for (const entry of kpForecast) {
       if (!entry.time_tag) continue;
-      const t = new Date(entry.time_tag);
+      const t = new Date(normalizeTimeTag(entry.time_tag));
       if (t <= now) continue;
       const key = t.toLocaleDateString("en-US", {
         timeZone: "UTC",

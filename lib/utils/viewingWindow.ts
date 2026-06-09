@@ -13,7 +13,7 @@ function isDST(date: Date): boolean {
 // timezone suffix. Browsers parse them as LOCAL time rather than UTC, which
 // shifts every entry by the user's UTC offset. Append 'Z' to force UTC
 // interpretation — identical to the fix applied in computeLastNightPeak.
-function normalizeTimeTag(tag: string): string {
+export function normalizeTimeTag(tag: string): string {
   const iso = tag.trim().replace(' ', 'T');
   return iso.endsWith('Z') || /[+-]\d\d:\d\d$/.test(iso) ? iso : iso + 'Z';
 }
