@@ -21,8 +21,7 @@ export function alertFirstLine(message: string): string {
   const bodyStart = message.indexOf('\r\n\r\n');
   const body = bodyStart >= 0 ? message.slice(bodyStart + 4).trim() : message.trim();
   const match = body.match(/^(.{20,140}[.!?])/);
-  const raw = match ? match[1] : body.slice(0, 120);
-  return raw.length < body.length ? raw : raw + (body.length > 120 ? '…' : '');
+  return match ? match[1] : (body.length > 120 ? body.slice(0, 120) + '…' : body);
 }
 
 // NOAA issue_datetime is UTC with a space separator ("2026-06-05 23:25:16").

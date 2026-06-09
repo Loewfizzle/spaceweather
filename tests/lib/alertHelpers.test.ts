@@ -91,11 +91,10 @@ describe('alertFirstLine', () => {
     expect(result).toBe(body)
   })
 
-  it('falls back to first 120 chars when no sentence-ending punctuation exists in range', () => {
-    // 200 'A's — no '.!?' anywhere → raw = body.slice(0, 120); raw.length < body.length → no ellipsis
+  it('falls back to first 120 chars with ellipsis when no sentence-ending punctuation exists in range', () => {
     const body = 'A'.repeat(200)
     const result = alertFirstLine(body)
-    expect(result).toBe('A'.repeat(120))
+    expect(result).toBe('A'.repeat(120) + '…')
   })
 
   it('returns empty string for empty message', () => {
