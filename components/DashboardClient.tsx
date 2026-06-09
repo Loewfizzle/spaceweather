@@ -154,7 +154,7 @@ function DashboardInner() {
         />
       )}
       {/* Primary Answer Zone — HeroOutlook + ViewingWindow */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-12">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-5">
         <div className="flex items-center gap-2 mb-3">
           <span className="block h-[5px] w-[5px] rounded-full bg-[#94a3b8] flex-shrink-0" />
           <span
@@ -195,7 +195,7 @@ function DashboardInner() {
         </div>
       </section>
 
-      <SectionErrorBoundary message="Aurora map unavailable." className="pt-10">
+      <SectionErrorBoundary message="Aurora map unavailable." className="pt-0">
         <Suspense fallback={<MapSectionSkeleton />}>
           <AuroraMapSection userProb={userLocationProb} ovationPoints={ovationPoints} />
         </Suspense>

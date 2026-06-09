@@ -5,8 +5,8 @@ import { ChevronDown } from "lucide-react";
 
 /**
  * DataUnderstanding
- * Expandable/collapsible educational section covering Kp, Bz, OVATION, solar activity,
- * indicator interactions, and general viewing tips.
+ * Expandable/collapsible section covering solar activity, how the indicators work together,
+ * and viewing tips. Per-metric explanations live in the card info modals.
  * Button uses aria-expanded + aria-controls for a11y.
  */
 export function DataUnderstanding() {
@@ -24,7 +24,7 @@ export function DataUnderstanding() {
           <div>
             <div className="section-title mb-1">Understanding the Data</div>
             <div className="text-sm text-[#94a3b8]">
-              What the numbers and maps mean
+              Solar activity, reading the indicators, and viewing tips
             </div>
           </div>
           <ChevronDown
@@ -37,27 +37,6 @@ export function DataUnderstanding() {
           className="px-6 pb-6 text-sm text-[#cbd5e1] space-y-4 border-t border-[#1e2937] pt-4"
           hidden={!isDataInfoExpanded}
         >
-          <div>
-            <div className="font-medium text-white mb-1">Kp Index</div>
-            <p>
-              The planetary K-index measures global geomagnetic activity on a scale of 0–9. Values of 4–5 can produce aurora visible from northern states under dark skies; values of 6 and above significantly expand the visible zone southward. Kp updates every three hours and represents a summary of the past period — it is a current reading, not a prediction on its own.
-            </p>
-          </div>
-
-          <div>
-            <div className="font-medium text-white mb-1">Bz (Interplanetary Magnetic Field)</div>
-            <p>
-              Bz is the north-south component of the solar wind&apos;s magnetic field. When Bz is negative (pointing southward), it aligns with Earth&apos;s field in a way that allows solar wind energy to flow into the magnetosphere, driving geomagnetic activity. A sustained Bz of –5 nT or lower is a strong positive signal; brief dips matter less than sustained periods of southward Bz. Bz is highly dynamic and can flip direction in minutes.
-            </p>
-          </div>
-
-          <div>
-            <div className="font-medium text-white mb-1">OVATION Probability Map</div>
-            <p>
-              The map shows modeled aurora probability derived from the OVATION Prime model, driven by real-time solar wind measurements. It represents the statistical likelihood of visible aurora at each location — not live imagery of the aurora itself. The auroral oval shifts equatorward as geomagnetic activity increases, so even areas well south of the usual oval can see meaningful probabilities during active periods.
-            </p>
-          </div>
-
           <div>
             <div className="font-medium text-white mb-1">Solar Activity</div>
             <p>
