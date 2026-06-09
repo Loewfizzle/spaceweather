@@ -86,7 +86,7 @@ export function SolarActivity() {
 
             <div className="text-xs text-[#64748b] mt-0.5">
               {flareTime
-                ? formatDistanceToNow(new Date(normalizeTimeTag(flareTime)), { addSuffix: true })
+                ? `Detected ${formatDistanceToNow(new Date(normalizeTimeTag(flareTime)), { addSuffix: true })}`
                 : "—"}
               {latestFlare?.region != null && ` · Region ${latestFlare.region}`}
             </div>
