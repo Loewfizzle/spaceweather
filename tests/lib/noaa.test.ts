@@ -274,7 +274,7 @@ describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
   })
 
   it('includes points exactly at NA longitude boundaries (190→-170, 310→-50)', () => {
-    const coords = [
+    const coords: [number, number, number][] = [
       [190, 45, 10],  // 190 > 180 → 190 - 360 = -170 (exactly minLon, included)
       [310, 45, 10],  // 310 > 180 → 310 - 360 = -50  (exactly maxLon, included)
       [189, 45, 10],  // 189 ≤ 180 → stays 189 (outside NA), excluded
@@ -288,7 +288,7 @@ describe('filterOvationCoordinates + maxOvationNorthAmerica', () => {
 
   it('normalizes lon=360 to 0 (prime meridian, excluded from NA)', () => {
     // 360 > 180 → 360 - 360 = 0; lon 0 is outside NA bounds [-170, -50]
-    const coords = [[360, 50, 20]]
+    const coords: [number, number, number][] = [[360, 50, 20]]
     expect(filterOvationCoordinates(coords, 0)).toHaveLength(0)
   })
 })

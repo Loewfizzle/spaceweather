@@ -170,7 +170,7 @@ describe('getTonightOutlook', () => {
   });
 
   it('returns "Low" when kp < 3 but significantFlare (M-class)', () => {
-    const flare = { max_class: 'M5.0', begin_time: '', peak_time: '', end_time: '', region: '1234' };
+    const flare = { time_tag: '2026-01-01 00:00:00', satellite: 15, max_class: 'M5.0' };
     const out = getTonightOutlook(2, -1, null, [], flare);
     expect(out.status).toBe('Low');
     expect(out.reasons.some((r) => /flare/i.test(r))).toBe(true);

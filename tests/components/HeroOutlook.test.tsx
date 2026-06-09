@@ -157,7 +157,7 @@ describe('HeroOutlook', () => {
       locationSource: 'gps',
       userLocationLabel: 'Anchorage, AK',
     });
-    render(<HeroOutlook outlook={goodOutlook} onClearLocation={vi.fn()} />);
+    render(<HeroOutlook outlook={goodOutlook} />);
     expect(screen.getByText('Anchorage, AK')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /clear saved location/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /change/i })).not.toBeInTheDocument();
@@ -169,7 +169,7 @@ describe('HeroOutlook', () => {
       locationSource: 'manual',
       userLocationLabel: 'Denver, CO',
     });
-    render(<HeroOutlook outlook={goodOutlook} onClearLocation={vi.fn()} />);
+    render(<HeroOutlook outlook={goodOutlook} />);
     expect(screen.getByText('Denver, CO')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /clear saved location/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /change/i })).not.toBeInTheDocument();

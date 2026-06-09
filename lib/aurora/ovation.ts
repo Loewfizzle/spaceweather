@@ -25,7 +25,7 @@ export type ProbTier = keyof typeof PROB_TIERS;
 // Filter raw OVATION coordinates to a region + min probability.
 // NOAA sends longitude as 0–360; convert to -180..180 with a single subtraction.
 export function filterOvationCoordinates(
-  coordinates: Array<unknown[]> | undefined,
+  coordinates: Array<[number, number, number]> | undefined,
   minProb: number = 0,
   bounds = NORTH_AMERICA_BOUNDS
 ): OvationPoint[] {
@@ -33,14 +33,7 @@ export function filterOvationCoordinates(
 
   const results: OvationPoint[] = [];
 
-  for (const row of coordinates) {
-    if (!Array.isArray(row) || row.length < 3) continue;
-
-    const rawLon = row[0];
-    const lat    = row[1];
-    const prob   = row[2];
-
-    if (typeof rawLon !== 'number' || typeof lat !== 'number' || typeof prob !== 'number') continue;
+  for (const [rawLon, lat, prob] of coordinates) {
     if (!isFinite(rawLon) || !isFinite(lat) || !isFinite(prob)) continue;
     if (lat < -90 || lat > 90) continue;
     if (prob < minProb) continue;

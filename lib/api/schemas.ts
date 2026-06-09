@@ -23,7 +23,7 @@ export const OvationResponseSchema = z.object({
   "Observation Time": z.string().optional(),
   "Forecast Time": z.string().optional(),
   "Data Format": z.string().optional(),
-  coordinates: z.array(z.array(z.unknown())).optional(), // [lon, lat, prob] - tolerant of partial/missing data; cleaned in filterOvationCoordinates
+  coordinates: z.array(z.tuple([z.number(), z.number(), z.number()])).optional(), // [lon, lat, prob]
 });
 export type OvationResponse = z.infer<typeof OvationResponseSchema>;
 
