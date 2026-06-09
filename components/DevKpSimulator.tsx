@@ -19,6 +19,7 @@ export function DevKpSimulator({ simKp, onSimKp }: DevKpSimulatorProps) {
         {KP_LEVELS.map((kp) => (
           <button
             key={kp}
+            type="button"
             onClick={() => onSimKp(simKp === kp ? null : kp)}
             style={{
               padding: '3px 8px', cursor: 'pointer', borderRadius: 4, fontSize: 11,
@@ -31,6 +32,7 @@ export function DevKpSimulator({ simKp, onSimKp }: DevKpSimulatorProps) {
           </button>
         ))}
         <button
+          type="button"
           onClick={() => onSimKp(null)}
           disabled={simKp === null}
           style={{

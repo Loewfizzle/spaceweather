@@ -22,11 +22,6 @@ const KpForecast = dynamic(
   () => import("./KpForecast").then((m) => ({ default: m.KpForecast }))
 );
 
-// Replaced with null at build time — zero production footprint
-const DevKpSimulator =
-  process.env.NODE_ENV === 'development'
-    ? dynamic(() => import('./DevKpSimulator').then((m) => ({ default: m.DevKpSimulator })), { ssr: false })
-    : null;
 import { SolarActivity } from "./SolarActivity";
 import { MeteorActivity } from "./MeteorActivity";
 import { DataUnderstanding } from "./DataUnderstanding";
@@ -35,6 +30,12 @@ import { ViewingWindow } from "./ViewingWindow";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ErrorState } from "./ErrorState";
 import { SectionErrorBoundary } from "./SectionErrorBoundary";
+
+// Replaced with null at build time — zero production footprint
+const DevKpSimulator =
+  process.env.NODE_ENV === 'development'
+    ? dynamic(() => import('./DevKpSimulator').then((m) => ({ default: m.DevKpSimulator })), { ssr: false })
+    : null;
 
 function getAuroraGlow(kp: number | null): { rgba: string; duration: string } | null {
   if (kp === null || kp < 4) return null;
@@ -124,15 +125,24 @@ function DashboardInner() {
 
   const [simKp, setSimKp] = useState<number | null>(null);
   const auroraGlow = getAuroraGlow(simKp ?? kp);
+  // Dev only: boost opacity so the glow is clearly visible when testing locally.
+  // process.env.NODE_ENV is statically replaced at build time — dead code in production.
+  const isDev = process.env.NODE_ENV === 'development';
+  const displayGlow = isDev && auroraGlow
+    ? { ...auroraGlow, rgba: auroraGlow.rgba.replace(/[\d.]+\)$/, '0.65)') }
+    : auroraGlow;
 
   return (
     <>
-      {auroraGlow && (
+      {displayGlow && (
         <div
           className="aurora-bg-glow"
           style={{
-            background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${auroraGlow.rgba} 0%, transparent 70%)`,
-            animationDuration: auroraGlow.duration,
+            background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${displayGlow.rgba} 0%, transparent 70%)`,
+            animationDuration: displayGlow.duration,
+            // Dev: z-index 0 loses to positioned content in the stacking order.
+            // Raise to 5 so the glow renders above cards (pointer-events:none keeps it safe).
+            ...(isDev && { zIndex: 5 }),
           }}
         />
       )}
