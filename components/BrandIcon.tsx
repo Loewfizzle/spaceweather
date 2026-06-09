@@ -19,11 +19,11 @@ export function BrandIcon() {
   const duration = PULSE_DURATION[tier];
 
   return (
-    <div className="w-8 h-8 rounded-full bg-[#0d1425] border border-[#1e2937] flex items-center justify-center flex-shrink-0">
-      <Sparkles
-        className="w-4 h-4 animate-pulse"
-        style={{ color, animationDuration: duration }}
-      />
+    <div
+      className="w-8 h-8 rounded-full bg-[#0d1425] border border-[#1e2937] flex items-center justify-center flex-shrink-0 animate-pulse"
+      style={{ animationDuration: duration }}
+    >
+      <Sparkles className="w-4 h-4" style={{ color }} />
     </div>
   );
 }
