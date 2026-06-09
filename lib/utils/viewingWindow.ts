@@ -35,16 +35,13 @@ export interface ViewingWindowData {
 }
 
 /**
- * From the Kp history array, find the peak Kp that occurred in last night's
- * northern US darkness window (8 pm–6 am ET).
+ * From the Kp history array, find the peak Kp that occurred in the most
+ * recently *completed* northern US darkness window (8 pm–6 am ET).
  *
- * The window is bounded to exactly that 10-hour period so that a multi-day
- * storm can't make a peak from two nights ago appear as "last night."
- *
- * Math: hours since the most recent 8 pm ET —
- *   etHour >= 20 (evening):   10 pm  →  2 h ago = tonight    8 pm ✓
- *   etHour  < 20 (otherwise):  3 am  →  7 h ago = yesterday  8 pm ✓
- *                              3 pm  → 19 h ago = yesterday  8 pm ✓
+ * Always targets the previous completed night — i.e. the 8 PM ET that has
+ * already passed and whose 6 AM close is in the past. "Last night" is
+ * constant from 6 AM ET until the following midnight; during the ongoing
+ * window (8 PM–6 AM ET) it still shows yesterday's completed result.
  */
 export function computeLastNightPeak(
   kpHistory: KpEntry[]
@@ -60,10 +57,9 @@ export function computeLastNightPeak(
   // 8 PM ET tonight as an exact UTC timestamp — always a clean hour boundary,
   // no sub-minute drift from seconds in `now`.
   const tonight8pmUTC = etMidnightUTC + 20 * msPerHour;
-  // If before tonight's 8 PM, last night's window started 24 h earlier.
-  const nightStartMs = now.getTime() >= tonight8pmUTC
-    ? tonight8pmUTC
-    : tonight8pmUTC - 24 * msPerHour;
+  // Always target the previous completed night — 24 h before tonight's 8 PM.
+  // During the ongoing window (8 PM–6 AM ET) this still shows last night's result.
+  const nightStartMs = tonight8pmUTC - 24 * msPerHour;
 
   const nightStart = new Date(nightStartMs);
   // 8pm–6am is always 10 clock-hours; DST transitions at 2am don't change the boundary times

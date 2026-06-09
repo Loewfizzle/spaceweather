@@ -297,13 +297,16 @@ describe('computeLastNightPeak — alternative NOW values', () => {
     expect(result?.peakKp).toBe(4.0)
   })
 
-  it('uses hoursAgo = etHour − 20 when current ET hour is ≥ 20 (evening)', () => {
-    // NOW = 2026-06-06T01:00:00Z = 9pm EDT (etHour=21, ≥ 20).
-    // hoursAgo = 21 − 20 = 1 → nightStart = T00:00:00Z (8pm EDT).
-    // windowEnd = min(T10:00Z, now=T01:00Z) = T01:00Z.
-    // Entry at T00:30Z (8:30pm EDT) falls inside [T00:00Z, T01:00Z].
+  it('when called after 8 PM ET, returns the previous completed night — not tonight\'s ongoing window', () => {
+    // NOW = 2026-06-06T01:00:00Z = 9pm EDT June 5 (inside tonight's ongoing window).
+    // Previous completed night: 8pm–6am EDT June 4→5 = June 5 00:00Z–10:00Z.
+    // Entry at June 5 04:00Z (midnight EDT) is inside last night's window → included.
+    // Entry at June 6 00:30Z (8:30pm EDT June 5) is inside tonight's window → excluded.
     vi.setSystemTime(new Date('2026-06-06T01:00:00Z'))
-    const result = computeLastNightPeak([kpEntry('2026-06-06T00:30:00Z', 5.0)])
-    expect(result?.peakKp).toBe(5.0)
+    const result = computeLastNightPeak([
+      kpEntry('2026-06-05T04:00:00Z', 4.5),  // midnight EDT June 4→5 — last night ✓
+      kpEntry('2026-06-06T00:30:00Z', 7.0),  // 8:30pm EDT June 5 — tonight, must be excluded
+    ])
+    expect(result?.peakKp).toBe(4.5)
   })
 })
