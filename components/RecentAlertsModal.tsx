@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { Bell, X } from "lucide-react";
 import { useFocusTrap } from "../lib/hooks/useFocusTrap";
+import { useBodyScrollLock } from "../lib/hooks/useBodyScrollLock";
 import { alertProductLabel, alertFirstLine, formatAlertAge } from "../lib/utils/alertHelpers";
 import type { Alert } from "../lib/api/schemas";
 
@@ -13,6 +14,7 @@ export function RecentAlertsModal({
   alerts: Alert[];
   onClose: () => void;
 }) {
+  useBodyScrollLock();
   const containerRef = useRef<HTMLDivElement>(null);
   useFocusTrap(containerRef, onClose);
 

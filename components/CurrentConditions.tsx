@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Wind, Zap, Activity, Satellite, Info, X } from "lucide-react";
+import { useBodyScrollLock } from "../lib/hooks/useBodyScrollLock";
 import { getKpTier, AURORA_TIERS } from "../lib/aurora/kp";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 
@@ -106,6 +107,7 @@ function cardIcon(id: CardId) {
 }
 
 function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void }) {
+  useBodyScrollLock();
   const content = MODAL_CONTENT[card];
 
   return (

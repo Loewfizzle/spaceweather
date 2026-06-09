@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Zap, X, ChevronRight } from "lucide-react";
+import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { formatDistanceToNow } from "date-fns";
 import type { XrayFlare, CmeSummary } from "../../lib/api/schemas";
 import { assessEarthImpact } from "../../lib/aurora/solar";
@@ -69,6 +70,7 @@ export function FlareModal({
   recentCmes: CmeSummary[];
   onClose: () => void;
 }) {
+  useBodyScrollLock();
   const cls = flare.max_class || flare.current_class;
   const info = flareClassInfo(cls);
   const duration = flareDuration(flare.begin_time, flare.end_time);

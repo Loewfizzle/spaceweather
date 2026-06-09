@@ -1,6 +1,7 @@
 "use client";
 
 import { Sun, X, ChevronRight } from "lucide-react";
+import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 
 const SUNSPOT_SCALE = [
   { min: 0,   label: "Quiet",         range: "0–29",    color: "#64748b" },
@@ -26,6 +27,7 @@ export function SunspotModal({
   sunspotNumber: number;
   onClose: () => void;
 }) {
+  useBodyScrollLock();
   const ctx = sunspotContext(sunspotNumber);
   const activeTierIdx = SUNSPOT_SCALE.reduce(
     (active, t, i) => (sunspotNumber >= t.min ? i : active),

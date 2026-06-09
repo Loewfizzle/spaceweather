@@ -1,8 +1,10 @@
 "use client";
 
 import { TrendingUp, X, ChevronRight } from "lucide-react";
+import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 
 export function CoronalModal({ onClose }: { onClose: () => void }) {
+  useBodyScrollLock();
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/70"

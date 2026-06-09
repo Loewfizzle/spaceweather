@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { X, ChevronRight, Clock } from "lucide-react";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
+import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { forecastKpBlurb, viewingWindowLocationBlurb } from "../../lib/aurora/conditions";
 import { getVisibleCities } from "../../lib/aurora/visibleCities";
 
@@ -25,6 +26,7 @@ export function ViewingWindowModal({
   userLocationLabel,
   onClose,
 }: ViewingWindowModalProps) {
+  useBodyScrollLock();
   const effectiveKp = kp ?? peakKp;
   const { cities, minLat } = getVisibleCities(effectiveKp);
   const locBlurb = userLat != null ? viewingWindowLocationBlurb(userLat, effectiveKp, userLocationLabel) : null;

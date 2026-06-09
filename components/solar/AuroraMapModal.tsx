@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { X, ChevronRight, Map } from "lucide-react";
 import { useUserLocationContext } from "../../lib/context/UserLocationContext";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
+import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { mapLocationBlurb } from "../../lib/aurora/conditions";
 
 interface AuroraMapModalProps {
@@ -12,6 +13,7 @@ interface AuroraMapModalProps {
 }
 
 export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
+  useBodyScrollLock();
   const { userLocationLabel, userLat } = useUserLocationContext();
   const hasLocation = userLat != null && userProb !== undefined;
   const locBlurb = hasLocation ? mapLocationBlurb(userProb ?? 0, userLocationLabel) : null;

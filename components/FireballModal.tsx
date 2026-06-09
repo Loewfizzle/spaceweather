@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useBodyScrollLock } from "../lib/hooks/useBodyScrollLock";
 import type { Fireball } from "../lib/use-noaa-data";
 import { formatFireballDate, formatFireballLocation, formatFireballEnergy, approximateLocation } from "../lib/use-noaa-data";
 
@@ -35,6 +36,7 @@ function resolveLocationFallback(fireball: Fireball): string {
 }
 
 export function FireballModal({ fireball, onClose }: FireballModalProps) {
+  useBodyScrollLock();
   const [location, setLocation] = useState<string | null>(null);
   // True while the geocode request is in flight — prevents the raw coordinate
   // string from flashing before the city name resolves.
@@ -77,7 +79,7 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070f]/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center bg-[#05070f]/80 backdrop-blur-sm p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

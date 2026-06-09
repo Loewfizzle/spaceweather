@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { X, ChevronRight, Activity } from "lucide-react";
 import { useUserLocationContext } from "../../lib/context/UserLocationContext";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
+import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import {
   windBlurb,
   bzBlurb,
@@ -33,6 +34,7 @@ export function CurrentConditionsModal({
   userLocationProb,
   onClose,
 }: CurrentConditionsModalProps) {
+  useBodyScrollLock();
   const { userLocationLabel } = useUserLocationContext();
   const panelRef = useRef<HTMLDivElement>(null);
   useFocusTrap(panelRef, onClose);

@@ -3,6 +3,7 @@
 import { TrendingUp, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { CmeSummary } from "../../lib/api/schemas";
+import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 
 function formatCmeAge(isoTime: string): string {
   const t = new Date(isoTime).getTime();
@@ -27,6 +28,7 @@ export function CmeModal({
   recentCmes: CmeSummary[];
   onClose: () => void;
 }) {
+  useBodyScrollLock();
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
