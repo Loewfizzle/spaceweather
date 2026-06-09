@@ -46,14 +46,14 @@ export function IosInstallPrompt() {
 
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center"
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6"
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
           aria-labelledby="ios-install-title"
         >
           <div
-            className="bg-[#0d1425] border border-[#1e2937] rounded-t-2xl w-full max-w-sm px-6 pt-6 pb-8"
+            className="bg-[#0d1425] border border-[#1e2937] rounded-2xl w-full max-w-sm px-6 pt-6 pb-8"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
