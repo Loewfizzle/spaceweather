@@ -142,9 +142,9 @@ function DashboardInner() {
           style={{
             background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${displayGlow.rgba} 0%, transparent 70%)`,
             animationDuration: displayGlow.duration,
-            // Dev: raise z-index above cards and disable the pulse animation so the
-            // glow holds at full opacity — makes the color clearly visible for testing.
-            ...(isDev && { zIndex: 5, animationName: 'none' }),
+            // Dev: raise above header (z-index:50) and disable pulse so the glow
+            // holds at full opacity. pointer-events:none keeps everything clickable.
+            ...(isDev && { zIndex: 100, animationName: 'none' }),
           }}
         />
       )}
