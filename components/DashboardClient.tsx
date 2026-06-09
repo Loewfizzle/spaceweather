@@ -131,7 +131,7 @@ function DashboardInner() {
   // process.env.NODE_ENV is statically replaced at build time — dead code in production.
   const isDev = process.env.NODE_ENV === 'development';
   const displayGlow = isDev && auroraGlow
-    ? { ...auroraGlow, rgba: auroraGlow.rgba.replace(/[\d.]+\)$/, '0.65)') }
+    ? { ...auroraGlow, rgba: auroraGlow.rgba.replace(/[\d.]+\)$/, '0.85)') }
     : auroraGlow;
 
   return (
@@ -142,9 +142,9 @@ function DashboardInner() {
           style={{
             background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${displayGlow.rgba} 0%, transparent 70%)`,
             animationDuration: displayGlow.duration,
-            // Dev: z-index 0 loses to positioned content in the stacking order.
-            // Raise to 5 so the glow renders above cards (pointer-events:none keeps it safe).
-            ...(isDev && { zIndex: 5 }),
+            // Dev: raise z-index above cards and disable the pulse animation so the
+            // glow holds at full opacity — makes the color clearly visible for testing.
+            ...(isDev && { zIndex: 5, animationName: 'none' }),
           }}
         />
       )}
