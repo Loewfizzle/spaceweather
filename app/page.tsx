@@ -64,6 +64,15 @@ export default function AuroraWatch() {
       {/* Footer — server-rendered */}
       <footer className="border-t border-[#1e2937] pt-8 pb-10 text-xs text-[#64748b]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center text-[#94a3b8] mb-6">
+            Questions, bug reports, or inquiries —{" "}
+            <a
+              href="mailto:contact@skyglow.app"
+              className="underline hover:text-white transition-colors"
+            >
+              contact@skyglow.app
+            </a>
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-y-2 justify-between">
             <div>
               Data provided by{" "}
