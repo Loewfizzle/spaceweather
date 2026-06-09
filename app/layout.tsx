@@ -27,26 +27,29 @@ export const metadata: Metadata = {
         : "http://localhost:3000"
   ),
   title: {
-    default: "SkyGlow | Real-time Aurora & Space Weather",
+    default: "SkyGlow — Aurora Forecast Tonight & Northern Lights Tracker",
     template: "%s | SkyGlow",
   },
-  description: "Premium real-time aurora visibility and space weather dashboard for the United States, with particularly strong coverage for the Great Lakes region and northern states. Live NOAA SWPC data.",
+  description: "Real-time aurora forecast for tonight — live Kp index, northern lights probability, and solar wind data for the United States. Powered by NOAA SWPC.",
   icons: {
     icon: "/icon.svg",
   },
   openGraph: {
     siteName: "SkyGlow",
-    title: "SkyGlow | Real-time Aurora & Space Weather",
-    description: "Premium real-time aurora visibility and space weather dashboard for the United States, with particularly strong coverage for the Great Lakes region and northern states. Live NOAA SWPC data.",
+    title: "SkyGlow — Aurora Forecast Tonight & Northern Lights Tracker",
+    description: "Real-time aurora forecast for tonight — live Kp index, northern lights probability, and solar wind data for the United States. Powered by NOAA SWPC.",
     // opengraph-image.tsx in this directory generates the OG image dynamically with live Kp data.
   },
   twitter: {
     card: "summary_large_image",
-    title: "SkyGlow | Real-time Aurora & Space Weather",
-    description: "Premium real-time aurora visibility and space weather dashboard for the United States, with particularly strong coverage for the Great Lakes region and northern states. Live NOAA SWPC data.",
+    title: "SkyGlow — Aurora Forecast Tonight & Northern Lights Tracker",
+    description: "Real-time aurora forecast for tonight — live Kp index, northern lights probability, and solar wind data for the United States. Powered by NOAA SWPC.",
   },
-  keywords: ["aurora", "space weather", "northern lights", "Great Lakes", "NOAA", "Kp index", "fireball", "meteor shower"],
+  keywords: ["aurora forecast tonight", "northern lights forecast", "northern lights tonight", "Kp index", "aurora borealis forecast", "space weather", "NOAA SWPC", "solar wind", "geomagnetic storm", "fireball", "meteor shower"],
   authors: [{ name: "SkyGlow" }],
+  verification: {
+    google: "lcJfeGYAQoCV6vxmY4vSEZMLE1c9HwhECZdFQNEkwuQ",
+  },
   alternates: {
     canonical: "/",
   },
