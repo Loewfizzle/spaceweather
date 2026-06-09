@@ -106,6 +106,7 @@ export const CmeSummarySchema = z.object({
   direction: z.string().optional(),
   earthImpact: z.string().optional(),
   note: z.string(),
+  associatedFlare: z.string().optional(),
 });
 export type CmeSummary = z.infer<typeof CmeSummarySchema>;
 

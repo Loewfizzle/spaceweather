@@ -32,6 +32,7 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
     const isDirectHit = /Earth-directed|Earth-facing|will reach Earth|geomagnetic storm|full halo|halo CME/i.test(msg);
     const isGlancing = !isDirectHit && /partial halo|glancing/i.test(msg);
     const impactNote = isDirectHit ? "Likely Earth impact" : isGlancing ? "Glancing impact possible" : "Monitor for effects";
+    const flareMatch = msg.match(/\b([BCMX]\d+\.?\d*)\b/);
     const lines = msg.split("\n").filter(Boolean);
     const joined = lines.slice(0, 3).join(" ").replace(/\s+/g, " ");
     const shortNote = joined.length > 140 ? joined.substring(0, 140) + "…" : joined;
@@ -41,6 +42,7 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
       direction: dirMatch ? dirMatch[0] : undefined,
       earthImpact: impactNote,
       note: shortNote,
+      associatedFlare: flareMatch ? flareMatch[1] : undefined,
     };
   });
 }

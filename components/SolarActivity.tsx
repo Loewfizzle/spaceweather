@@ -120,12 +120,18 @@ export function SolarActivity() {
                       className="text-4xl font-semibold tracking-tighter tabular-nums leading-none"
                       style={{ color }}
                     >
-                      {cme.speed ? `${cme.speed.toLocaleString()} km/s` : "CME"}
+                      {cme.speed ? `${cme.speed.toLocaleString()} km/s` : "CME Alert"}
                     </div>
 
                     {cme.earthImpact && (
                       <div className="text-xs mt-1.5" style={{ color }}>
                         {cme.earthImpact}
+                      </div>
+                    )}
+
+                    {cme.associatedFlare && (
+                      <div className="text-[11px] text-[#64748b] mt-1">
+                        Associated with {cme.associatedFlare} flare
                       </div>
                     )}
 
