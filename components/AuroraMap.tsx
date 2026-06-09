@@ -179,7 +179,7 @@ export default function AuroraMap({
             </div>
             <div className="text-[10px] text-[#64748b] leading-relaxed">
               {minProb > 3
-                ? `No aurora areas ≥ ${minProb}% visible. Lower the filter slider to see more of the oval.`
+                ? `No aurora areas ≥ ${minProb}% visible. Lower the filter slider to see more of the aurora oval.`
                 : "The aurora oval is currently positioned away from North America. Conditions may improve when Kp rises."}
             </div>
           </div>

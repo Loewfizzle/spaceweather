@@ -148,7 +148,7 @@ export function CurrentConditionsModal({
                 where the aurora oval is and how intense it is right now. The percentage shown on the
                 card is the <span className="text-[#94a3b8]">peak model output anywhere in North America</span>{" "}—
                 not a simple &ldquo;chance of seeing aurora.&rdquo; Think of it more like a radar return:
-                0% means the oval is well above Canada; 50%+ means a major aurora event is in progress
+                0% means the aurora oval is well above Canada; 50%+ means a major aurora event is in progress
                 over the continent.
               </p>
               <p className="text-[12px] text-[#64748b] leading-relaxed">

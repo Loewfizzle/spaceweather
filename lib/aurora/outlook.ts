@@ -221,13 +221,13 @@ export function getPersonalizedOutlook(
     status = 'Low';
     accentColor = AURORA_TIERS.moderate.color;
     message = tooFarSouth && peakKp !== null
-      ? `Aurora unlikely to reach ${name} tonight — forecast Kp ${peakKp.toFixed(1)} keeps the oval to your north.${cloudNote}`
+      ? `Aurora unlikely to reach ${name} tonight — forecast Kp ${peakKp.toFixed(1)} keeps the aurora oval to your north.${cloudNote}`
       : `Faint aurora possible at ${name} tonight, though conditions are marginal for your latitude.${cloudNote}`;
   } else {
     status = 'Very low';
     accentColor = '#64748b';
     message = tooFarSouth && peakKp !== null
-      ? `Aurora unlikely to reach ${name} tonight — forecast Kp ${peakKp.toFixed(1)} keeps the oval well to your north.${cloudNote}`
+      ? `Aurora unlikely to reach ${name} tonight — forecast Kp ${peakKp.toFixed(1)} keeps the aurora oval well to your north.${cloudNote}`
       : `No meaningful aurora expected at ${name} under current conditions.${cloudNote}`;
   }
 

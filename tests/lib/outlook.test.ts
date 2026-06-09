@@ -268,7 +268,7 @@ describe('getPersonalizedOutlook', () => {
 
   it('uses non-tooFarSouth low message when latitude is in the marginal zone', () => {
     // Duluth at 47°N, Kp forecast 5 → boundary = 72 - 20 = 52 → 47 < 52 → tooFarSouth
-    // But with prob=3 (Low tier), should show the "Kp X.X keeps oval to your north" message
+    // But with prob=3 (Low tier), should show the "Kp X.X keeps the aurora oval to your north" message
     const out = getPersonalizedOutlook(base, 3, 47.0, 'Duluth', 5.0, null);
     expect(out.status).toBe('Low');
     expect(out.message).toContain('5.0');
