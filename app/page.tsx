@@ -90,7 +90,15 @@ export default function AuroraWatch() {
               Not for navigation • Updates every few minutes
             </div>
           </div>
-          <div className="mt-4 text-[#475569] text-[10px]">SkyGlow v0.1.0</div>
+          <div className="mt-4 text-[#475569] text-[10px]">
+            SkyGlow v0.1.0 ·{" "}
+            <a
+              href="https://skyglow.app"
+              className="hover:text-[#64748b] transition-colors"
+            >
+              skyglow.app
+            </a>
+          </div>
         </div>
       </footer>
     </div>
