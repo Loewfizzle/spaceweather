@@ -80,18 +80,13 @@ export function LiveIndicator() {
         />
       </span>
 
-      {/* Desktop: prose age of the NOAA data itself */}
-      <span aria-hidden="true" className="hidden sm:inline">
-        {ageText}
-      </span>
-
-      {/* Mobile: "LIVE" when recently fetched; compact data age otherwise */}
+      {/* Both breakpoints: "LIVE" when recently fetched; compact data age otherwise */}
       {isLive ? (
-        <span aria-hidden="true" className="sm:hidden text-[9px] font-medium tracking-wider text-[#22c55e]">
+        <span aria-hidden="true" className="text-[9px] font-medium tracking-wider text-[#22c55e]">
           LIVE
         </span>
       ) : (
-        <span aria-hidden="true" className="sm:hidden text-[9px] tabular-nums text-[#64748b]">
+        <span aria-hidden="true" className="text-[9px] tabular-nums text-[#64748b]">
           {compactAge(now, latestGlobalUpdate)}
         </span>
       )}

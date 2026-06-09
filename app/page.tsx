@@ -32,7 +32,7 @@ export default function AuroraWatch() {
               </div>
               {/* Subtitle + live dot on one line */}
               <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#64748b] leading-none">
-                <span>NOAA SWPC<span className="hidden sm:inline"> • Northern US</span></span>
+                <span>Live space weather</span>
                 <LiveIndicator />
               </div>
             </div>
