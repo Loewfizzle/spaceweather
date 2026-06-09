@@ -14,7 +14,7 @@ type CardId = "wind" | "bz" | "kp" | "ovation";
 type LegendRow = { color: string; range: string; desc: string };
 type ModalSection =
   | { heading: string; body: string }
-  | { heading: string; rows: { kp: string; cities: string; lat: string; color: string }[] }
+  | { heading: string; rows: { kp: string; cities: string; lat: string }[] }
   | { heading: string; legend: LegendRow[]; note?: string };
 
 const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }> = {
@@ -91,16 +91,26 @@ const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }>
       {
         heading: "Visibility by latitude",
         rows: [
-          { kp: "Kp 3–4", cities: "Fairbanks, Whitehorse",         lat: ">60°N",    color: '#22c55e' },
-          { kp: "Kp 5",   cities: "Minneapolis, Seattle, Montreal", lat: "~45–50°N", color: '#eab308' },
-          { kp: "Kp 6",   cities: "Chicago, Detroit, Portland",     lat: "~42–45°N", color: '#f97316' },
-          { kp: "Kp 7",   cities: "Denver, Indianapolis, New York", lat: "~40–43°N", color: '#a78bfa' },
-          { kp: "Kp 8–9", cities: "Dallas, Atlanta, Los Angeles",   lat: "~30–35°N", color: '#a78bfa' },
+          { kp: "Kp 3–4", cities: "Fairbanks, Whitehorse",         lat: ">60°N"    },
+          { kp: "Kp 5",   cities: "Minneapolis, Seattle, Montreal", lat: "~45–50°N" },
+          { kp: "Kp 6",   cities: "Chicago, Detroit, Portland",     lat: "~42–45°N" },
+          { kp: "Kp 7",   cities: "Denver, Indianapolis, New York", lat: "~40–43°N" },
+          { kp: "Kp 8–9", cities: "Dallas, Atlanta, Los Angeles",   lat: "~30–35°N" },
         ],
       },
       {
         heading: "It lags real-time conditions",
         body: "The 3-hour averaging window means Kp reflects conditions slightly in the past and updates every 3 hours. Bz and OVATION respond faster and are better short-term indicators.",
+      },
+      {
+        heading: "What the color means",
+        legend: [
+          { color: '#64748b', range: "Kp 0–3 (Quiet)",    desc: "no aurora visible in the continental US" },
+          { color: '#22c55e', range: "Kp 4 (Moderate)",   desc: "aurora possible from the far northern tier" },
+          { color: '#eab308', range: "Kp 5 (Active)",     desc: "aurora reaching the northern US border region" },
+          { color: '#f97316', range: "Kp 6 (Strong)",     desc: "aurora at mid-latitudes, visible from upper Midwest" },
+          { color: '#a78bfa', range: "Kp 7–9 (Storm)",    desc: "widespread aurora across much of North America" },
+        ],
       },
     ],
   },
@@ -193,9 +203,8 @@ function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void 
                   </div>
                 ) : "rows" in section ? (
                   <div className="space-y-1.5">
-                    {section.rows.map(({ kp, cities, lat, color }) => (
+                    {section.rows.map(({ kp, cities, lat }) => (
                       <div key={kp} className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
                         <span className="text-[12px] font-medium text-[#cbd5e1] tabular-nums w-14 flex-shrink-0">{kp}</span>
                         <span className="text-[11px] text-[#64748b] leading-snug">{cities}</span>
                         <span className="text-[10px] text-[#475569] flex-shrink-0 ml-auto">{lat}</span>
