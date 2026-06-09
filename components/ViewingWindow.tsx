@@ -120,7 +120,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
                   const endStr   = formatET(windowData.windowEnd!);
                   return (
                     <div className="text-xl font-semibold text-white tracking-tight mb-1">
-                      {startStr === endStr ? `around ${startStr}` : `${startStr} – ${endStr}`}
+                      {startStr} – {endStr}
                       <span className="text-[#64748b] text-sm font-normal ml-1.5">ET</span>
                     </div>
                   );

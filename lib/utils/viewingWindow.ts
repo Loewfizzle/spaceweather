@@ -54,15 +54,20 @@ export function computeLastNightPeak(
 
   const ET_OFFSET_MS = isDST(now) ? -4 * 3600000 : -5 * 3600000;
   const nowEtMs = now.getTime() + ET_OFFSET_MS;
-  // Integer ET hour determines which 8pm boundary to target
-  const etHour = Math.floor((nowEtMs % 86400000) / 3600000 + 24) % 24;
-  // Fractional ET hour for sub-hour precision when placing nightStart
-  const nowEtHFrac = etHour + (now.getUTCMinutes() / 60);
-  const hoursAgo = etHour >= 20 ? nowEtHFrac - 20 : nowEtHFrac + 4;
+  // Snap to midnight of the current ET calendar day (ET-epoch → UTC).
+  // e.g. EDT midnight = 04:00 UTC, EST midnight = 05:00 UTC.
+  const etMidnightUTC = Math.floor(nowEtMs / 86400000) * 86400000 - ET_OFFSET_MS;
+  // 8 PM ET tonight as an exact UTC timestamp — always a clean hour boundary,
+  // no sub-minute drift from seconds in `now`.
+  const tonight8pmUTC = etMidnightUTC + 20 * msPerHour;
+  // If before tonight's 8 PM, last night's window started 24 h earlier.
+  const nightStartMs = now.getTime() >= tonight8pmUTC
+    ? tonight8pmUTC
+    : tonight8pmUTC - 24 * msPerHour;
 
-  const nightStart = new Date(now.getTime() - hoursAgo * msPerHour);
+  const nightStart = new Date(nightStartMs);
   // 8pm–6am is always 10 clock-hours; DST transitions at 2am don't change the boundary times
-  const nightEnd   = new Date(nightStart.getTime() + 10 * msPerHour);
+  const nightEnd   = new Date(nightStartMs + 10 * msPerHour);
   // Cap at now so an ongoing night doesn't try to include future entries
   const windowEnd  = nightEnd < now ? nightEnd : now;
 
@@ -71,20 +76,21 @@ export function computeLastNightPeak(
     .map((e) => ({ time: new Date(normalizeTimeTag(e.time_tag!)), kp: e.Kp! }))
     .filter((e) => e.time >= nightStart && e.time <= windowEnd);
 
-  // Development-only boundary diagnostic — helps identify UTC-vs-local mismatches.
-  // The comment below suppresses coverage for this entire block (never runs in tests).
-  /* v8 ignore next 10 */
+  // Development-only boundary diagnostic — helps identify boundary mismatches.
+  /* v8 ignore start */
   if (process.env.NODE_ENV === 'development') {
     console.log('[AuroraWatch] computeLastNightPeak', {
       nowUTC: now.toISOString(),
-      etHour,
       nightStart: nightStart.toISOString(),
       nightEnd: nightEnd.toISOString(),
       windowEndCap: windowEnd.toISOString(),
       historyCount: kpHistory.length,
       matchingCount: entries.length,
+      firstEntry: kpHistory[0]?.time_tag,
+      lastEntry: kpHistory[kpHistory.length - 1]?.time_tag,
     });
   }
+  /* v8 ignore stop */
 
   if (entries.length === 0) return null;
   const peak = entries.reduce((best, e) => (e.kp > best.kp ? e : best), entries[0]);
@@ -129,6 +135,19 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
   const windowEnd = new Date(
     Math.max(lastGood.time.getTime(), windowStart.getTime()) + 3 * 60 * 60 * 1000
   );
+
+  /* v8 ignore start */
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[AuroraWatch] computeViewingWindow', {
+      tonightBlocksCount: tonightBlocks.length,
+      peakKp: peakBlock.kp,
+      threshold,
+      goodBlocksCount: goodBlocks.length,
+      windowStart: windowStart.toISOString(),
+      windowEnd: windowEnd.toISOString(),
+    });
+  }
+  /* v8 ignore stop */
 
   return {
     hasData: true,
