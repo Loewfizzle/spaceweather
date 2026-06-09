@@ -211,6 +211,7 @@ export function buildChartData(kpHistory: KpEntry[], kpForecast: KpForecastEntry
       (e) =>
         !!e.time_tag &&
         e.kp != null &&
+        e.observed !== 'observed' &&
         !isNaN(new Date(normalizeTimeTag(e.time_tag)).getTime()) &&
         new Date(normalizeTimeTag(e.time_tag)).getTime() > lastHistoricalTime,
     )
