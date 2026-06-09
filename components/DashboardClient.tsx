@@ -127,22 +127,15 @@ function DashboardInner() {
     return () => { document.title = prev; };
   }, [simKp, kp, riskLevel]);
   const auroraGlow = getAuroraGlow(simKp ?? kp);
-  // Dev only: boost opacity so the glow is clearly visible when testing locally.
-  // process.env.NODE_ENV is statically replaced at build time — dead code in production.
-  const isDev = process.env.NODE_ENV === 'development';
-  const displayGlow = isDev && auroraGlow
-    ? { ...auroraGlow, rgba: auroraGlow.rgba.replace(/[\d.]+\)$/, '0.70)') }
-    : auroraGlow;
 
   return (
     <>
-      {displayGlow && (
+      {auroraGlow && (
         <div
           className="aurora-bg-glow"
           style={{
-            background: `radial-gradient(ellipse 90% 55% at 50% 0%, ${displayGlow.rgba} 0%, ${displayGlow.rgba.replace(/[\d.]+\)$/, '0)')} 75%)`,
-            animationDuration: displayGlow.duration,
-            ...(isDev && { zIndex: 100 }),
+            background: `radial-gradient(ellipse 90% 55% at 50% 0%, ${auroraGlow.rgba} 0%, ${auroraGlow.rgba.replace(/[\d.]+\)$/, '0)')} 75%)`,
+            animationDuration: auroraGlow.duration,
           }}
         />
       )}

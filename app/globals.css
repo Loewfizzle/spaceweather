@@ -305,7 +305,7 @@ body {
   right: 0;
   height: 70vh;
   pointer-events: none;
-  z-index: 0;
+  z-index: 51;
   animation: aurora-bg-pulse ease-in-out infinite;
 }
 
