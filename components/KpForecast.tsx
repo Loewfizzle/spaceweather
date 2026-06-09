@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useChartData } from "../lib/hooks/useChartData";
 import { Line } from "react-chartjs-2";
 import {
@@ -14,7 +14,9 @@ import {
   Legend,
   type Plugin,
 } from "chart.js";
+import { ChevronRight, TrendingUp } from "lucide-react";
 import { ErrorState } from "./ErrorState";
+import { KpForecastModal } from "./solar/KpForecastModal";
 import type { KpEntry, KpForecastEntry } from "../lib/api/schemas";
 
 ChartJS.register(
@@ -89,6 +91,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
     useChartData(kpHistory, kpForecastData);
 
   const stormDays = useStormDays(kpForecastData);
+  const [showModal, setShowModal] = useState(false);
 
   const trend = (() => {
     if (kpHistory.length < 4) return "Based on current solar wind and Bz.";
@@ -102,9 +105,22 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
   })();
 
   return (
+    <>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
       <div className="section-title">KP INDEX &amp; OUTLOOK</div>
       <div className="card p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-3 w-3 text-[#64748b]" />
+            <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">Kp Index</span>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+          >
+            Details <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
         <div className="h-56">
           {kpIsLoading ? (
             <div className="h-full animate-pulse bg-[#1e2937] rounded" />
@@ -214,5 +230,8 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
         )}
       </div>
     </div>
+
+    {showModal && <KpForecastModal onClose={() => setShowModal(false)} />}
+    </>
   );
 }
