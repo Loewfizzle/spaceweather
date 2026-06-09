@@ -101,7 +101,7 @@ export function SolarActivity() {
           <div className="metric">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
-                <TrendingUp className="w-4 h-4" /> RECENT CMEs
+                <TrendingUp className="w-4 h-4" style={solarActivity.recentCmes.length > 0 ? { color: cmeImpactColor(solarActivity.recentCmes[0].earthImpact) } : undefined} /> RECENT CMEs
               </div>
               <button
                 onClick={() => setOpenModal("cme")}
