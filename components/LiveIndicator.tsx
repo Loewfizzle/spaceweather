@@ -80,12 +80,8 @@ export function LiveIndicator() {
         />
       </span>
 
-      {/* Both breakpoints: "LIVE" when recently fetched; compact data age otherwise */}
-      {isLive ? (
-        <span aria-hidden="true" className="text-[9px] font-medium tracking-wider text-[#22c55e]">
-          LIVE
-        </span>
-      ) : (
+      {/* Show compact data age only when stale; dot alone signals live */}
+      {!isLive && (
         <span aria-hidden="true" className="text-[9px] tabular-nums text-[#64748b]">
           {compactAge(now, latestGlobalUpdate)}
         </span>

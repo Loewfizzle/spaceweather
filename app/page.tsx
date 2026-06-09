@@ -25,12 +25,12 @@ export default function AuroraWatch() {
             <BrandIcon />
             <div>
               {/* Slightly larger title for more presence */}
-              <div className="font-semibold tracking-tighter text-xl sm:text-2xl leading-tight">
+              <div className="font-semibold tracking-tighter text-2xl sm:text-3xl leading-tight">
                 SkyGlow
               </div>
               {/* Subtitle + live dot on one line */}
               <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#64748b] leading-none">
-                <span>Live space weather</span>
+                <span>Aurora · solar · sky events</span>
                 <LiveIndicator />
               </div>
             </div>
@@ -64,7 +64,7 @@ export default function AuroraWatch() {
       {/* Footer — server-rendered */}
       <footer className="border-t border-[#1e2937] pt-8 pb-10 text-xs text-[#64748b]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center text-[#94a3b8] mb-6">
+          <div className="text-[#94a3b8] mb-6">
             Questions, bug reports, or inquiries —{" "}
             <a
               href="mailto:contact@skyglow.app"
