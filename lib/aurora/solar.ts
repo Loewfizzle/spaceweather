@@ -1,4 +1,5 @@
 import type { Alert, CmeSummary, SolarRegion } from "../api/schemas";
+import { normalizeTimeTag } from "../utils/viewingWindow";
 
 // NOAA geomagnetic storm watch product IDs — issued specifically when Earth-directed CMEs
 // are detected and projected to impact Earth. More reliable as a primary signal than
@@ -62,7 +63,7 @@ export interface EarthImpactAssessment {
  */
 export function assessEarthImpact(recentCmes: CmeSummary[]): EarthImpactAssessment {
   const fresh = recentCmes.filter((c) => {
-    const t = new Date(c.time).getTime();
+    const t = new Date(normalizeTimeTag(c.time)).getTime();
     return isFinite(t) && Date.now() - t < 1000 * 60 * 60 * 24 * 4;
   });
 

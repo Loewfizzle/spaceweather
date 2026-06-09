@@ -83,7 +83,7 @@ export function viewingWindowLocationBlurb(
   if (diff >= 5)   return { first: `${name} is comfortably within the viewing zone at this activity level — good conditions for you tonight.`, rest: null };
   if (diff >= 0)   return { first: `${name} is just inside the viewing zone tonight.`, rest: `Dark skies away from city lights will make a real difference.` };
   if (diff >= -3)  return { first: `${name} is just outside the typical viewing zone.`, rest: `Conditions would need to tick up slightly for aurora to reach you.` };
-  const needed = Math.floor(Math.max(0, (67 - userLat) / 3));
+  const needed = Math.min(9, Math.floor(Math.max(0, (67 - userLat) / 3)));
   if (diff >= -8)  return { first: `${name} is outside the viewing zone at this Kp level.`, rest: `Activity would need to reach around Kp ${needed} for aurora to be likely from your area.` };
   return { first: `${name} is well south of the aurora oval right now.`, rest: `Aurora reaching your area would require a very strong storm — Kp ${needed} or higher.` };
 }

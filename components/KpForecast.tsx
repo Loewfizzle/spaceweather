@@ -75,7 +75,8 @@ function useStormDays(kpForecast: KpForecastEntry[]): StormDay[] {
         day: "numeric",
       });
       if (!byDay[key]) byDay[key] = [];
-      byDay[key].push(entry.kp ?? 0);
+      if (entry.kp == null) continue;
+      byDay[key].push(entry.kp);
     }
 
     return Object.entries(byDay)
@@ -96,8 +97,11 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
 
   const trend = (() => {
     if (kpHistory.length < 4) return "Based on current solar wind and Bz.";
-    const avg = (entries: typeof kpHistory) =>
-      entries.reduce((s, e) => s + (e.Kp ?? 0), 0) / entries.length;
+    const avg = (entries: typeof kpHistory) => {
+      const valid = entries.filter((e) => e.Kp != null);
+      if (valid.length === 0) return 0;
+      return valid.reduce((s, e) => s + e.Kp!, 0) / valid.length;
+    };
     const recent = avg(kpHistory.slice(-3));
     const prior  = avg(kpHistory.slice(-6, -3));
     return recent > prior
