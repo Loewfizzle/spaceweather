@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { Wind, Zap, Activity, Satellite, Info, X } from "lucide-react";
 import { useBodyScrollLock } from "../lib/hooks/useBodyScrollLock";
-import { getKpTier, AURORA_TIERS } from "../lib/aurora/kp";
+import { getKpTier, AURORA_TIERS, solarWindSpeedColor, bzColor } from "../lib/aurora/kp";
+import { getAuroraColor } from "../lib/aurora/ovation";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 
 // ── Metric info modal ─────────────────────────────────────────────────────────
@@ -259,7 +260,7 @@ export function CurrentConditions({
                 <Info className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+            <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={solarWindSpeed !== null ? { color: solarWindSpeedColor(solarWindSpeed) } : undefined}>
               {solarWindSpeed !== null ? Math.round(solarWindSpeed) : "—"}
             </div>
             <div className="text-sm text-[#64748b] -mt-1">
@@ -290,7 +291,7 @@ export function CurrentConditions({
                 <Info className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+            <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={bz !== null ? { color: bzColor(bz) } : undefined}>
               {bz !== null ? bz.toFixed(1) : "—"}
             </div>
             <div className="text-sm text-[#64748b] -mt-1">
@@ -314,7 +315,7 @@ export function CurrentConditions({
                 <Info className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+            <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={kp !== null ? { color: AURORA_TIERS[getKpTier(kp)].color } : undefined}>
               {kp !== null ? kp.toFixed(1) : "—"}
             </div>
             <div className="text-sm text-[#64748b] -mt-1">
@@ -337,7 +338,7 @@ export function CurrentConditions({
                 <Info className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums">
+            <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={ovationProcessed && maxAuroraProbNA !== null ? { color: getAuroraColor(maxAuroraProbNA) } : undefined}>
               {ovationProcessed && maxAuroraProbNA !== null ? `${Math.round(maxAuroraProbNA)}%` : "—"}
             </div>
             <div className="text-sm text-[#64748b] -mt-1">

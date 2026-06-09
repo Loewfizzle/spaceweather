@@ -22,6 +22,22 @@ export function getKpTier(kp: number): AuroraTier {
   return 'quiet';
 }
 
+export function solarWindSpeedColor(speed: number): string {
+  if (speed >= 700) return '#a78bfa';
+  if (speed >= 600) return '#f97316';
+  if (speed >= 500) return '#eab308';
+  if (speed >= 400) return '#22c55e';
+  return '#64748b';
+}
+
+export function bzColor(bz: number): string {
+  if (bz <= -15) return '#a78bfa';
+  if (bz <= -10) return '#f97316';
+  if (bz <= -5)  return '#eab308';
+  if (bz <= -2)  return '#22c55e';
+  return '#64748b';
+}
+
 /** Cloud cover color for display: green < 30%, amber < 60%, slate otherwise. */
 export function cloudCoverColor(pct: number): string {
   if (pct < 30) return "#22c55e";

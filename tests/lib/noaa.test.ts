@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { latest } from '../../lib/noaa'
-import { getAuroraRiskLevel, getAuroraGuidance, cloudCoverColor, getKpTier } from '../../lib/aurora/kp'
+import { getAuroraRiskLevel, getAuroraGuidance, cloudCoverColor, getKpTier, solarWindSpeedColor, bzColor } from '../../lib/aurora/kp'
 import {
   filterOvationCoordinates,
   maxOvationNorthAmerica,
@@ -1083,6 +1083,67 @@ describe('cloudCoverColor', () => {
   it('returns slate for pct >= 60', () => {
     expect(cloudCoverColor(60)).toBe('#94a3b8')
     expect(cloudCoverColor(100)).toBe('#94a3b8')
+  })
+})
+
+// ============================================
+// solarWindSpeedColor
+// ============================================
+describe('solarWindSpeedColor', () => {
+  it('returns gray below 400 km/s', () => {
+    expect(solarWindSpeedColor(0)).toBe('#64748b')
+    expect(solarWindSpeedColor(399)).toBe('#64748b')
+  })
+
+  it('returns green at 400–499 km/s', () => {
+    expect(solarWindSpeedColor(400)).toBe('#22c55e')
+    expect(solarWindSpeedColor(499)).toBe('#22c55e')
+  })
+
+  it('returns yellow at 500–599 km/s', () => {
+    expect(solarWindSpeedColor(500)).toBe('#eab308')
+    expect(solarWindSpeedColor(599)).toBe('#eab308')
+  })
+
+  it('returns orange at 600–699 km/s', () => {
+    expect(solarWindSpeedColor(600)).toBe('#f97316')
+    expect(solarWindSpeedColor(699)).toBe('#f97316')
+  })
+
+  it('returns purple at 700+ km/s', () => {
+    expect(solarWindSpeedColor(700)).toBe('#a78bfa')
+    expect(solarWindSpeedColor(900)).toBe('#a78bfa')
+  })
+})
+
+// ============================================
+// bzColor
+// ============================================
+describe('bzColor', () => {
+  it('returns gray for bz > -2 (northward / neutral)', () => {
+    expect(bzColor(5)).toBe('#64748b')
+    expect(bzColor(0)).toBe('#64748b')
+    expect(bzColor(-1)).toBe('#64748b')
+  })
+
+  it('returns green for bz -2 to -4.9 (mildly southward)', () => {
+    expect(bzColor(-2)).toBe('#22c55e')
+    expect(bzColor(-4.9)).toBe('#22c55e')
+  })
+
+  it('returns yellow for bz -5 to -9.9', () => {
+    expect(bzColor(-5)).toBe('#eab308')
+    expect(bzColor(-9.9)).toBe('#eab308')
+  })
+
+  it('returns orange for bz -10 to -14.9', () => {
+    expect(bzColor(-10)).toBe('#f97316')
+    expect(bzColor(-14.9)).toBe('#f97316')
+  })
+
+  it('returns purple for bz <= -15', () => {
+    expect(bzColor(-15)).toBe('#a78bfa')
+    expect(bzColor(-30)).toBe('#a78bfa')
   })
 })
 
