@@ -33,9 +33,6 @@ export default function AuroraWatch() {
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-[#64748b] leading-none">
                 <span>Aurora · solar · sky events</span>
                 <LiveIndicator />
-                <span className="sm:hidden">
-                  <IosInstallPrompt />
-                </span>
               </div>
             </div>
           </div>
@@ -44,6 +41,11 @@ export default function AuroraWatch() {
           <LiveHeader />
         </div>
       </header>
+
+      {/* iOS install nudge — mobile only, right-aligned, sits directly below header */}
+      <div className="sm:hidden flex justify-end max-w-7xl mx-auto px-4 pt-2">
+        <IosInstallPrompt />
+      </div>
 
       <main id="main-content">
         {/* Hero copy — server-rendered for LCP + crawlability */}
