@@ -8,6 +8,7 @@ import {
   getTonightOutlook,
 } from "../lib/use-noaa-data";
 import { getLocationAuroraProb } from "../lib/aurora/outlook";
+import { getKpTier, AURORA_TIERS } from "../lib/aurora/kp";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
 import { useCloudCover } from "../lib/hooks/useCloudCover";
 import { UserLocationProvider, useUserLocationContext } from "../lib/context/UserLocationContext";
@@ -133,7 +134,10 @@ function DashboardInner() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-12">
         <div className="flex items-center gap-2 mb-3">
           <span className="block h-[5px] w-[5px] rounded-full bg-[#94a3b8] flex-shrink-0" />
-          <span className="text-[13px] font-semibold tracking-[0.08em] uppercase text-[#94a3b8]">Aurora Outlook</span>
+          <span
+            className="text-[13px] font-semibold tracking-[0.08em] uppercase"
+            style={{ color: kp !== null ? AURORA_TIERS[getKpTier(kp)].color : '#94a3b8' }}
+          >Aurora Outlook</span>
         </div>
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:items-start">
           {/* className="" strips the default max-w wrapper — parent grid handles layout */}
