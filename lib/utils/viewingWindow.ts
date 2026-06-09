@@ -23,6 +23,15 @@ function etOffsetHours(date: Date): number {
   return diff > 12 ? diff - 24 : diff; // -4 or -5
 }
 
+// NOAA time_tag strings ("2026-06-07 03:00:00") have a space separator and no
+// timezone suffix. Browsers parse them as LOCAL time rather than UTC, which
+// shifts every entry by the user's UTC offset. Append 'Z' to force UTC
+// interpretation — identical to the fix applied in computeLastNightPeak.
+function normalizeTimeTag(tag: string): string {
+  const iso = tag.trim().replace(' ', 'T');
+  return iso.endsWith('Z') || /[+-]\d\d:\d\d$/.test(iso) ? iso : iso + 'Z';
+}
+
 // Return true if `date` falls within the northern US aurora viewing window (8 pm–6 am ET).
 function inAuroraViewingWindow(date: Date): boolean {
   const offset = etOffsetHours(date);
@@ -79,12 +88,23 @@ export function computeLastNightPeak(
 
   const entries = kpHistory
     .filter((e) => e.time_tag && e.Kp != null)
-    .map((e) => {
-      const iso = e.time_tag!.trim().replace(' ', 'T');
-      const withZ = iso.endsWith('Z') || /[+-]\d\d:\d\d$/.test(iso) ? iso : iso + 'Z';
-      return { time: new Date(withZ), kp: e.Kp! };
-    })
+    .map((e) => ({ time: new Date(normalizeTimeTag(e.time_tag!)), kp: e.Kp! }))
     .filter((e) => e.time >= nightStart && e.time <= windowEnd);
+
+  // Development-only boundary diagnostic — helps identify UTC-vs-local mismatches.
+  // The comment below suppresses coverage for this entire block (never runs in tests).
+  /* v8 ignore next 10 */
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[AuroraWatch] computeLastNightPeak', {
+      nowUTC: now.toISOString(),
+      etHour,
+      nightStart: nightStart.toISOString(),
+      nightEnd: nightEnd.toISOString(),
+      windowEndCap: windowEnd.toISOString(),
+      historyCount: kpHistory.length,
+      matchingCount: entries.length,
+    });
+  }
 
   if (entries.length === 0) return null;
   const peak = entries.reduce((best, e) => (e.kp > best.kp ? e : best), entries[0]);
@@ -102,10 +122,10 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
   const tonightBlocks = kpForecast
     .filter((e) => {
       if (!e.time_tag) return false;
-      const t = new Date(e.time_tag);
+      const t = new Date(normalizeTimeTag(e.time_tag));
       return t > now && inAuroraViewingWindow(t);
     })
-    .map((e) => ({ time: new Date(e.time_tag!), kp: e.kp ?? 0 }))
+    .map((e) => ({ time: new Date(normalizeTimeTag(e.time_tag!)), kp: e.kp ?? 0 }))
     .sort((a, b) => a.time.getTime() - b.time.getTime());
 
   if (tonightBlocks.length === 0) {
@@ -125,7 +145,7 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
   const lastGood    = goodBlocks[goodBlocks.length - 1] ?? peakBlock;
   // Each NOAA forecast block is 3 hours wide. Use Math.max so windowEnd is always
   // at least windowStart + 3 h — guards against any edge case where lastGood precedes
-  // windowStart, which would cause identical display times (e.g. "12 AM – 12 AM").
+  // windowStart.
   const windowEnd = new Date(
     Math.max(lastGood.time.getTime(), windowStart.getTime()) + 3 * 60 * 60 * 1000
   );

@@ -224,6 +224,17 @@ describe('computeViewingWindow', () => {
     expect(result.windowStart?.toISOString()).toBe('2026-06-06T00:00:00.000Z')
     expect(result.windowEnd?.toISOString()).toBe('2026-06-06T03:00:00.000Z')
   })
+
+  it('normalises NOAA space-separated time_tag in forecast entries to UTC', () => {
+    // NOAA forecast uses "YYYY-MM-DD HH:MM:SS" (space, no Z) — the normalise
+    // step must append Z so entries are parsed as UTC, not local time.
+    // "2026-06-06 00:00:00" = 8pm EDT = in aurora window ✓
+    const result = computeViewingWindow([
+      { time_tag: '2026-06-06 00:00:00', kp: 4.0 } as unknown as KpForecastEntry,
+    ])
+    expect(result.hasData).toBe(true)
+    expect(result.windowStart?.toISOString()).toBe('2026-06-06T00:00:00.000Z')
+  })
 })
 
 // ── computeLastNightPeak — alternative NOW values ─────────────────────────────
