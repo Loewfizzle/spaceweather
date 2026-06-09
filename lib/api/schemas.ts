@@ -73,8 +73,8 @@ export type Fireball = z.infer<typeof FireballSchema>;
 export const XrayFlareSchema = z.object({
   time_tag: z.string(),
   satellite: z.number(),
-  current_class: z.string().optional(),
-  max_class: z.string().optional(),
+  current_class: z.string().nullable().optional(),
+  max_class: z.string().nullable().optional(),
   begin_time: z.string().optional(),
   max_time: z.string().optional(),
   end_time: z.string().optional(),
