@@ -292,8 +292,10 @@ body {
  * Color and animation-duration are set inline per Kp tier.
  * ─────────────────────────────────────────────────────────────────────────── */
 @keyframes aurora-bg-pulse {
-  0%, 100% { opacity: 0.3; }
-  50%       { opacity: 1;   }
+  0%   { opacity: 0.3;  transform: scaleX(0.95) skewX(-0.8deg); }
+  45%  { opacity: 1;    transform: scaleX(1.04) skewX(0.5deg);  }
+  72%  { opacity: 0.6;  transform: scaleX(1.01) skewX(-0.4deg); }
+  100% { opacity: 0.3;  transform: scaleX(0.95) skewX(-0.8deg); }
 }
 
 .aurora-bg-glow {

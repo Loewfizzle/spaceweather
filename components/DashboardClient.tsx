@@ -38,10 +38,10 @@ const DevKpSimulator =
 
 function getAuroraGlow(kp: number | null): { rgba: string; duration: string } | null {
   if (kp === null || kp < 4) return null;
-  if (kp >= 7) return { rgba: 'rgba(167, 139, 250, 0.30)', duration: '0.8s'  };
-  if (kp >= 6) return { rgba: 'rgba(249, 115, 22,  0.23)', duration: '1.5s'  };
-  if (kp >= 5) return { rgba: 'rgba(234, 179, 8,   0.17)', duration: '2.5s'  };
-  return             { rgba: 'rgba(34,  197, 94,  0.13)', duration: '4s'    };
+  if (kp >= 7) return { rgba: 'rgba(167, 139, 250, 0.25)', duration: '4s' };
+  if (kp >= 6) return { rgba: 'rgba(249, 115, 22,  0.19)', duration: '4s' };
+  if (kp >= 5) return { rgba: 'rgba(234, 179, 8,   0.14)', duration: '4s' };
+  return             { rgba: 'rgba(34,  197, 94,  0.11)', duration: '4s' };
 }
 
 const MapSectionSkeleton = () => (
@@ -131,7 +131,7 @@ function DashboardInner() {
   // process.env.NODE_ENV is statically replaced at build time — dead code in production.
   const isDev = process.env.NODE_ENV === 'development';
   const displayGlow = isDev && auroraGlow
-    ? { ...auroraGlow, rgba: auroraGlow.rgba.replace(/[\d.]+\)$/, '0.85)') }
+    ? { ...auroraGlow, rgba: auroraGlow.rgba.replace(/[\d.]+\)$/, '0.70)') }
     : auroraGlow;
 
   return (
@@ -140,11 +140,9 @@ function DashboardInner() {
         <div
           className="aurora-bg-glow"
           style={{
-            background: `radial-gradient(ellipse 90% 55% at 50% 0%, ${displayGlow.rgba} 0%, transparent 75%)`,
+            background: `radial-gradient(ellipse 90% 55% at 50% 0%, ${displayGlow.rgba} 0%, ${displayGlow.rgba.replace(/[\d.]+\)$/, '0)')} 75%)`,
             animationDuration: displayGlow.duration,
-            // Dev: raise above header (z-index:50) and disable pulse so the glow
-            // holds at full opacity. pointer-events:none keeps everything clickable.
-            ...(isDev && { zIndex: 100, animationName: 'none' }),
+            ...(isDev && { zIndex: 100 }),
           }}
         />
       )}

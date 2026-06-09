@@ -16,6 +16,7 @@ import { LoadingSkeleton } from "./LoadingSkeleton";
 import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
 import { FireballModal } from "./FireballModal";
+import { MeteorShowerModal } from "./solar/MeteorShowerModal";
 
 // ── Location helper ───────────────────────────────────────────────────────────
 
@@ -70,6 +71,7 @@ export function MeteorActivity() {
   const fireballsQuery = useFireballs();
   const nextMeteor = getNextMeteorShower();
   const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
+  const [showMeteorModal, setShowMeteorModal] = useState(false);
   const [now] = useState(Date.now);
   const closeFireball = () => setSelectedFireball(null);
 
@@ -91,17 +93,24 @@ export function MeteorActivity() {
                 <div className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
                   NEXT METEOR SHOWER
                 </div>
-                {/* Tinted countdown badge — matches energy/activity badge pattern */}
-                <span
-                  className="text-[10px] font-medium tabular-nums px-2 py-0.5 rounded-full"
-                  style={{
-                    color: showerColor,
-                    backgroundColor: showerColor + "1a",
-                    border: `1px solid ${showerColor}33`,
-                  }}
-                >
-                  {daysUntilLabel(showerDays)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-[10px] font-medium tabular-nums px-2 py-0.5 rounded-full"
+                    style={{
+                      color: showerColor,
+                      backgroundColor: showerColor + "1a",
+                      border: `1px solid ${showerColor}33`,
+                    }}
+                  >
+                    {daysUntilLabel(showerDays)}
+                  </span>
+                  <button
+                    onClick={() => setShowMeteorModal(true)}
+                    className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                  >
+                    Details <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
 
               <div className="text-3xl font-semibold tracking-tight leading-none mb-1.5">
@@ -280,6 +289,14 @@ export function MeteorActivity() {
         <FireballModal
           fireball={selectedFireball}
           onClose={closeFireball}
+        />
+      )}
+
+      {showMeteorModal && nextMeteor && (
+        <MeteorShowerModal
+          shower={nextMeteor.shower}
+          peakDate={nextMeteor.peakDate}
+          onClose={() => setShowMeteorModal(false)}
         />
       )}
     </div>

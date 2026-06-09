@@ -130,5 +130,8 @@ export const MeteorShowerSchema = z.object({
   peakEndDay: z.number().optional(),
   description: z.string(),
   activityLevel: z.string(),
+  parentComet: z.string().optional(),
+  radiantConstellation: z.string().optional(),
+  peakZHR: z.string().optional(),
 });
 export type MeteorShower = z.infer<typeof MeteorShowerSchema>;
