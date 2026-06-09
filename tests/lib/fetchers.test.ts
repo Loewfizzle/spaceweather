@@ -61,6 +61,17 @@ describe('parseStringArrayRows', () => {
     expect(parseStringArrayRows([HEADERS])).toEqual([])
     expect(parseStringArrayRows([])).toEqual([])
   })
+
+  it('skips rows shorter than the header (format-change guard)', () => {
+    const raw = [
+      HEADERS,
+      ['2024-01-15 21:30:45', '450.2'],           // only 2 of 4 columns — skipped
+      ['2024-01-15 21:45:45', '460.0', '5.1', '95000'], // full row — kept
+    ]
+    const result = parseStringArrayRows(raw)
+    expect(result).toHaveLength(1)
+    expect(result[0].speed).toBe(460.0)
+  })
 })
 
 // ============================================

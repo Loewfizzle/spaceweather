@@ -47,7 +47,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 export function parseStringArrayRows(raw: string[][]): Record<string, string | number | null>[] {
   if (!raw || raw.length < 2) return [];
   const headers = raw[0];
-  return raw.slice(1).map((row) => {
+  return raw.slice(1).filter((row) => row.length >= headers.length).map((row) => {
     const obj: Record<string, string | number | null> = {};
     headers.forEach((h, i) => {
       const val = row[i];

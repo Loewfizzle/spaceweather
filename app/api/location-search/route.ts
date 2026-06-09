@@ -65,11 +65,14 @@ export async function GET(request: NextRequest) {
       address: Record<string, string>;
     }> = await res.json();
 
-    const results: LocationSearchResult[] = (data ?? []).slice(0, 5).map((item) => ({
-      lat: parseFloat(item.lat),
-      lon: parseFloat(item.lon),
-      label: buildLabel(item.address ?? {}, item.display_name ?? ""),
-    }));
+    const results: LocationSearchResult[] = (data ?? [])
+      .slice(0, 5)
+      .map((item) => ({
+        lat: parseFloat(item.lat),
+        lon: parseFloat(item.lon),
+        label: buildLabel(item.address ?? {}, item.display_name ?? ""),
+      }))
+      .filter((r): r is LocationSearchResult => isFinite(r.lat) && isFinite(r.lon));
 
     return NextResponse.json(
       { results },
