@@ -92,10 +92,7 @@ export default defineConfig({
         // lines 35/68-71 are the postcode-filter sub-expression and slice(0,5) guard (unreachable
         // via Nominatim which always honours limit=5) — floor 3 pp below actual 86.66%
         'app/api/location-search/route.ts': { statements: 95, branches: 84, functions: 95, lines: 95 },
-        // AlertsPanel: all button click handlers + permission states + skeleton + multi-alert
-        // tested in round 10; one branch at line 166 (recentAlerts empty+alertsLoading combo).
-        // Lowered from 100/94/100/100 — 100% stmt/func/lines is too fragile; any new untested
-        // code path breaks CI immediately. Actual: 100/95.74/100/100; threshold ~5 pp below.
+        // AlertsPanel: simplified to read-only NOAA feed + risk pill; no notification controls.
         'components/AlertsPanel.tsx': { statements: 95, branches: 90, functions: 95, lines: 95 },
         // useChartData: all CHART_OPTIONS callbacks + plugin beforeDraw/afterDraw + hook tested;
         // 3 remaining branches are diff>12 ternary in etOffsetHours (non-US timezone),

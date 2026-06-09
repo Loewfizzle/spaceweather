@@ -225,9 +225,6 @@ function DashboardInner() {
       <SectionErrorBoundary message="Alerts unavailable.">
         <AlertsPanel
           riskLevel={riskLevel}
-          kp={kp}
-          maxAuroraProbNA={maxAuroraProbNA}
-          bz={bz}
           isLoading={isLoading}
           alerts={solarActivity.alerts}
           alertsLoading={solarActivity.isLoading}
