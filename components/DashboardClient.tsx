@@ -16,12 +16,6 @@ import { LoadingSkeleton } from "./LoadingSkeleton";
 import { HeroOutlook } from "./HeroOutlook";
 import { CurrentConditions } from "./CurrentConditions";
 import { AuroraMapSection } from "./AuroraMapSection";
-
-// Chart.js is ~200 KB — load it only when the Kp chart section mounts
-const KpForecast = dynamic(
-  () => import("./KpForecast").then((m) => ({ default: m.KpForecast }))
-);
-
 import { SolarActivity } from "./SolarActivity";
 import { MeteorActivity } from "./MeteorActivity";
 import { DataUnderstanding } from "./DataUnderstanding";
@@ -30,6 +24,11 @@ import { ViewingWindow } from "./ViewingWindow";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ErrorState } from "./ErrorState";
 import { SectionErrorBoundary } from "./SectionErrorBoundary";
+
+// Chart.js is ~200 KB — load it only when the Kp chart section mounts
+const KpForecast = dynamic(
+  () => import("./KpForecast").then((m) => ({ default: m.KpForecast }))
+);
 
 // Replaced with null at build time — zero production footprint
 const DevKpSimulator =
@@ -115,15 +114,18 @@ function DashboardInner() {
   const cloudCoverLabel = cloudCoverData?.label ?? null;
   const kpForecastQuery = useKpForecast();
 
-  // Dynamic page title — shows live Kp so users can see conditions in the tab bar
-  useEffect(() => {
-    if (kp === null) return;
-    const prev = document.title;
-    document.title = `AuroraWatch | Kp ${kp.toFixed(1)} — ${riskLevel ?? "Quiet"}`;
-    return () => { document.title = prev; };
-  }, [kp, riskLevel]);
-
   const [simKp, setSimKp] = useState<number | null>(null);
+
+  // Dynamic page title — shows live Kp so users can see conditions in the tab bar.
+  // In dev, also reflects simKp so the simulator gives immediate visual feedback.
+  useEffect(() => {
+    const effectiveKp = simKp ?? kp;
+    if (effectiveKp === null) return;
+    const prev = document.title;
+    const simTag = simKp !== null ? ' [sim]' : '';
+    document.title = `AuroraWatch | Kp ${effectiveKp.toFixed(1)}${simTag} — ${riskLevel ?? "Quiet"}`;
+    return () => { document.title = prev; };
+  }, [simKp, kp, riskLevel]);
   const auroraGlow = getAuroraGlow(simKp ?? kp);
   // Dev only: boost opacity so the glow is clearly visible when testing locally.
   // process.env.NODE_ENV is statically replaced at build time — dead code in production.
