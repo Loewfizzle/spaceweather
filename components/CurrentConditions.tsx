@@ -11,9 +11,11 @@ import { LoadingSkeleton } from "./LoadingSkeleton";
 
 type CardId = "wind" | "bz" | "kp" | "ovation";
 
+type LegendRow = { color: string; range: string; desc: string };
 type ModalSection =
   | { heading: string; body: string }
-  | { heading: string; rows: { kp: string; cities: string; lat: string }[] };
+  | { heading: string; rows: { kp: string; cities: string; lat: string; color: string }[] }
+  | { heading: string; legend: LegendRow[]; note?: string };
 
 const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }> = {
   wind: {
@@ -34,6 +36,16 @@ const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }>
       {
         heading: "Aurora relevance",
         body: "Fast, dense solar wind compresses Earth's magnetosphere and increases the chance of activity, especially when combined with southward Bz.",
+      },
+      {
+        heading: "What the color means",
+        legend: [
+          { color: '#64748b', range: "below 400 km/s", desc: "quiet background wind, minimal aurora impact" },
+          { color: '#22c55e', range: "400–500 km/s",   desc: "nominal speed, aurora possible with favorable Bz" },
+          { color: '#eab308', range: "500–600 km/s",   desc: "elevated, enhancing aurora chances if Bz cooperates" },
+          { color: '#f97316', range: "600–700 km/s",   desc: "fast wind delivering significant energy to the magnetosphere" },
+          { color: '#a78bfa', range: "above 700 km/s", desc: "very fast, storm-level solar wind" },
+        ],
       },
     ],
   },
@@ -56,6 +68,17 @@ const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }>
         heading: "Can flip rapidly",
         body: "Bz can reverse direction in minutes, which is why conditions can change so quickly. Real-time monitoring matters more here than any other single metric.",
       },
+      {
+        heading: "What the color means",
+        legend: [
+          { color: '#64748b', range: "above −2 nT",    desc: "neutral or northward, aurora largely blocked" },
+          { color: '#22c55e', range: "−2 to −5 nT",    desc: "mildly southward, slightly favorable" },
+          { color: '#eab308', range: "−5 to −10 nT",   desc: "southward, genuinely favorable for aurora" },
+          { color: '#f97316', range: "−10 to −15 nT",  desc: "strongly southward, excellent conditions" },
+          { color: '#a78bfa', range: "below −15 nT",   desc: "exceptional, storm-level coupling" },
+        ],
+        note: "Gray covers both neutral and positive Bz — northward Bz is simply blocking, with no escalating danger, just absence of aurora opportunity.",
+      },
     ],
   },
   kp: {
@@ -68,11 +91,11 @@ const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }>
       {
         heading: "Visibility by latitude",
         rows: [
-          { kp: "Kp 3–4", cities: "Fairbanks, Whitehorse",                 lat: ">60°N"    },
-          { kp: "Kp 5",   cities: "Minneapolis, Seattle, Montreal",       lat: "~45–50°N" },
-          { kp: "Kp 6",   cities: "Chicago, Detroit, Portland",           lat: "~42–45°N" },
-          { kp: "Kp 7",   cities: "Denver, Indianapolis, New York",       lat: "~40–43°N" },
-          { kp: "Kp 8–9", cities: "Dallas, Atlanta, Los Angeles",         lat: "~30–35°N" },
+          { kp: "Kp 3–4", cities: "Fairbanks, Whitehorse",         lat: ">60°N",    color: '#22c55e' },
+          { kp: "Kp 5",   cities: "Minneapolis, Seattle, Montreal", lat: "~45–50°N", color: '#eab308' },
+          { kp: "Kp 6",   cities: "Chicago, Detroit, Portland",     lat: "~42–45°N", color: '#f97316' },
+          { kp: "Kp 7",   cities: "Denver, Indianapolis, New York", lat: "~40–43°N", color: '#a78bfa' },
+          { kp: "Kp 8–9", cities: "Dallas, Atlanta, Los Angeles",   lat: "~30–35°N", color: '#a78bfa' },
         ],
       },
       {
@@ -95,6 +118,16 @@ const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }>
       {
         heading: "More responsive than Kp",
         body: "OVATION updates more frequently than Kp and can show elevated chances before Kp catches up. Low OVATION with high Kp — or the reverse — is common. Use both together for the best picture.",
+      },
+      {
+        heading: "What the color means",
+        legend: [
+          { color: '#64748b', range: "below 15%", desc: "quiet, oval not reaching this area" },
+          { color: '#22c55e', range: "15–30%",    desc: "low but real signal, aurora present at high latitudes" },
+          { color: '#eab308', range: "30–45%",    desc: "moderate, aurora pushing southward" },
+          { color: '#f97316', range: "45–60%",    desc: "strong activity over the region" },
+          { color: '#a78bfa', range: "60%+",      desc: "major aurora event, high intensity overhead" },
+        ],
       },
     ],
   },
@@ -143,10 +176,26 @@ function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void 
             {content.sections.map((section) => (
               <div key={section.heading}>
                 <div className="text-xs font-medium text-[#94a3b8] mb-1.5">{section.heading}</div>
-                {"rows" in section ? (
+                {"legend" in section ? (
                   <div className="space-y-1.5">
-                    {section.rows.map(({ kp, cities, lat }) => (
-                      <div key={kp} className="flex items-baseline gap-2">
+                    {section.legend.map(({ color, range, desc }) => (
+                      <div key={range} className="flex items-start gap-2.5">
+                        <span className="mt-[3px] h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        <span className="text-[11px] text-[#64748b] leading-snug">
+                          <span className="font-medium text-[#cbd5e1]">{range}</span>
+                          {" — "}{desc}
+                        </span>
+                      </div>
+                    ))}
+                    {section.note && (
+                      <p className="text-[11px] text-[#475569] leading-relaxed pt-1">{section.note}</p>
+                    )}
+                  </div>
+                ) : "rows" in section ? (
+                  <div className="space-y-1.5">
+                    {section.rows.map(({ kp, cities, lat, color }) => (
+                      <div key={kp} className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
                         <span className="text-[12px] font-medium text-[#cbd5e1] tabular-nums w-14 flex-shrink-0">{kp}</span>
                         <span className="text-[11px] text-[#64748b] leading-snug">{cities}</span>
                         <span className="text-[10px] text-[#475569] flex-shrink-0 ml-auto">{lat}</span>
@@ -250,7 +299,7 @@ export function CurrentConditions({
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
-                <Wind className="w-4 h-4" /> SOLAR WIND
+                <Wind className="w-4 h-4" style={solarWindSpeed !== null ? { color: solarWindSpeedColor(solarWindSpeed) } : undefined} /> SOLAR WIND
               </div>
               <button
                 onClick={() => setOpenCard("wind")}
@@ -281,7 +330,7 @@ export function CurrentConditions({
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
-                <Zap className="w-4 h-4" /> IMF Bz
+                <Zap className="w-4 h-4" style={bz !== null ? { color: bzColor(bz) } : undefined} /> IMF Bz
               </div>
               <button
                 onClick={() => setOpenCard("bz")}
@@ -305,7 +354,7 @@ export function CurrentConditions({
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
-                <Activity className="w-4 h-4" /> PLANETARY Kp
+                <Activity className="w-4 h-4" style={kp !== null ? { color: AURORA_TIERS[getKpTier(kp)].color } : undefined} /> PLANETARY Kp
               </div>
               <button
                 onClick={() => setOpenCard("kp")}
@@ -328,7 +377,7 @@ export function CurrentConditions({
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">
-                <Satellite className="w-4 h-4" /> OVATION (NA)
+                <Satellite className="w-4 h-4" style={ovationProcessed && maxAuroraProbNA !== null ? { color: getAuroraColor(maxAuroraProbNA) } : undefined} /> OVATION (NA)
               </div>
               <button
                 onClick={() => setOpenCard("ovation")}
