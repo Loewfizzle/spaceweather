@@ -179,4 +179,19 @@ describe('ViewingWindow', () => {
     render(<ViewingWindow {...defaultProps} viewingWindow={quietWindow} />);
     expect(screen.getByText(/Quiet conditions forecast/i)).toBeInTheDocument();
   });
+
+  it('renders "start + 3hr" when windowStart and windowEnd format to the same ET time', () => {
+    // Identical Date objects → formatET returns the same string for both → triggers the fallback.
+    // 2026-06-07T04:00:00Z = midnight EDT → formatET produces "12 AM" for both sides.
+    const midnight = new Date('2026-06-07T04:00:00Z');
+    const identicalWindow: ViewingWindowData = {
+      hasData: true,
+      peakKp: 4.0,
+      windowStart: midnight,
+      windowEnd: midnight,
+      allBlocks: [],
+    };
+    render(<ViewingWindow {...defaultProps} viewingWindow={identicalWindow} />);
+    expect(screen.getByText(/\+ 3hr/)).toBeInTheDocument();
+  });
 });

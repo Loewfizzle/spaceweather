@@ -76,6 +76,16 @@ describe('computeLastNightPeak', () => {
     const result = computeLastNightPeak(entries)
     expect(result?.peakKp).toBe(3.0)
   })
+
+  it('normalises NOAA space-separated time_tag ("YYYY-MM-DD HH:MM:SS") to UTC before comparing', () => {
+    // NOAA Kp history uses "2026-06-05 01:00:00" (space, no Z) — the normalise
+    // step must append 'Z' so the entry is parsed as UTC, placing it inside
+    // the last-night aurora window [T00:00Z, T10:00Z] for the pinned 8am EDT NOW.
+    const result = computeLastNightPeak([
+      { time_tag: '2026-06-05 01:00:00', Kp: 4.5 } as unknown as KpEntry,
+    ])
+    expect(result?.peakKp).toBe(4.5)
+  })
 })
 
 // ============================================
@@ -216,10 +226,10 @@ describe('computeViewingWindow', () => {
   })
 })
 
-// ── computeLastNightPeak — overnight "now" case ────────────────────────────────
-// Separate describe so we can override NOW without interfering with the pinned
+// ── computeLastNightPeak — alternative NOW values ─────────────────────────────
+// Separate describe so these override NOW without interfering with the pinned
 // daytime fixture used by the tests above.
-describe('computeLastNightPeak — windowEnd cap (line 67)', () => {
+describe('computeLastNightPeak — alternative NOW values', () => {
   afterEach(() => vi.useRealTimers())
 
   it('caps windowEnd at now when we are still inside the overnight aurora window', () => {
@@ -229,5 +239,15 @@ describe('computeLastNightPeak — windowEnd cap (line 67)', () => {
     vi.setSystemTime(new Date('2026-06-05T05:00:00Z'))
     const result = computeLastNightPeak([kpEntry('2026-06-05T01:00:00Z', 4.0)])
     expect(result?.peakKp).toBe(4.0)
+  })
+
+  it('uses hoursAgo = etHour − 20 when current ET hour is ≥ 20 (evening)', () => {
+    // NOW = 2026-06-06T01:00:00Z = 9pm EDT (etHour=21, ≥ 20).
+    // hoursAgo = 21 − 20 = 1 → nightStart = T00:00:00Z (8pm EDT).
+    // windowEnd = min(T10:00Z, now=T01:00Z) = T01:00Z.
+    // Entry at T00:30Z (8:30pm EDT) falls inside [T00:00Z, T01:00Z].
+    vi.setSystemTime(new Date('2026-06-06T01:00:00Z'))
+    const result = computeLastNightPeak([kpEntry('2026-06-06T00:30:00Z', 5.0)])
+    expect(result?.peakKp).toBe(5.0)
   })
 })
