@@ -29,7 +29,7 @@ export function LiveHeader() {
         className={`kp-pill ${kpClass}`}
         title="Planetary K-index (live from NOAA)"
       >
-        <Activity className="w-3.5 h-3.5" />
+        <Activity className="w-4 h-4" />
         <span>Kp {kp !== null ? kp.toFixed(1) : "—"}</span>
       </div>
 
@@ -39,8 +39,8 @@ export function LiveHeader() {
         className="relative flex items-center gap-1 text-[#64748b] hover:text-[#94a3b8] transition-colors p-1"
         aria-label="View recent NOAA alerts"
       >
-        <Bell className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline text-[11px]">Alerts</span>
+        <Bell className="w-4 h-4" />
+        <span className="hidden sm:inline text-xs">Alerts</span>
         {hasUnread && (
           <span className="absolute top-0.5 right-0.5 block h-1.5 w-1.5 rounded-full bg-red-500" />
         )}

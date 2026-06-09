@@ -48,9 +48,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 9999px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.01em;
   border: 1px solid;
@@ -228,8 +228,8 @@ body {
    freshness indicator + icon-only refresh. */
 @media (max-width: 640px) {
   .header .kp-pill {
-    padding: 3px 9px;
-    font-size: 12px;
+    padding: 4px 11px;
+    font-size: 13px;
   }
   .header .risk-pill {
     font-size: 9px;
