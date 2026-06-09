@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "AuroraWatch/1.0 (loewfizzle@gmail.com)",
+        "User-Agent": "SkyGlow/1.0 (loewfizzle@gmail.com)",
         "Accept-Language": "en",
       },
       signal: AbortSignal.timeout(6_000),

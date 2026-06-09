@@ -1,10 +1,10 @@
-// AuroraWatch Service Worker — source file.
+// SkyGlow Service Worker — source file.
 // Bundled into public/sw.js by `node scripts/buildSw.js` (runs as part of npm run build).
 // Edit this file, not public/sw.js.
 
 import { parseKpFromTabular, shouldTriggerNotification } from '../lib/utils/swShared.js';
 
-const CACHE_NAME = 'aurorawatch-sw-v1';
+const CACHE_NAME = 'skyglow-sw-v1';
 const KP_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json';
 const THROTTLE_MS = 30 * 60 * 1000;       // 30 min between background alerts
 const STATE_MAX_AGE_MS = 2 * 60 * 60 * 1000; // cached Bz / maxProb valid for 2 hours
@@ -70,9 +70,9 @@ async function checkAurora() {
     if (bzHit)   reasons.push(`Bz ${cachedBz.toFixed(1)} nT`);
     const body = `${reasons.join(' · ')} — Aurora may be visible across the northern US. Tap to check conditions.`;
 
-    await self.registration.showNotification('AuroraWatch Alert', {
+    await self.registration.showNotification('SkyGlow Alert', {
       body,
-      tag: 'aurorawatch-bg',
+      tag: 'skyglow-bg',
       icon: '/api/pwa-icon?size=192',
       badge: '/api/pwa-icon?size=192',
       data: { url: '/' },

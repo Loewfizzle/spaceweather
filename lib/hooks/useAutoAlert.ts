@@ -50,7 +50,7 @@ export function useAutoAlert({
         ? `Kp jumped to ${kp.toFixed(1)} (was ${prevKp!.toFixed(1)}). Conditions may be changing rapidly — check the aurora map now.`
         : `Kp ${kp.toFixed(1)}. Aurora may be visible across the northern US tonight. Check the map and current conditions.`;
       try {
-        new Notification("AuroraWatch Alert", { body, tag: "aurorawatch-mi" });
+        new Notification("SkyGlow Alert", { body, tag: "skyglow-mi" });
         lastNotifiedRef.current = now;
         saveLastNotified(now);
       } catch (e) { console.warn("Could not show notification", e); }

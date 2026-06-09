@@ -22,7 +22,7 @@
   }
 
   // worker/sw.js
-  var CACHE_NAME = "aurorawatch-sw-v1";
+  var CACHE_NAME = "skyglow-sw-v1";
   var KP_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json";
   var THROTTLE_MS = 30 * 60 * 1e3;
   var STATE_MAX_AGE_MS = 2 * 60 * 60 * 1e3;
@@ -66,9 +66,9 @@
       if (probHit) reasons.push(`${Math.round(cachedMaxProb)}% probability`);
       if (bzHit) reasons.push(`Bz ${cachedBz.toFixed(1)} nT`);
       const body = `${reasons.join(" \xB7 ")} \u2014 Aurora may be visible across the northern US. Tap to check conditions.`;
-      await self.registration.showNotification("AuroraWatch Alert", {
+      await self.registration.showNotification("SkyGlow Alert", {
         body,
-        tag: "aurorawatch-bg",
+        tag: "skyglow-bg",
         icon: "/api/pwa-icon?size=192",
         badge: "/api/pwa-icon?size=192",
         data: { url: "/" }

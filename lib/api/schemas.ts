@@ -3,7 +3,7 @@ import { z } from 'zod';
 // ============================================
 // Zod Schemas for External Data Sources (and a few internal derived shapes)
 // These provide runtime validation + TypeScript inference
-// for all NOAA SWPC + NASA + Open-Meteo responses used in AuroraWatch.
+// for all NOAA SWPC + NASA + Open-Meteo responses used in SkyGlow.
 // All schemas are intentionally defensive (nullable/optional) to tolerate
 // real-world variations, missing fields, or upstream data glitches.
 // ============================================

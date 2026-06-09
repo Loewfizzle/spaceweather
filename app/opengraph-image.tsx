@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { getTonightOutlook } from '@/lib/aurora/outlook';
 
-export const alt = "AuroraWatch — Tonight's Aurora Outlook";
+export const alt = "SkyGlow — Tonight's Aurora Outlook";
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const revalidate = 300; // regenerate every 5 minutes
@@ -127,7 +127,7 @@ export default async function OGImage() {
               </svg>
             </div>
             <span style={{ color: '#f1f5f9', fontSize: 30, fontWeight: 700, letterSpacing: '-0.5px' }}>
-              AuroraWatch
+              SkyGlow
             </span>
             <span style={{ color: '#334155', fontSize: 18, marginLeft: 8 }}>
               Northern US · Great Lakes
@@ -279,7 +279,7 @@ export default async function OGImage() {
             paddingTop: 20, marginTop: 24,
           }}
         >
-          <span style={{ color: '#1e3248', fontSize: 15 }}>space.loewfizzle.com</span>
+          <span style={{ color: '#1e3248', fontSize: 15 }}>skyglow.app</span>
           <span style={{ color: '#1e3248', fontSize: 15 }}>
             OVATION · Kp Index · Solar Wind · NOAA SWPC
           </span>

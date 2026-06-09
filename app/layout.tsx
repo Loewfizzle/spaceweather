@@ -16,37 +16,37 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   // Hardcode the production custom domain so that OG images, canonical URLs,
-  // and social previews always resolve to space.loewfizzle.com instead of
+  // and social previews always resolve to skyglow.app instead of
   // the underlying Vercel deployment URL (VERCEL_URL).
   // This is the main fix for social preview issues.
   metadataBase: new URL(
     process.env.VERCEL_ENV === "production"
-      ? "https://space.loewfizzle.com"
+      ? "https://skyglow.app"
       : process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
         : "http://localhost:3000"
   ),
   title: {
-    default: "AuroraWatch | Real-time Aurora & Space Weather",
-    template: "%s | AuroraWatch",
+    default: "SkyGlow | Real-time Aurora & Space Weather",
+    template: "%s | SkyGlow",
   },
   description: "Premium real-time aurora visibility and space weather dashboard for the United States, with particularly strong coverage for the Great Lakes region and northern states. Live NOAA SWPC data.",
   icons: {
     icon: "/icon.svg",
   },
   openGraph: {
-    siteName: "AuroraWatch",
-    title: "AuroraWatch | Real-time Aurora & Space Weather",
+    siteName: "SkyGlow",
+    title: "SkyGlow | Real-time Aurora & Space Weather",
     description: "Premium real-time aurora visibility and space weather dashboard for the United States, with particularly strong coverage for the Great Lakes region and northern states. Live NOAA SWPC data.",
     // opengraph-image.tsx in this directory generates the OG image dynamically with live Kp data.
   },
   twitter: {
     card: "summary_large_image",
-    title: "AuroraWatch | Real-time Aurora & Space Weather",
+    title: "SkyGlow | Real-time Aurora & Space Weather",
     description: "Premium real-time aurora visibility and space weather dashboard for the United States, with particularly strong coverage for the Great Lakes region and northern states. Live NOAA SWPC data.",
   },
   keywords: ["aurora", "space weather", "northern lights", "Great Lakes", "NOAA", "Kp index", "fireball", "meteor shower"],
-  authors: [{ name: "AuroraWatch" }],
+  authors: [{ name: "SkyGlow" }],
   alternates: {
     canonical: "/",
   },

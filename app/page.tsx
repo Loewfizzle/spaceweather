@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { BrandIcon } from "../components/BrandIcon";
 import { LiveHeader } from "../components/LiveHeader";
 import { LiveIndicator } from "../components/LiveIndicator";
 import { DashboardClient } from "../components/DashboardClient";
@@ -22,13 +22,11 @@ export default function AuroraWatch() {
               LiveIndicator is a tiny "use client" island that hydrates
               independently and sits below the subtitle. */}
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 via-cyan-400 to-violet-400 flex items-center justify-center flex-shrink-0">
-              <Zap className="w-4 h-4 text-[#05070f]" />
-            </div>
+            <BrandIcon />
             <div>
               {/* Slightly larger title for more presence */}
               <div className="font-semibold tracking-tighter text-xl sm:text-2xl leading-tight">
-                AuroraWatch
+                SkyGlow
               </div>
               {/* Subtitle + live dot on one line */}
               <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#64748b] leading-none">
@@ -83,7 +81,7 @@ export default function AuroraWatch() {
               Not for navigation • Updates every few minutes
             </div>
           </div>
-          <div className="mt-4 text-[#475569] text-[10px]">AuroraWatch v0.1.0</div>
+          <div className="mt-4 text-[#475569] text-[10px]">SkyGlow v0.1.0</div>
         </div>
       </footer>
     </div>

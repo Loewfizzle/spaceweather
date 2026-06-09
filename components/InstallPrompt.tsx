@@ -64,7 +64,7 @@ export function InstallPrompt({ accentColor = "#38bdf8" }: InstallPromptProps) {
         onClick={handleInstall}
         style={{ color: accentColor }}
         className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity"
-        title="Install AuroraWatch on your device"
+        title="Install SkyGlow on your device"
       >
         <Download className="h-3.5 w-3.5" />
         Install app

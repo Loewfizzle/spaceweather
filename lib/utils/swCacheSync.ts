@@ -6,7 +6,7 @@ export async function syncLiveStateToSw(
 ): Promise<boolean> {
   if (typeof window === "undefined" || !("caches" in window)) return false;
   try {
-    const cache = await caches.open("aurorawatch-sw-v1");
+    const cache = await caches.open("skyglow-sw-v1");
     await cache.put(
       "/__state",
       new Response(

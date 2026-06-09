@@ -1,6 +1,6 @@
 {
-  "name": "AuroraWatch",
-  "short_name": "AuroraWatch",
+  "name": "SkyGlow",
+  "short_name": "SkyGlow",
   "description": "Real-time aurora visibility and space weather for the United States and northern North America.",
   "start_url": "/",
   "display": "standalone",

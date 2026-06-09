@@ -54,7 +54,7 @@ export function NotificationPrompt({ accentColor = "#38bdf8" }: NotificationProm
               await registerPeriodicSync();
               try {
                 const thresh = ALERT_THRESHOLDS[p.key];
-                new Notification("AuroraWatch", {
+                new Notification("SkyGlow", {
                   body: `Alerts on. You'll hear from us when Kp ≥ ${thresh.kp} or OVATION ≥ ${thresh.prob}%.`,
                   icon: "/icons/icon-192.png",
                 });
@@ -78,7 +78,7 @@ export function NotificationPrompt({ accentColor = "#38bdf8" }: NotificationProm
         const result = await Notification.requestPermission();
         setPerm(result);
         if (result === "granted") {
-          window.dispatchEvent(new CustomEvent("aurorawatch:permission-changed", { detail: result }));
+          window.dispatchEvent(new CustomEvent("skyglow:permission-changed", { detail: result }));
           setPhase("picking");
         }
       }}

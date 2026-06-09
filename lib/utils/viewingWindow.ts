@@ -75,7 +75,7 @@ export function computeLastNightPeak(
   // Development-only boundary diagnostic — helps identify boundary mismatches.
   /* v8 ignore start */
   if (process.env.NODE_ENV === 'development') {
-    console.log('[AuroraWatch] computeLastNightPeak', {
+    console.log('[SkyGlow] computeLastNightPeak', {
       nowUTC: now.toISOString(),
       nightStart: nightStart.toISOString(),
       nightEnd: nightEnd.toISOString(),
@@ -150,7 +150,7 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
 
   /* v8 ignore start */
   if (process.env.NODE_ENV === 'development') {
-    console.log('[AuroraWatch] computeViewingWindow', {
+    console.log('[SkyGlow] computeViewingWindow', {
       tonightBlocksCount: firstNight.length,
       peakKp: peakBlock.kp,
       threshold,

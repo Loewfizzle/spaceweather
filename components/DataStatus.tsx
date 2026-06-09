@@ -7,7 +7,7 @@
  * Shows an amber/red animated dot + short label when any source is degraded or down.
  * Clicking opens a panel listing per-source status with last-seen timestamps.
  *
- * Reactivity: subscribes to the 'aurorawatch:health' DOM event dispatched by
+ * Reactivity: subscribes to the 'skyglow:health' DOM event dispatched by
  * logDataError() and recordDataSuccess() — no polling required.
  */
 
@@ -107,8 +107,8 @@ export function DataStatus() {
       );
     }
     refresh();
-    window.addEventListener('aurorawatch:health', refresh);
-    return () => window.removeEventListener('aurorawatch:health', refresh);
+    window.addEventListener('skyglow:health', refresh);
+    return () => window.removeEventListener('skyglow:health', refresh);
   }, []);
 
   // Close on outside click

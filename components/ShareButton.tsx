@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Share2, Check, AlertCircle } from "lucide-react";
 
-const SHARE_URL = "https://space.loewfizzle.com";
+const SHARE_URL = "https://skyglow.app";
 
 interface ShareButtonProps {
   accentColor?: string;

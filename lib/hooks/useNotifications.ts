@@ -55,8 +55,8 @@ export function useNotifications({
       const val = (e as CustomEvent<AlertSensitivity>).detail;
       if (val === "sensitive" || val === "balanced" || val === "strong") setAlertSensitivityState(val);
     };
-    window.addEventListener("aurorawatch:sensitivity-changed", handler);
-    return () => window.removeEventListener("aurorawatch:sensitivity-changed", handler);
+    window.addEventListener("skyglow:sensitivity-changed", handler);
+    return () => window.removeEventListener("skyglow:sensitivity-changed", handler);
   }, []);
   useEffect(() => {
     if (kp !== null && !isLoading) syncLiveStateToSw(bz, maxAuroraProbNA).then(ok => { if (!ok) setSwCacheDegraded(true); });
@@ -76,9 +76,9 @@ export function useNotifications({
     if (notificationPermission === "granted") {
       try {
         const thresh = ALERT_THRESHOLDS[alertSensitivity];
-        new Notification("AuroraWatch Test", {
+        new Notification("SkyGlow Test", {
           body: `Test. You will receive real alerts when Kp ≥ ${thresh.kp} or OVATION ≥ ${thresh.prob}% (or strong −Bz) for the northern US.`,
-          tag: "aurorawatch-test",
+          tag: "skyglow-test",
         });
       } catch (e) { console.warn("Could not send test notification", e); }
       return;
@@ -89,7 +89,7 @@ export function useNotifications({
       setAlertsEnabled(true);
       saveSensitivity(alertSensitivity);
       await registerPeriodicSync();
-      try { new Notification("AuroraWatch", { body: "Alerts enabled. We'll notify you when aurora looks likely across the northern US." }); } catch {}
+      try { new Notification("SkyGlow", { body: "Alerts enabled. We'll notify you when aurora looks likely across the northern US." }); } catch {}
     }
   };
 

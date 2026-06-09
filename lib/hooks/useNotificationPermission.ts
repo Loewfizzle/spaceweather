@@ -12,7 +12,7 @@ interface UseNotificationPermissionReturn {
  * Manages Notification.permission state with two sync mechanisms:
  *  - visibilitychange: re-reads the browser value when the tab regains focus,
  *    catching the case where the user changed the setting in browser preferences.
- *  - aurorawatch:permission-changed custom event: keeps multiple hook instances
+ *  - skyglow:permission-changed custom event: keeps multiple hook instances
  *    (e.g. AlertsPanel + NotificationPrompt in the same tab) in sync after an
  *    explicit requestPermission() call from any one of them.
  */
@@ -30,16 +30,16 @@ export function useNotificationPermission(): UseNotificationPermissionReturn {
       setPermission((e as CustomEvent<NotificationPermission>).detail);
     }
     document.addEventListener("visibilitychange", syncPermission);
-    window.addEventListener("aurorawatch:permission-changed", onPermissionChanged);
+    window.addEventListener("skyglow:permission-changed", onPermissionChanged);
     return () => {
       document.removeEventListener("visibilitychange", syncPermission);
-      window.removeEventListener("aurorawatch:permission-changed", onPermissionChanged);
+      window.removeEventListener("skyglow:permission-changed", onPermissionChanged);
     };
   }, []);
 
   function dispatchPermissionChange(perm: NotificationPermission) {
     setPermission(perm);
-    window.dispatchEvent(new CustomEvent("aurorawatch:permission-changed", { detail: perm }));
+    window.dispatchEvent(new CustomEvent("skyglow:permission-changed", { detail: perm }));
   }
 
   return { permission, dispatchPermissionChange };

@@ -137,7 +137,7 @@ function DashboardInner() {
     if (effectiveKp === null) return;
     const prev = document.title;
     const simTag = simKp !== null ? ' [sim]' : '';
-    document.title = `AuroraWatch | Kp ${effectiveKp.toFixed(1)}${simTag} — ${riskLevel ?? "Quiet"}`;
+    document.title = `SkyGlow | Kp ${effectiveKp.toFixed(1)}${simTag} — ${riskLevel ?? "Quiet"}`;
     return () => { document.title = prev; };
   }, [simKp, kp, riskLevel]);
   const auroraGlow = getAuroraGlow(simKp ?? kp);

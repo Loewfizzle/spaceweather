@@ -39,7 +39,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-// Centralized, schema-validated fetchers for AuroraWatch.
+// Centralized, schema-validated fetchers for SkyGlow.
 // All external data goes through Zod (parse or safeParse+filter for resilience).
 // Consumers should import types from './schemas', not rely on re-exports.
 
@@ -102,7 +102,7 @@ export async function fetchKpForecast(): Promise<KpForecastEntry[]> {
     const raw = await fetchJson<unknown>(url);
     const result = z.array(KpForecastEntrySchema).safeParse(raw);
     if (!result.success) {
-      if (process.env.NODE_ENV === 'development') console.warn('[AuroraWatch] KpForecast schema mismatch:', result.error.format?.());
+      if (process.env.NODE_ENV === 'development') console.warn('[SkyGlow] KpForecast schema mismatch:', result.error.format?.());
       logDataError('KpForecast parse', result.error, { url }, false, 'kp-forecast');
       return [];
     }

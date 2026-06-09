@@ -3,7 +3,7 @@ import { mockNoaaApis } from './helpers/mockNoaaApis';
 
 // All smoke tests use mocked NOAA APIs so results are deterministic and
 // the suite does not depend on external network availability.
-test.describe('AuroraWatch smoke tests', () => {
+test.describe('SkyGlow smoke tests', () => {
   test.beforeEach(async ({ page }) => {
     await mockNoaaApis(page);
   });

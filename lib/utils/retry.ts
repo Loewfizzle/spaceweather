@@ -1,5 +1,5 @@
 /**
- * Shared retry, resilience, and observability utilities for AuroraWatch.
+ * Shared retry, resilience, and observability utilities for SkyGlow.
  *
  * Single source of truth for:
  *   - TanStack Query retry predicates + exponential backoff
@@ -109,7 +109,7 @@ function getOrCreate(source: DataSource): DataHealthRecord {
  */
 function notifyHealthChange(): void {
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('aurorawatch:health'));
+    window.dispatchEvent(new Event('skyglow:health'));
   }
 }
 
@@ -118,7 +118,7 @@ function notifyHealthChange(): void {
 /**
  * Call this after each successful data fetch to reset the consecutive-error counter
  * and timestamp the last known-good state for a source.
- * Triggers an immediate DataStatus re-render via the 'aurorawatch:health' DOM event.
+ * Triggers an immediate DataStatus re-render via the 'skyglow:health' DOM event.
  */
 export function recordDataSuccess(source: DataSource): void {
   const record = getOrCreate(source);

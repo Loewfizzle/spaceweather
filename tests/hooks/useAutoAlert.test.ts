@@ -50,8 +50,8 @@ describe('useAutoAlert', () => {
 
     expect(mockNotification).toHaveBeenCalledOnce();
     expect(mockNotification).toHaveBeenCalledWith(
-      'AuroraWatch Alert',
-      expect.objectContaining({ body: expect.stringContaining('5.0'), tag: 'aurorawatch-mi' })
+      'SkyGlow Alert',
+      expect.objectContaining({ body: expect.stringContaining('5.0'), tag: 'skyglow-mi' })
     );
     expect(vi.mocked(saveLastNotified)).toHaveBeenCalledOnce();
   });

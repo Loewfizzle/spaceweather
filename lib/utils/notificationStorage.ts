@@ -60,12 +60,12 @@ export function saveLastNotified(now: number): void {
 export async function saveSensitivity(val: AlertSensitivity): Promise<void> {
   if (typeof window !== "undefined") {
     localStorage.setItem("aw_alert_sensitivity", val);
-    window.dispatchEvent(new CustomEvent("aurorawatch:sensitivity-changed", { detail: val }));
+    window.dispatchEvent(new CustomEvent("skyglow:sensitivity-changed", { detail: val }));
   }
   if (typeof window !== "undefined" && "caches" in window) {
     try {
       const { kp, prob } = ALERT_THRESHOLDS[val];
-      const cache = await caches.open("aurorawatch-sw-v1");
+      const cache = await caches.open("skyglow-sw-v1");
       await cache.put("/__prefs", new Response(JSON.stringify({ kp, prob })));
     } catch {
       // Cache API unavailable (private browsing, etc.) — non-fatal
