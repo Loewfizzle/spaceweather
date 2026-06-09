@@ -119,8 +119,12 @@ export function computeViewingWindow(kpForecast: KpForecastEntry[]): ViewingWind
 
   const windowStart = goodBlocks.length > 0 ? goodBlocks[0].time : peakBlock.time;
   const lastGood    = goodBlocks[goodBlocks.length - 1] ?? peakBlock;
-  // Each NOAA forecast block is 3 hours; window ends at the close of the last good block
-  const windowEnd   = new Date(lastGood.time.getTime() + 3 * 60 * 60 * 1000);
+  // Each NOAA forecast block is 3 hours wide. Use Math.max so windowEnd is always
+  // at least windowStart + 3 h — guards against any edge case where lastGood precedes
+  // windowStart, which would cause identical display times (e.g. "12 AM – 12 AM").
+  const windowEnd = new Date(
+    Math.max(lastGood.time.getTime(), windowStart.getTime()) + 3 * 60 * 60 * 1000
+  );
 
   return {
     hasData: true,

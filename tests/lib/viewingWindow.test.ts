@@ -193,6 +193,17 @@ describe('computeViewingWindow', () => {
     expect(result.peakKp).toBe(0)
   })
 
+  it('windowEnd is exactly 3 h after windowStart for a single in-window block', () => {
+    // Regression: a single block produced "12 AM – 12 AM" due to start === end.
+    // June 6 00:00 UTC = 8pm EDT — only one block in tonight's window.
+    const result = computeViewingWindow([
+      forecastEntry('2026-06-06T00:00:00Z', 3.5),
+    ])
+    expect(result.hasData).toBe(true)
+    const diffMs = result.windowEnd!.getTime() - result.windowStart!.getTime()
+    expect(diffMs).toBe(3 * 60 * 60 * 1000)
+  })
+
   it('falls back to peakBlock when goodBlocks is empty — kp below 2.5 floor (lines 109-110)', () => {
     // threshold = max(0 - 1, 2.5) = 2.5; kp=0 < 2.5 → goodBlocks = []
     // line 109: windowStart = peakBlock.time (false branch)

@@ -27,7 +27,10 @@ function formatET(date: Date): string {
       minute: "2-digit",
       hour12: true,
     })
-    .replace(":00", ""); // "11 pm" not "11:00 pm"
+    // Strip ":00" only when immediately before AM/PM — avoids matching the wrong ":00"
+    // if the locale ever includes seconds or other colons in the output.
+    .replace(/:00\s*([AP]M)/i, " $1")
+    .trim();
 }
 
 function peakToLabel(kp: number): { label: string; color: string; guidance: string } {
