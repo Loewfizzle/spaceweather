@@ -20,10 +20,10 @@ export function BrandIcon() {
 
   return (
     <div
-      className="w-8 h-8 rounded-full bg-[#0d1425] border border-[#1e2937] flex items-center justify-center flex-shrink-0 animate-pulse"
+      className="w-10 h-10 rounded-full bg-[#0d1425] border border-[#1e2937] flex items-center justify-center flex-shrink-0 animate-pulse"
       style={{ animationDuration: duration }}
     >
-      <Sparkles className="w-4 h-4" style={{ color }} />
+      <Sparkles className="w-5 h-5" style={{ color }} />
     </div>
   );
 }
