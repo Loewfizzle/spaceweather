@@ -157,7 +157,7 @@ export function MeteorActivity() {
                   </div>
                   <div className="flex items-center gap-1.5 text-[#64748b]">
                     <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
-                    Allow 20 min dark adaption
+                    Allow 15–20 min dark adaptation
                   </div>
                 </div>
                 <button

@@ -50,8 +50,12 @@ export function SolarActivity() {
         <div className="grid grid-cols-2 gap-3 mb-3">
           {/* Latest Flare — clickable when data is available */}
           <div
+            role="button"
+            tabIndex={latestFlare ? 0 : -1}
             className={`metric transition-colors ${latestFlare ? 'hover:border-[#293548] cursor-pointer' : 'cursor-default'}`}
             onClick={() => latestFlare && setOpenModal("flare")}
+            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && latestFlare) setOpenModal("flare"); }}
+            aria-label={latestFlare ? `Latest flare: ${flareClass}. Press Enter for details.` : "Latest flare: none detected"}
           >
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2 text-[#64748b] text-xs">

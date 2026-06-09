@@ -20,6 +20,7 @@ export function BrandIcon() {
 
   return (
     <div
+      aria-hidden="true"
       className="w-10 h-10 rounded-full bg-[#0d1425] border border-[#1e2937] flex items-center justify-center flex-shrink-0 animate-pulse motion-reduce:animate-none"
       style={{ animationDuration: duration }}
     >

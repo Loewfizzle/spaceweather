@@ -72,7 +72,7 @@ export function LocationPicker({ onConfirm, onCancel }: LocationPickerProps) {
             setResults([]);
             setNotFound(false);
           }}
-          placeholder="City, state  ·  or  lat, lon"
+          placeholder="City, state · or lat, lon"
           className="flex-1 bg-transparent text-sm text-[#f1f5f9] placeholder-[#334155] outline-none min-w-0"
         />
         <button

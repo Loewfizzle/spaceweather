@@ -135,7 +135,7 @@ export function MeteorShowerModal({ shower, peakDate, onClose }: MeteorShowerMod
                   in the second half of the night. Rates typically double compared to early evening.
                 </p>
                 <p className="text-[12px] text-[#64748b] leading-relaxed">
-                  <span className="text-[#94a3b8]">Dark adaptation takes 20 minutes:</span>{" "}
+                  <span className="text-[#94a3b8]">Dark adaptation takes 15–20 minutes:</span>{" "}
                   your eyes need time to adjust after any bright light. Avoid your phone — if you must
                   use it, switch to red mode. Once adapted, you&apos;ll see far more.
                 </p>

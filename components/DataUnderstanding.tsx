@@ -22,7 +22,7 @@ export function DataUnderstanding() {
           aria-controls="understanding-data-content"
         >
           <div>
-            <div className="section-title mb-1">Understanding the Data</div>
+            <div className="section-title mb-1">UNDERSTANDING THE DATA</div>
             <div className="text-sm text-[#94a3b8]">
               Solar activity, reading the indicators, and viewing tips
             </div>
