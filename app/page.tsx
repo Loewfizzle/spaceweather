@@ -1,13 +1,8 @@
-import dynamic from "next/dynamic";
 import { BrandIcon } from "../components/BrandIcon";
 import { LiveHeader } from "../components/LiveHeader";
 import { LiveIndicator } from "../components/LiveIndicator";
+import { IosInstallPromptLoader } from "../components/IosInstallPromptLoader";
 import { DashboardClient } from "../components/DashboardClient";
-
-const IosInstallPrompt = dynamic(
-  () => import("../components/IosInstallPrompt").then((m) => ({ default: m.IosInstallPrompt })),
-  { ssr: false }
-);
 
 // No "use client" — this is a Server Component.
 // Static shell (header branding, h1 hero copy, footer) is server-rendered for LCP + SEO.
@@ -49,7 +44,7 @@ export default function AuroraWatch() {
 
       {/* iOS install nudge — mobile only, right-aligned, sits directly below header */}
       <div className="sm:hidden flex justify-end max-w-7xl mx-auto px-4 pt-2">
-        <IosInstallPrompt />
+        <IosInstallPromptLoader />
       </div>
 
       <main id="main-content">
