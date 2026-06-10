@@ -92,7 +92,7 @@ export function MeteorActivity() {
           {nextMeteor && showerDays !== null ? (
             <>
               <div className="flex items-center justify-between mb-3">
-                <div className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
+                <div className="text-xs text-[#94a3b8]">
                   NEXT METEOR SHOWER
                 </div>
                 <button
@@ -191,7 +191,7 @@ export function MeteorActivity() {
         {/* ── Fireball Tracker ───────────────────────────────────────────── */}
         <div className="card p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
+            <div className="text-xs text-[#94a3b8]">
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
@@ -269,13 +269,13 @@ export function MeteorActivity() {
                       { color: "#eab308", label: "≥0.1 kt" },
                       { color: "#64748b", label: "<0.1 kt" },
                     ] as const).map(({ color, label }) => (
-                      <span key={label} className="flex items-center gap-1 text-[10px] text-[#64748b]">
+                      <span key={label} className="flex items-center gap-1 text-xs text-[#94a3b8]">
                         <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                         {label}
                       </span>
                     ))}
                   </div>
-                  <span className="text-[10px] text-[#64748b] flex-shrink-0">Impact energy (kt TNT)</span>
+                  <span className="text-xs text-[#94a3b8] flex-shrink-0">Impact energy (kt TNT)</span>
                 </div>
               </div>
             </>

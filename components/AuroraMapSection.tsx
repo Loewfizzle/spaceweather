@@ -51,7 +51,7 @@ export function AuroraMapSection({ userProb, ovationPoints }: AuroraMapSectionPr
         {/* Card header */}
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="uppercase tracking-[2.5px] text-[10px] text-[#94a3b8]">
+            <span className="text-xs text-[#94a3b8]">
               OVATION MODEL
             </span>
             <button
@@ -76,7 +76,7 @@ export function AuroraMapSection({ userProb, ovationPoints }: AuroraMapSectionPr
         {/* Footer — observation timestamp */}
         {observedAt && (
           <div className="px-5 pt-3 pb-4">
-            <span className="tabular-nums text-[10px] text-[#3d4f63]">Observed {observedAt}</span>
+            <span className="tabular-nums text-xs text-[#94a3b8]">Observed {observedAt}</span>
           </div>
         )}
 

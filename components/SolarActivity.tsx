@@ -140,7 +140,7 @@ export function SolarActivity() {
                       </div>
                     )}
 
-                    <div className="text-[10px] text-[#64748b] mt-0.5">
+                    <div className="text-xs text-[#94a3b8] mt-0.5">
                       Alert issued {formatCmeIssued(cme.time)}
                       {solarActivity.recentCmes.length > 1 && ` · ${solarActivity.recentCmes.length} total`}
                     </div>
@@ -207,7 +207,7 @@ export function SolarActivity() {
               for aurora potential.
             </p>
             <div className="flex items-center justify-between pb-1">
-              <span className="text-[9px] text-[#334155]">Updates every ~15 min</span>
+              <span className="text-xs text-[#94a3b8]">Updates every ~15 min</span>
               <a
                 href={SDO_DATA_URL}
                 target="_blank"
@@ -244,7 +244,7 @@ export function SolarActivity() {
               view. Dark patches are coronal holes — tap Details to learn how they affect aurora.
             </p>
             <div className="flex items-center justify-between pb-1">
-              <span className="text-[9px] text-[#334155]">Updates every ~15 min</span>
+              <span className="text-xs text-[#94a3b8]">Updates every ~15 min</span>
               <a
                 href={SDO_DATA_URL}
                 target="_blank"

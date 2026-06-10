@@ -97,7 +97,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <Clock className="h-3 w-3 text-[#94a3b8]" />
-              <span className="uppercase tracking-[2.5px] text-[10px] text-[#94a3b8]">
+              <span className="text-xs text-[#94a3b8]">
                 TONIGHT&apos;S FORECAST
               </span>
             </div>
@@ -108,7 +108,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
               Details <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
-          <p className="text-xs text-[#64748b] mb-3">
+          <p className="text-sm text-[#94a3b8] mb-3">
             36-hr NOAA Kp forecast — may differ from current conditions above
           </p>
 
@@ -126,11 +126,11 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
                   );
                 })() : null}
 
-                <div className="text-[13px] text-[#94a3b8]">{tonight.guidance}</div>
+                <div className="text-[15px] text-[#94a3b8]">{tonight.guidance}</div>
 
                 {/* When location is shared, show personalised sky conditions */}
                 {locationGranted && hasClear && (
-                  <div className="mt-2 text-xs">
+                  <div className="mt-2 text-sm">
                     <span className="text-[#94a3b8]">Your skies tonight: </span>
                     <span className="font-medium" style={{ color: cloudColor }}>
                       {cloudCoverLabel} ({cloudCoverPct}%)
@@ -139,14 +139,14 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
                 )}
                 {/* When location is not shared, surface a gentle nudge */}
                 {!locationGranted && (
-                  <div className="mt-2 text-xs text-[#334155]">
+                  <div className="mt-2 text-sm text-[#94a3b8]">
                     Share location for personalised sky conditions
                   </div>
                 )}
               </div>
 
               <div className="text-right flex-shrink-0">
-                <div className="text-[10px] text-[#94a3b8] mb-0.5">Forecast peak</div>
+                <div className="text-xs text-[#94a3b8] mb-0.5">Forecast peak</div>
                 <div
                   className="text-3xl font-bold tabular-nums leading-none"
                   style={{ color: tonight.color }}
@@ -161,7 +161,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
           )}
 
           {lastNight && lastNightLabel ? (
-            <div className={`flex items-center justify-between text-[12px] ${tonight ? 'mt-4 pt-4 border-t border-[#1e2937]' : ''}`}>
+            <div className={`flex items-center justify-between text-sm ${tonight ? 'mt-4 pt-4 border-t border-[#1e2937]' : ''}`}>
               <div>
                 <span className="text-[#94a3b8]">Last night — </span>
                 <span className="text-[#94a3b8]">
@@ -178,7 +178,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
               </div>
             </div>
           ) : !isLoading ? (
-            <div className={`text-[12px] text-[#64748b] ${tonight ? 'mt-4 pt-4 border-t border-[#1e2937]' : ''}`}>
+            <div className={`text-sm text-[#94a3b8] ${tonight ? 'mt-4 pt-4 border-t border-[#1e2937]' : ''}`}>
               Last night: no data available
             </div>
           ) : null}

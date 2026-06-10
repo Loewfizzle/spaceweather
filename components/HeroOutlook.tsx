@@ -66,7 +66,7 @@ export function HeroOutlook({
     >
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="uppercase tracking-[2.5px] text-[10px] text-[#94a3b8]">
+          <span className="text-xs text-[#94a3b8]">
             CURRENT DATA SUGGESTS
           </span>
           <button
@@ -149,10 +149,10 @@ export function HeroOutlook({
                 className="flex items-center gap-2 py-0.5 w-full text-left group"
               >
                 <span className="block h-1.5 w-1.5 rounded-full bg-[#1e2937] border border-[#475569] flex-shrink-0 group-hover:border-[#64748b] transition-colors" />
-                <span className="flex-1 text-sm text-[#64748b] group-hover:text-[#94a3b8] transition-colors">
+                <span className="flex-1 text-sm text-[#94a3b8] group-hover:text-[#94a3b8] transition-colors">
                   Your location
                 </span>
-                <span className="text-xs text-[#64748b] group-hover:text-[#94a3b8] transition-colors tabular-nums">
+                <span className="text-sm text-[#94a3b8] group-hover:text-[#94a3b8] transition-colors tabular-nums">
                   + Add yours
                 </span>
               </button>
