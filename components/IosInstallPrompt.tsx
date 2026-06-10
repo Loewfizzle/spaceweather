@@ -46,7 +46,6 @@ export function IosInstallPrompt() {
       {modalOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6"
-          onClick={closeModal}
           role="dialog"
           aria-modal="true"
           aria-labelledby="ios-install-title"
