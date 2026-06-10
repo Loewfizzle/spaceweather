@@ -58,7 +58,7 @@ describe('AuroraMapModal', () => {
     expect(screen.getByText('What this map is showing')).toBeInTheDocument();
     expect(screen.getByText('What the colors mean')).toBeInTheDocument();
     expect(screen.getByText(/What the percentages actually mean/)).toBeInTheDocument();
-    expect(screen.getByText('How the filter slider works')).toBeInTheDocument();
+    expect(screen.getByText("What the map can't tell you")).toBeInTheDocument();
   });
 
   it('calls onClose when the backdrop is clicked', () => {
