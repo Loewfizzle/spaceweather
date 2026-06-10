@@ -68,9 +68,9 @@ export function KpForecastModal({ onClose }: KpForecastModalProps) {
                 </p>
                 <p className="text-[12px] text-[#64748b] leading-relaxed">
                   The horizontal lines at{" "}
-                  <span className="font-semibold text-[#22c55e]">Kp 4</span>{" "}
+                  <span className="font-semibold text-[#eab308]">Kp 4</span>{" "}
                   and{" "}
-                  <span className="font-semibold text-[#eab308]">Kp 5</span>{" "}
+                  <span className="font-semibold text-[#f97316]">Kp 5</span>{" "}
                   mark the key aurora thresholds. Kp 4 is the lower limit for seeing aurora
                   across the northern tier states under dark skies; Kp 5 marks the start of
                   a G1 geomagnetic storm.

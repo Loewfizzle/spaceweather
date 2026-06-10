@@ -76,13 +76,8 @@ export function MeteorShowerModal({ shower, peakDate, onClose }: MeteorShowerMod
                   {shower.activityLevel} activity
                 </span>
               </div>
-            </div>
-
-            {/* About this shower */}
-            <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">About this shower</div>
-              <p className="text-[12px] text-[#64748b] leading-relaxed mb-2.5">{shower.description}</p>
-              <div className="space-y-1.5">
+              <div className="mt-3 pt-3 border-t border-[#1e2937] space-y-2">
+                <p className="text-[12px] text-[#64748b] leading-relaxed">{shower.description}</p>
                 {shower.parentComet && (
                   <p className="text-[12px] text-[#64748b] leading-relaxed">
                     <span className="text-[#94a3b8]">Parent comet:</span>{" "}{shower.parentComet}

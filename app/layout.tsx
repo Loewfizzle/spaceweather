@@ -33,6 +33,7 @@ export const metadata: Metadata = {
   description: "Real-time aurora forecast for tonight — live Kp index, northern lights probability, and solar wind data for the United States. Powered by NOAA SWPC.",
   icons: {
     icon: "/icon.svg",
+    apple: "/api/pwa-icon?size=192",
   },
   openGraph: {
     siteName: "SkyGlow",

@@ -12,6 +12,7 @@ import {
   ovationNABlurb,
   ovationUserBlurb,
 } from "../../lib/aurora/conditions";
+import { getAuroraColor } from "../../lib/aurora/ovation";
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,12 @@ export function CurrentConditionsModal({
             {ovationUser && (
               <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
                 <p className="text-[12px] leading-relaxed">
-                  <span className="font-semibold text-[#94a3b8]">{ovationUser.first}</span>
+                  <span
+                    className="font-semibold"
+                    style={{ color: getAuroraColor(userLocationProb ?? 0) }}
+                  >
+                    {ovationUser.first}
+                  </span>
                   {ovationUser.rest && <>{" "}<span className="text-[#64748b]">{ovationUser.rest}</span></>}
                 </p>
               </div>
