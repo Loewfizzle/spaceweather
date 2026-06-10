@@ -93,7 +93,7 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#05070f]/75 backdrop-blur-sm border border-[#1e2937] text-[#94a3b8] hover:text-white transition-colors text-lg leading-none"
+          className="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#05070f]/75 backdrop-blur-sm border border-[#1e2937] text-[#94a3b8] hover:text-white transition-colors text-lg leading-none focus:outline-none"
         >
           ×
         </button>

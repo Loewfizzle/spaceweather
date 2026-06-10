@@ -28,7 +28,7 @@ export function CoronalModal({ onClose }: { onClose: () => void }) {
             </div>
             <button
               onClick={onClose}
-              className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
+              className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1 focus:outline-none"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
