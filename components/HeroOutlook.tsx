@@ -281,7 +281,7 @@ export function HeroOutlook({
                   </span>
                 </div>
               )}
-              <NotificationPrompt accentColor="#94a3b8" />
+              <NotificationPrompt accentColor="white" />
               <InstallPrompt accentColor="#94a3b8" />
             </div>
           )}

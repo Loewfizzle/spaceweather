@@ -86,7 +86,7 @@ export function IosInstallPrompt() {
               <li className="flex items-start gap-3">
                 <span className="text-[#22c55e] font-semibold text-xs mt-0.5 shrink-0 w-4">2</span>
                 <span className="text-sm text-[#94a3b8]">
-                  Scroll down and tap{" "}
+                  Tap{" "}
                   <span className="text-white font-medium">&ldquo;View More&rdquo;</span>
                 </span>
               </li>
