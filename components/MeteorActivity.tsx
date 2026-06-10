@@ -108,7 +108,7 @@ export function MeteorActivity() {
                   {nextMeteor.shower.name}
                 </div>
                 <span
-                  className="text-[10px] font-medium tabular-nums px-2 py-0.5 rounded-full"
+                  className="text-xs font-medium tabular-nums px-2 py-0.5 rounded-full"
                   style={{
                     color: showerColor,
                     backgroundColor: showerColor + "1a",
@@ -118,7 +118,7 @@ export function MeteorActivity() {
                   {daysUntilLabel(showerDays)}
                 </span>
               </div>
-              <div className="text-[15px] text-[#94a3b8] tabular-nums mb-3">
+              <div className="text-base text-[#94a3b8] tabular-nums mb-3">
                 {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
               </div>
 
