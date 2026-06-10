@@ -32,8 +32,8 @@ export const metadata: Metadata = {
   },
   description: "Live space weather dashboard — aurora forecast, Kp index, solar wind, solar flares, CMEs, coronal holes, fireball tracker, and meteor showers. Powered by NOAA SWPC.",
   icons: {
-    icon: "/icon.svg",
-    apple: "/api/pwa-icon?size=192",
+    icon: "/icon-1024.png.png",
+    apple: "/icon-1024.png.png",
   },
   openGraph: {
     siteName: "SkyGlow",
