@@ -49,7 +49,7 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
 
             {/* 1 — What is a fireball */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What is a fireball?</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">What is a fireball?</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 A fireball is a meteor that burns brighter than Venus — roughly magnitude −4 or brighter.
                 They&apos;re often visible in daylight, frequently accompanied by a sonic boom, and
@@ -66,7 +66,7 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
 
             {/* 2 — Why only major events appear */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Why only major events appear here</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">Why only major events appear here</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 This tracker shows events detected by the{" "}
                 <span className="text-[#94a3b8]">US government sensor network</span> — a global array
@@ -83,7 +83,7 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
 
             {/* 3 — Why data arrives late */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Why the data arrives late</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">Why the data arrives late</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 NASA JPL CNEOS processes raw sensor data after each event — calculating the trajectory,
                 velocity, altitude, and energy release. This analysis takes time, and events typically
@@ -100,7 +100,7 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
 
             {/* 4 — Reading the energy scale */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Reading the energy scale</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Reading the energy scale</div>
               <div className="space-y-2">
                 <div className="flex gap-3 text-[12px]">
                   <span className="flex items-center gap-1.5 flex-shrink-0 w-[80px]">

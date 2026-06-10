@@ -56,7 +56,7 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
             {/* Location context — first when location is set */}
             {locBlurb && (
               <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-                <p className="text-[12px] leading-relaxed">
+                <p className="text-sm leading-relaxed">
                   <span className="font-semibold text-white">{locBlurb.first}</span>
                   {locBlurb.rest && <>{" "}<span className="text-[#94a3b8]">{locBlurb.rest}</span></>}
                 </p>
@@ -65,7 +65,7 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
 
             {/* 1 — What the map is showing */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What this map is showing</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">What this map is showing</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 This is the <span className="text-[#94a3b8]">NOAA OVATION aurora forecast</span> — a
                 model that predicts where the aurora oval is located and how intense it is right now,
@@ -81,25 +81,25 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
 
             {/* 2 — What the colors mean */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What the colors mean</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">What the colors mean</div>
               <div className="space-y-1.5 mb-2">
-                <div className="flex items-center gap-2.5 text-[12px]">
+                <div className="flex items-center gap-2.5 text-sm">
                   <span className="h-3 w-3 rounded-sm flex-shrink-0" style={{ background: "#166534" }} />
                   <span className="text-[#94a3b8]">Dark green — very low, aurora mainly in polar regions</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-[12px]">
+                <div className="flex items-center gap-2.5 text-sm">
                   <span className="h-3 w-3 rounded-sm flex-shrink-0" style={{ background: "#22c55e" }} />
                   <span className="text-[#94a3b8]">Bright green — low but real activity starting</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-[12px]">
+                <div className="flex items-center gap-2.5 text-sm">
                   <span className="h-3 w-3 rounded-sm flex-shrink-0" style={{ background: "#eab308" }} />
                   <span className="text-[#94a3b8]">Yellow — moderate activity, oval pushing south</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-[12px]">
+                <div className="flex items-center gap-2.5 text-sm">
                   <span className="h-3 w-3 rounded-sm flex-shrink-0" style={{ background: "#f97316" }} />
                   <span className="text-[#94a3b8]">Orange — strong activity, worth going outside</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-[12px]">
+                <div className="flex items-center gap-2.5 text-sm">
                   <span className="h-3 w-3 rounded-sm flex-shrink-0" style={{ background: "#a78bfa" }} />
                   <span className="text-[#94a3b8]">Purple — high intensity, major aurora event</span>
                 </div>
@@ -112,14 +112,14 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
 
             {/* 3 — What the percentages mean */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What the percentages actually mean</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">What the percentages actually mean</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 These are the OVATION model&apos;s estimate of how likely aurora is to be present in
                 the <span className="text-[#94a3b8]">upper atmosphere</span>{" "}above each location —
                 roughly 100 km up. They&apos;re not a simple &ldquo;chance of seeing it from your
                 backyard&rdquo; number, because cloud cover and light pollution aren&apos;t in the model.
               </p>
-              <div className="text-xs font-semibold text-[#cbd5e1] mt-2 mb-1">Don&apos;t dismiss moderate values</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mt-2 mb-1">Don&apos;t dismiss moderate values</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 A reading of 20–30% over your area means there is real aurora above you right now.
                 Whether you can see it depends on your skies — but the aurora is there. Anything
@@ -129,7 +129,7 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
 
             {/* Limitations */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What the map can&apos;t tell you</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">What the map can&apos;t tell you</div>
               <div className="space-y-2">
                 <p className="text-sm text-[#94a3b8] leading-relaxed">
                   <span className="text-[#94a3b8]">Cloud cover:</span>{" "}

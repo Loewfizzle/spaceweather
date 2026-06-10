@@ -69,7 +69,7 @@ export function ViewingWindowModal({
             {/* User location context — first when location is set */}
             {locBlurb && (
               <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-                <p className="text-[12px] leading-relaxed">
+                <p className="text-sm leading-relaxed">
                   <span className="font-semibold text-white">{locBlurb.first}</span>
                   {locBlurb.rest && <>{" "}<span className="text-[#94a3b8]">{locBlurb.rest}</span></>}
                 </p>
@@ -78,7 +78,7 @@ export function ViewingWindowModal({
 
             {/* What this card is */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">About this forecast</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">About this forecast</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 This is the big-picture prediction for the night ahead — think of it like a weather
                 forecast for aurora. It uses NOAA&apos;s 36-hour Kp forecast and the OVATION
@@ -90,7 +90,7 @@ export function ViewingWindowModal({
 
             {/* Dynamic Kp description */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">
                 What Kp {effectiveKp.toFixed(1)} means
               </div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
@@ -100,7 +100,7 @@ export function ViewingWindowModal({
 
             {/* Reference cities */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">
                 Where aurora may be visible tonight
               </div>
               {cities.length > 0 ? (
@@ -109,14 +109,14 @@ export function ViewingWindowModal({
                     {cities.map((city) => (
                       <div
                         key={`${city.name}-${city.state}`}
-                        className="flex items-center justify-between text-[12px]"
+                        className="flex items-center justify-between text-sm"
                       >
                         <span className="text-[#94a3b8]">{city.name}, {city.state}</span>
                         <span className="text-[#64748b] tabular-nums">{city.lat.toFixed(1)}°N</span>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-[#64748b] leading-relaxed pt-2">
+                  <p className="text-sm text-[#94a3b8] leading-relaxed pt-2">
                     Cities above ~{minLat.toFixed(0)}°N are within the viewing zone at this activity level.
                   </p>
                 </>
@@ -130,7 +130,7 @@ export function ViewingWindowModal({
 
             {/* What affects visibility */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What affects what you see</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">What affects what you see</div>
               <div className="space-y-2.5">
                 {cloudCoverPct != null && (
                   <p className="text-sm text-[#94a3b8] leading-relaxed">

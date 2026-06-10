@@ -80,15 +80,15 @@ export function CmeModal({
                         </div>
                       </div>
                       {cme.direction && (
-                        <div className="text-xs text-[#94a3b8] ml-4 mb-0.5">
+                        <div className="text-sm text-[#94a3b8] ml-4 mb-0.5">
                           Direction: {cme.direction}
                         </div>
                       )}
-                      <div className="text-xs ml-4 mt-0.5" style={{ color }}>
+                      <div className="text-sm ml-4 mt-0.5" style={{ color }}>
                         {cme.earthImpact || "Analyzed — Earth impact uncertain"}
                       </div>
                       {cme.note && (
-                        <div className="text-xs text-[#64748b] ml-4 mt-1 leading-relaxed">
+                        <div className="text-sm text-[#94a3b8] ml-4 mt-1 leading-relaxed">
                           {cme.note}
                         </div>
                       )}
@@ -100,12 +100,12 @@ export function CmeModal({
                 })}
               </div>
             ) : (
-              <p className="text-[13px] text-[#94a3b8]">No CMEs detected recently.</p>
+              <p className="text-sm text-[#94a3b8]">No CMEs detected recently.</p>
             )}
 
             {/* Color legend */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Impact colors</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Impact colors</div>
               <div className="space-y-1.5">
                 {[
                   { color: "#eab308", label: "Analyzed / uncertain", desc: "Earth impact not yet determined or unlikely" },
@@ -118,8 +118,8 @@ export function CmeModal({
                       style={{ backgroundColor: color }}
                     />
                     <div>
-                      <span className="text-[12px] font-medium" style={{ color }}>{label}</span>
-                      <span className="text-xs text-[#64748b] ml-1.5">{desc}</span>
+                      <span className="text-sm font-semibold" style={{ color }}>{label}</span>
+                      <span className="text-sm text-[#94a3b8] ml-1.5">{desc}</span>
                     </div>
                   </div>
                 ))}
@@ -128,21 +128,21 @@ export function CmeModal({
 
             {/* Educational section */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Understanding CMEs</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Understanding CMEs</div>
               <div className="space-y-3 text-sm text-[#94a3b8] leading-relaxed">
                 <p>
                   A coronal mass ejection is a large cloud of magnetized plasma expelled from the Sun. Unlike X-ray flares — which travel at light speed — CMEs travel at hundreds to thousands of kilometers per second and take 1–3 days to reach Earth.
                 </p>
                 <p>
-                  <span className="text-[#94a3b8] font-medium">Speed and storm strength.</span>{" "}
+                  <span className="text-white font-semibold">Speed and storm strength.</span>{" "}
                   Faster CMEs compress Earth&apos;s magnetosphere more forcefully, driving stronger geomagnetic storms. Very fast CMEs (2,000+ km/s) can arrive in under 24 hours; slower ones take 3 days or more.
                 </p>
                 <p>
-                  <span className="text-[#94a3b8] font-medium">Direct vs. glancing.</span>{" "}
+                  <span className="text-white font-semibold">Direct vs. glancing.</span>{" "}
                   A direct hit means the CME core strikes Earth head-on. A glancing blow clips the outer magnetosphere — still capable of producing aurora, but typically weaker and shorter-lived.
                 </p>
                 <p>
-                  <span className="text-[#94a3b8] font-medium">CMEs and Bz.</span>{" "}
+                  <span className="text-white font-semibold">CMEs and Bz.</span>{" "}
                   Even a fast, Earth-directed CME won&apos;t produce strong aurora if its magnetic field arrives pointing northward (positive Bz). Aurora requires sustained southward Bz — this lets the CME&apos;s field connect to Earth&apos;s and drive a storm. Bz direction isn&apos;t known until the CME reaches the L1 monitoring point, roughly 15–60 minutes before impact.
                 </p>
               </div>

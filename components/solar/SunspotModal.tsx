@@ -80,7 +80,7 @@ export function SunspotModal({
 
             {/* Solar Cycle 25 context */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Solar Cycle 25</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Solar Cycle 25</div>
               <p className="text-[13px] text-[#94a3b8] leading-relaxed">
                 We are currently near the peak of Solar Cycle 25, which was predicted to reach
                 maximum activity around 2025. Solar maxima bring higher sunspot counts, more
@@ -90,7 +90,7 @@ export function SunspotModal({
 
             {/* Activity scale */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Activity scale</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Activity scale</div>
               <div className="space-y-1">
                 {SUNSPOT_SCALE.map((tier, i) => (
                   <div

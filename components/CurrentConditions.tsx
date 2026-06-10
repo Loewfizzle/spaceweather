@@ -185,7 +185,7 @@ function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void 
           <div className="px-5 pb-5 pt-4 space-y-4">
             {content.sections.map((section) => (
               <div key={section.heading}>
-                <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">{section.heading}</div>
+                <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">{section.heading}</div>
                 {"legend" in section ? (
                   <div className="space-y-1.5">
                     {section.legend.map(({ color, range, desc }) => (

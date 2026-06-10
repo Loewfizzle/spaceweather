@@ -49,7 +49,7 @@ export function KpForecastModal({ onClose }: KpForecastModalProps) {
 
             {/* 1 — Reading the chart */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Reading the chart</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Reading the chart</div>
               <div className="space-y-2">
                 <p className="text-sm text-[#94a3b8] leading-relaxed">
                   <span className="font-semibold text-[#22c55e]">Solid green line</span>{" "}
@@ -80,7 +80,7 @@ export function KpForecastModal({ onClose }: KpForecastModalProps) {
 
             {/* 2 — G-scale reference */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">The G-scale and what it means for you</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-2">The G-scale and what it means for you</div>
               <div className="space-y-2.5">
                 <div className="flex gap-3 text-[12px]">
                   <span className="font-semibold flex-shrink-0 w-[96px] tabular-nums text-[#eab308]">G1 · Kp 5</span>
@@ -111,7 +111,7 @@ export function KpForecastModal({ onClose }: KpForecastModalProps) {
 
             {/* 3 — Forecast vs observed */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Forecast vs. observed — why they differ</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">Forecast vs. observed — why they differ</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 <span className="font-semibold text-white">Observed</span>{" "}
                 entries are measured by ground magnetometer stations worldwide and are
@@ -133,13 +133,13 @@ export function KpForecastModal({ onClose }: KpForecastModalProps) {
 
             {/* 4 — 3-day storm outlook cards */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">The 3-day storm outlook cards</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">The 3-day storm outlook cards</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 The daily cards below the chart show the highest forecasted Kp for each upcoming
                 day — a quick snapshot of peak activity expected. Badge colors follow the G-scale:{" "}
                 <span className="font-semibold text-[#64748b]">dark gray</span>{" "}
                 = quiet,{" "}
-                <span className="font-semibold text-white">gray</span>{" "}
+                <span className="font-semibold text-[#94a3b8]">gray</span>{" "}
                 = unsettled,{" "}
                 <span className="font-semibold text-[#22c55e]">green</span>{" "}
                 = active (Kp 4),{" "}
@@ -158,7 +158,7 @@ export function KpForecastModal({ onClose }: KpForecastModalProps) {
 
             {/* 5 — Why Kp updates every 3 hours */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Why Kp updates every 3 hours</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">Why Kp updates every 3 hours</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 Kp is a 3-hour averaged index — it smooths out short-lived spikes. A 30-minute
                 Bz dip might produce a brief aurora display that never shows up in the Kp reading.

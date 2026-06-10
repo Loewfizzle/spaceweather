@@ -62,7 +62,7 @@ export function MeteorShowerModal({ shower, peakDate, onClose }: MeteorShowerMod
             {/* Shower summary box */}
             <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
               <div className="text-base font-semibold" style={{ color }}>{shower.name}</div>
-              <div className="text-[12px] text-[#94a3b8] mt-0.5">{formatMeteorPeak(peakDate, shower)}</div>
+              <div className="text-sm text-[#94a3b8] mt-0.5">{formatMeteorPeak(peakDate, shower)}</div>
               <div className="mt-2">
                 <span
                   className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full"
@@ -98,7 +98,7 @@ export function MeteorShowerModal({ shower, peakDate, onClose }: MeteorShowerMod
 
             {/* What causes meteor showers */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What causes meteor showers</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">What causes meteor showers</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed">
                 As a comet travels through the inner solar system, heat from the Sun causes it to shed
                 ice and dust, leaving a debris trail along its orbit. Earth passes through these trails
@@ -116,7 +116,7 @@ export function MeteorShowerModal({ shower, peakDate, onClose }: MeteorShowerMod
 
             {/* Viewing tips */}
             <div>
-              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Viewing tips</div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-1.5">Viewing tips</div>
               <div className="space-y-2">
                 <p className="text-sm text-[#94a3b8] leading-relaxed">
                   <span className="text-[#94a3b8]">No equipment needed:</span>{" "}

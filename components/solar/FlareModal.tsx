@@ -141,7 +141,7 @@ export function FlareModal({
 
           {/* Timing grid */}
           <div>
-            <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Timing</div>
+            <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Timing</div>
             <div className="grid grid-cols-3 gap-2">
               {timingRows.map(({ label, time }) => (
                 <div
@@ -151,7 +151,7 @@ export function FlareModal({
                   <div className="text-[9px] text-[#64748b] uppercase tracking-wide mb-1">
                     {label}
                   </div>
-                  <div className="text-xs text-[#94a3b8] tabular-nums leading-snug">
+                  <div className="text-sm text-[#94a3b8] tabular-nums leading-snug">
                     {formatUTC(time)}
                   </div>
                 </div>
@@ -166,8 +166,8 @@ export function FlareModal({
 
           {/* Aurora impact explanation */}
           <div>
-            <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Aurora impact</div>
-            <p className="text-[13px] text-[#94a3b8] leading-relaxed">{info.impact}</p>
+            <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Aurora impact</div>
+            <p className="text-sm text-[#94a3b8] leading-relaxed">{info.impact}</p>
           </div>
 
           {/* Earth impact assessment */}
@@ -185,7 +185,7 @@ export function FlareModal({
                     style={{ backgroundColor: dotColor }}
                   />
                   <span
-                    className="text-xs font-semibold"
+                    className="text-sm font-semibold"
                     style={{ color: dotColor }}
                   >
                     {impact.headline}
@@ -204,7 +204,7 @@ export function FlareModal({
 
           {/* GOES X-ray flux chart */}
           <div>
-            <div className="text-xs font-semibold text-[#cbd5e1] mb-2">
+            <div className="text-sm font-semibold text-[#cbd5e1] mb-2">
               GOES X-ray flux · last 24 hours
             </div>
             {goesState !== "failed" ? (
