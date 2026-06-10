@@ -52,7 +52,7 @@ export function RecentAlertsModal({
 
           <div className="px-5 pb-5 pt-4">
             {items.length === 0 ? (
-              <p className="text-[13px] text-[#94a3b8]">No recent alerts.</p>
+              <p className="text-sm text-[#94a3b8]">No recent alerts.</p>
             ) : (
               <div className="space-y-3">
                 {items.map((alert, i) => {
@@ -60,9 +60,9 @@ export function RecentAlertsModal({
                   const firstLine = alertFirstLine(alert.message);
                   const ago = formatAlertAge(alert.issue_datetime);
                   return (
-                    <div key={i} className="text-[12px]">
+                    <div key={i} className="text-sm">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-medium" style={{ color }}>{text}</span>
+                        <span className="font-semibold" style={{ color }}>{text}</span>
                         <span className="text-[#64748b] tabular-nums">{ago}</span>
                       </div>
                       <div className="text-[#94a3b8] leading-snug">{firstLine}</div>

@@ -185,37 +185,37 @@ function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void 
           <div className="px-5 pb-5 pt-4 space-y-4">
             {content.sections.map((section) => (
               <div key={section.heading}>
-                <div className="text-xs font-medium text-[#94a3b8] mb-1.5">{section.heading}</div>
+                <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">{section.heading}</div>
                 {"legend" in section ? (
                   <div className="space-y-1.5">
                     {section.legend.map(({ color, range, desc }) => (
                       <div key={range} className="flex items-start gap-2.5">
                         <span className="mt-[3px] h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                        <span className="text-xs text-[#94a3b8] leading-snug">
-                          <span className="font-medium text-[#cbd5e1]">{range}</span>
+                        <span className="text-sm text-[#94a3b8] leading-snug">
+                          <span className="font-semibold text-white">{range}</span>
                           {" — "}{desc}
                         </span>
                       </div>
                     ))}
                     {section.note && (
-                      <p className="text-xs text-[#64748b] leading-relaxed pt-1">{section.note}</p>
+                      <p className="text-sm text-[#64748b] leading-relaxed pt-1">{section.note}</p>
                     )}
                   </div>
                 ) : "rows" in section ? (
                   <div className="space-y-1.5">
                     {section.rows.map(({ kp, cities, lat }) => (
                       <div key={kp} className="flex items-center gap-2">
-                        <span className="text-[12px] font-medium text-[#cbd5e1] tabular-nums w-14 flex-shrink-0">{kp}</span>
-                        <span className="text-xs text-[#94a3b8] leading-snug">{cities}</span>
+                        <span className="text-sm font-semibold text-white tabular-nums w-14 flex-shrink-0">{kp}</span>
+                        <span className="text-sm text-[#94a3b8] leading-snug">{cities}</span>
                         <span className="text-[10px] text-[#64748b] flex-shrink-0 ml-auto">{lat}</span>
                       </div>
                     ))}
-                    <p className="text-xs text-[#64748b] leading-relaxed pt-1">
+                    <p className="text-sm text-[#64748b] leading-relaxed pt-1">
                       Higher latitudes need lower Kp. Dark skies away from light pollution are essential at any Kp.
                     </p>
                   </div>
                 ) : (
-                  <p className="text-[12px] text-[#94a3b8] leading-relaxed">{section.body}</p>
+                  <p className="text-sm text-[#94a3b8] leading-relaxed">{section.body}</p>
                 )}
               </div>
             ))}
