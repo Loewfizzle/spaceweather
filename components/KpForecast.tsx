@@ -159,7 +159,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
           </div>
         </div>
 
-        <div className="mt-3 text-[10px] text-[#64748b] space-y-1">
+        <div className="mt-3 text-xs text-[#94a3b8] space-y-1">
           <div>
             Solid line = recent observations · Dashed = NOAA 36-hr forecast
             {hasTonight && " · Shaded = tonight's viewing window"}

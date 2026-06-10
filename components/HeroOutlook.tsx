@@ -76,7 +76,7 @@ export function HeroOutlook({
             Details <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
-        <p className="text-xs text-[#64748b] mb-3">
+        <p className="text-sm text-[#94a3b8] mb-3">
           Solar wind and Kp · live OVATION model
         </p>
 
@@ -173,7 +173,7 @@ export function HeroOutlook({
 
             {displayedCities.length === 0 && userLocationProb == null && (
               <div className="border-t border-[#1e2937] pt-2 mt-1">
-                <p className="text-xs text-[#64748b]">
+                <p className="text-sm text-[#94a3b8]">
                   No aurora expected at surveyed US locations under current conditions.
                 </p>
               </div>
@@ -256,7 +256,7 @@ export function HeroOutlook({
                     <MapPin className="h-3.5 w-3.5" />
                     {onRequestLocation ? "Enter manually" : "Set location"}
                   </button>
-                  <p className="text-xs text-[#64748b]">See your exact aurora probability and cloud cover forecast</p>
+                  <p className="text-sm text-[#94a3b8]">See your exact aurora probability and cloud cover forecast</p>
                 </div>
               ) : null}
             </div>

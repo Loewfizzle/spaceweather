@@ -96,7 +96,7 @@ export function SolarActivity() {
             </div>
 
             {!latestFlare && !solarActivity.error && (
-              <div className="text-[10px] text-[#64748b] mt-1">
+              <div className="text-xs text-[#94a3b8] mt-1">
                 No flares detected recently.
               </div>
             )}
@@ -151,7 +151,7 @@ export function SolarActivity() {
               <div className="text-sm text-[#94a3b8]">—</div>
             )}
 
-            <div className="text-[10px] text-[#64748b] mt-3 pt-2.5 border-t border-[#0f1425]">
+            <div className="text-xs text-[#94a3b8] mt-3 pt-2.5 border-t border-[#0f1425]">
               {solarActivity.recentCmes.some((c) => {
                 const lc = (c.earthImpact ?? "").toLowerCase();
                 return lc.includes("likely");
@@ -200,7 +200,7 @@ export function SolarActivity() {
           />
 
           <div className="px-4 pt-3 pb-2 space-y-2.5">
-            <p className="text-[10px] text-[#64748b] leading-relaxed">
+            <p className="text-xs text-[#94a3b8] leading-relaxed">
               <span className="text-[#94a3b8] font-medium">HMI Continuum</span> — visible-light
               view of the solar disk. Sunspot groups are the source of flares and CMEs. Active
               regions near the center of the disk are Earth-facing and most relevant to watch
@@ -239,7 +239,7 @@ export function SolarActivity() {
           />
 
           <div className="px-4 pt-3 pb-2 space-y-2.5">
-            <p className="text-[10px] text-[#64748b] leading-relaxed">
+            <p className="text-xs text-[#94a3b8] leading-relaxed">
               <span className="text-[#94a3b8] font-medium">AIA 193Å</span> extreme ultraviolet
               view. Dark patches are coronal holes — tap Details to learn how they affect aurora.
             </p>
