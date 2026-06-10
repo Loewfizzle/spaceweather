@@ -95,28 +95,28 @@ export function MeteorActivity() {
                 <div className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
                   NEXT METEOR SHOWER
                 </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-[10px] font-medium tabular-nums px-2 py-0.5 rounded-full"
-                    style={{
-                      color: showerColor,
-                      backgroundColor: showerColor + "1a",
-                      border: `1px solid ${showerColor}33`,
-                    }}
-                  >
-                    {daysUntilLabel(showerDays)}
-                  </span>
-                  <button
-                    onClick={() => setShowMeteorModal(true)}
-                    className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
-                  >
-                    Details <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowMeteorModal(true)}
+                  className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                >
+                  Details <ChevronRight className="h-3.5 w-3.5" />
+                </button>
               </div>
 
-              <div className="text-3xl font-semibold tracking-tight leading-none mb-1.5">
-                {nextMeteor.shower.name}
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="text-3xl font-semibold tracking-tight leading-none">
+                  {nextMeteor.shower.name}
+                </div>
+                <span
+                  className="text-[10px] font-medium tabular-nums px-2 py-0.5 rounded-full"
+                  style={{
+                    color: showerColor,
+                    backgroundColor: showerColor + "1a",
+                    border: `1px solid ${showerColor}33`,
+                  }}
+                >
+                  {daysUntilLabel(showerDays)}
+                </span>
               </div>
               <div className="text-[15px] text-[#94a3b8] tabular-nums mb-3">
                 {formatMeteorPeak(nextMeteor.peakDate, nextMeteor.shower)}
@@ -195,17 +195,12 @@ export function MeteorActivity() {
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] text-[#475569] tabular-nums">
-                  NASA JPL · {fireballsQuery.fireballs.length} events
-                </span>
-                <button
-                  onClick={() => setShowFireballsModal(true)}
-                  className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
-                >
-                  Details <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
+              <button
+                onClick={() => setShowFireballsModal(true)}
+                className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+              >
+                Details <ChevronRight className="h-3.5 w-3.5" />
+              </button>
             )}
           </div>
 
