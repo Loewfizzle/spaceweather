@@ -94,14 +94,14 @@ export function CurrentConditionsModal({
 
             {/* 1 — The key distinction */}
             <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-              <div className="text-xs font-medium text-[#94a3b8] mb-1.5">Live now vs. tonight&apos;s forecast</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
-                <span className="text-[#94a3b8] font-semibold">Live Conditions</span> is the real-time
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Live now vs. tonight&apos;s forecast</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
+                <span className="text-white font-semibold">Live Conditions</span> is the real-time
                 feed — data from NOAA satellites updated minute by minute, like looking out the window
                 right now.
               </p>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed mt-2">
-                <span className="text-[#94a3b8] font-semibold">Tonight&apos;s Forecast</span>{" "}is the
+              <p className="text-sm text-[#94a3b8] leading-relaxed mt-2">
+                <span className="text-white font-semibold">Tonight&apos;s Forecast</span>{" "}is the
                 big-picture prediction for the night ahead — a 36-hour outlook that tells you when
                 conditions might peak after sunset. Both matter; this section is about what&apos;s happening
                 this instant.
@@ -110,9 +110,9 @@ export function CurrentConditionsModal({
 
             {/* 2 — Solar wind */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1">Solar Wind</div>
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1">Solar Wind</div>
               <div className="text-xs text-[#64748b] mb-1.5">{wind.status}</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 The Sun constantly blows a stream of charged particles into space — that&apos;s the solar
                 wind. When it speeds up, it delivers more energy to Earth&apos;s magnetic field and makes
                 aurora more likely. {wind.body}
@@ -121,9 +121,9 @@ export function CurrentConditionsModal({
 
             {/* 3 — IMF Bz */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1">IMF Bz</div>
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1">IMF Bz</div>
               <div className="text-xs text-[#64748b] mb-1.5">{bzData.status}</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 Bz measures the north-south direction of the magnetic field embedded in the solar wind.
                 Southward (negative) means the fields line up with Earth&apos;s and energy flows in —
                 that&apos;s what drives aurora. Northward (positive) blocks it almost entirely.{" "}
@@ -133,9 +133,9 @@ export function CurrentConditionsModal({
 
             {/* 4 — Planetary Kp */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1">Planetary Kp — live reading</div>
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1">Planetary Kp — live reading</div>
               <div className="text-xs text-[#64748b] mb-1.5">{kpData.status}</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 Kp is a 0–9 scale of how disturbed Earth&apos;s magnetic field is right now, averaged
                 from stations worldwide. This is the <span className="text-[#94a3b8]">current live reading</span>{" "}—
                 different from the forecasted Kp in Tonight&apos;s Forecast, which looks ahead. Higher
@@ -146,8 +146,8 @@ export function CurrentConditionsModal({
 
             {/* 5 — OVATION */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1">NOAA OVATION Model</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed mb-2">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1">NOAA OVATION Model</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed mb-2">
                 OVATION is a scientific model from NOAA that analyses live solar wind data and calculates
                 where the aurora oval is and how intense it is right now. The percentage shown on the
                 card is the <span className="text-[#94a3b8]">peak model output anywhere in North America</span>{" "}—
@@ -155,7 +155,7 @@ export function CurrentConditionsModal({
                 0% means the aurora oval is well above Canada; 50%+ means a major aurora event is in progress
                 over the continent.
               </p>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 {ovationNA}
               </p>
             </div>

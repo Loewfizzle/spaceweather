@@ -105,7 +105,7 @@ export function CmeModal({
 
             {/* Color legend */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">Impact colors</div>
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Impact colors</div>
               <div className="space-y-1.5">
                 {[
                   { color: "#eab308", label: "Analyzed / uncertain", desc: "Earth impact not yet determined or unlikely" },
@@ -128,8 +128,8 @@ export function CmeModal({
 
             {/* Educational section */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">Understanding CMEs</div>
-              <div className="space-y-3 text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Understanding CMEs</div>
+              <div className="space-y-3 text-sm text-[#94a3b8] leading-relaxed">
                 <p>
                   A coronal mass ejection is a large cloud of magnetized plasma expelled from the Sun. Unlike X-ray flares — which travel at light speed — CMEs travel at hundreds to thousands of kilometers per second and take 1–3 days to reach Earth.
                 </p>

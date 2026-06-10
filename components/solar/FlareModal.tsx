@@ -141,7 +141,7 @@ export function FlareModal({
 
           {/* Timing grid */}
           <div>
-            <div className="text-xs font-medium text-[#94a3b8] mb-2">Timing</div>
+            <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Timing</div>
             <div className="grid grid-cols-3 gap-2">
               {timingRows.map(({ label, time }) => (
                 <div
@@ -166,7 +166,7 @@ export function FlareModal({
 
           {/* Aurora impact explanation */}
           <div>
-            <div className="text-xs font-medium text-[#94a3b8] mb-2">Aurora impact</div>
+            <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Aurora impact</div>
             <p className="text-[13px] text-[#94a3b8] leading-relaxed">{info.impact}</p>
           </div>
 
@@ -191,7 +191,7 @@ export function FlareModal({
                     {impact.headline}
                   </span>
                 </div>
-                <p className="text-[12px] text-[#94a3b8] leading-relaxed">{impact.detail}</p>
+                <p className="text-sm text-[#94a3b8] leading-relaxed">{impact.detail}</p>
                 {impact.cme && (
                   <div className="mt-1.5 text-[10px] text-[#64748b]">
                     Detected{" "}
@@ -204,7 +204,7 @@ export function FlareModal({
 
           {/* GOES X-ray flux chart */}
           <div>
-            <div className="text-xs font-medium text-[#94a3b8] mb-2">
+            <div className="text-xs font-semibold text-[#cbd5e1] mb-2">
               GOES X-ray flux · last 24 hours
             </div>
             {goesState !== "failed" ? (

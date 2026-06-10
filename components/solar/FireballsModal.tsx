@@ -49,14 +49,14 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
 
             {/* 1 — What is a fireball */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1.5">What is a fireball?</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What is a fireball?</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 A fireball is a meteor that burns brighter than Venus — roughly magnitude −4 or brighter.
                 They&apos;re often visible in daylight, frequently accompanied by a sonic boom, and
                 sometimes leave a glowing trail that persists for minutes. These are not the shooting
                 stars you see on a clear summer night.
               </p>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed mt-2">
+              <p className="text-sm text-[#94a3b8] leading-relaxed mt-2">
                 Those everyday shooting stars are specks of comet dust — typically the size of a grain
                 of sand — burning up harmlessly at high altitude. Fireballs are larger objects, anywhere
                 from fist-sized to car-sized, that release enormous energy as they disintegrate in the
@@ -66,8 +66,8 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
 
             {/* 2 — Why only major events appear */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1.5">Why only major events appear here</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Why only major events appear here</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 This tracker shows events detected by the{" "}
                 <span className="text-[#94a3b8]">US government sensor network</span> — a global array
                 of infrasound stations and optical sensors originally built to monitor nuclear tests.
@@ -75,7 +75,7 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
                 <span className="text-[#94a3b8]">0.1 kilotons of TNT equivalent</span> or more to
                 register, which filters out the thousands of smaller meteors that burn up every day.
               </p>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed mt-2">
+              <p className="text-sm text-[#94a3b8] leading-relaxed mt-2">
                 Globally, fewer than about 1,000 events per year cross this threshold. What you see
                 here is genuinely rare — the most energetic impacts Earth experiences on a regular basis.
               </p>
@@ -83,15 +83,15 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
 
             {/* 3 — Why data arrives late */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1.5">Why the data arrives late</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Why the data arrives late</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 NASA JPL CNEOS processes raw sensor data after each event — calculating the trajectory,
                 velocity, altitude, and energy release. This analysis takes time, and events typically
                 appear in the database{" "}
                 <span className="text-[#94a3b8]">days to weeks after they occur</span>. This is not
                 a real-time feed.
               </p>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed mt-2">
+              <p className="text-sm text-[#94a3b8] leading-relaxed mt-2">
                 If a major fireball was widely reported in the news today, it may not appear here for
                 several days. &ldquo;Recent&rdquo; in this context means within the last 30 days of
                 confirmed and published data.
@@ -100,7 +100,7 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
 
             {/* 4 — Reading the energy scale */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">Reading the energy scale</div>
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Reading the energy scale</div>
               <div className="space-y-2">
                 <div className="flex gap-3 text-[12px]">
                   <span className="flex items-center gap-1.5 flex-shrink-0 w-[80px]">
@@ -135,7 +135,7 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
                 <div className="flex gap-3 text-[12px]">
                   <span className="flex items-center gap-1.5 flex-shrink-0 w-[80px]">
                     <span className="h-2 w-2 rounded-full flex-shrink-0 bg-[#64748b]" />
-                    <span className="font-semibold text-[#94a3b8]">&lt; 0.1 kt</span>
+                    <span className="font-semibold text-white">&lt; 0.1 kt</span>
                   </span>
                   <span className="text-[#94a3b8] leading-relaxed">
                     Below the threshold but still recorded. Energy was estimated but fell under the
@@ -143,7 +143,7 @@ export function FireballsModal({ onClose }: FireballsModalProps) {
                   </span>
                 </div>
               </div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed mt-2.5">
+              <p className="text-sm text-[#94a3b8] leading-relaxed mt-2.5">
                 kt = kilotons of TNT equivalent. One kiloton is approximately the energy in 1,000
                 metric tons of TNT — the standard unit for measuring large explosive yields.
               </p>

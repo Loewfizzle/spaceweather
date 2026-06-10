@@ -38,8 +38,8 @@ export function CoronalModal({ onClose }: { onClose: () => void }) {
           <div className="px-5 pb-5 pt-4 space-y-5">
             {/* What they are */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">What they are</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">What they are</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 Coronal holes are regions of the Sun&apos;s atmosphere where the magnetic field
                 opens outward into space rather than looping back to the surface. In SDO imagery
                 they appear as dark patches because they are cooler and less dense than surrounding
@@ -49,8 +49,8 @@ export function CoronalModal({ onClose }: { onClose: () => void }) {
 
             {/* Why they matter */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">Why they matter for aurora</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">Why they matter for aurora</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 Coronal holes emit a continuous stream of fast-moving solar wind — typically
                 500–800 km/s compared to the normal 400 km/s. When this high-speed stream reaches
                 Earth it compresses the magnetosphere and enhances geomagnetic activity, often
@@ -60,8 +60,8 @@ export function CoronalModal({ onClose }: { onClose: () => void }) {
 
             {/* 2–4 day window */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">The 2–4 day arrival window</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">The 2–4 day arrival window</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 Unlike CMEs — which are sudden explosive events — coronal hole solar wind streams
                 are sustained and predictable. Once an Earth-facing coronal hole is identified,
                 aurora enhancement typically arrives in 2–4 days and can persist for 1–3 days as
@@ -71,8 +71,8 @@ export function CoronalModal({ onClose }: { onClose: () => void }) {
 
             {/* What to look for */}
             <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">What to look for in the image</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">What to look for in the image</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 Equatorial coronal holes — dark patches near the center of the solar disk — are
                 the most relevant to watch. Polar coronal holes at the top and bottom of the disk
                 are permanent features with less direct Earth impact. A large dark patch rotating
@@ -82,8 +82,8 @@ export function CoronalModal({ onClose }: { onClose: () => void }) {
 
             {/* AIA 193Å explained */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-2">AIA 193Å explained</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-2">AIA 193Å explained</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 This image is captured by NASA&apos;s Solar Dynamics Observatory using the AIA
                 instrument at the 193 Angstrom wavelength — an extreme ultraviolet (EUV) filter
                 that reveals the Sun&apos;s corona. At this wavelength, hot plasma appears bright

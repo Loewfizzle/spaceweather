@@ -77,19 +77,19 @@ export function MeteorShowerModal({ shower, peakDate, onClose }: MeteorShowerMod
                 </span>
               </div>
               <div className="mt-3 pt-3 border-t border-[#1e2937] space-y-2">
-                <p className="text-[12px] text-[#94a3b8] leading-relaxed">{shower.description}</p>
+                <p className="text-sm text-[#94a3b8] leading-relaxed">{shower.description}</p>
                 {shower.parentComet && (
-                  <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+                  <p className="text-sm text-[#94a3b8] leading-relaxed">
                     <span className="text-[#94a3b8]">Parent comet:</span>{" "}{shower.parentComet}
                   </p>
                 )}
                 {shower.radiantConstellation && (
-                  <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+                  <p className="text-sm text-[#94a3b8] leading-relaxed">
                     <span className="text-[#94a3b8]">Radiant:</span>{" "}{shower.radiantConstellation}
                   </p>
                 )}
                 {shower.peakZHR && (
-                  <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+                  <p className="text-sm text-[#94a3b8] leading-relaxed">
                     <span className="text-[#94a3b8]">Peak ZHR:</span>{" "}{shower.peakZHR}
                   </p>
                 )}
@@ -98,15 +98,15 @@ export function MeteorShowerModal({ shower, peakDate, onClose }: MeteorShowerMod
 
             {/* What causes meteor showers */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1.5">What causes meteor showers</div>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">What causes meteor showers</div>
+              <p className="text-sm text-[#94a3b8] leading-relaxed">
                 As a comet travels through the inner solar system, heat from the Sun causes it to shed
                 ice and dust, leaving a debris trail along its orbit. Earth passes through these trails
                 at the same point each year. Each speck of comet dust — typically no larger than a grain
                 of sand — enters the atmosphere at tens of thousands of kilometers per hour, compressing
                 the air ahead of it and glowing brightly for a second or two before burning up completely.
               </p>
-              <p className="text-[12px] text-[#94a3b8] leading-relaxed mt-2">
+              <p className="text-sm text-[#94a3b8] leading-relaxed mt-2">
                 The{" "}<span className="text-[#94a3b8]">radiant</span>{" "}is the point in the sky from
                 which meteors appear to originate — a perspective effect, like driving through snow where
                 all flakes seem to come from a single point ahead. Showers are named after the constellation
@@ -116,25 +116,25 @@ export function MeteorShowerModal({ shower, peakDate, onClose }: MeteorShowerMod
 
             {/* Viewing tips */}
             <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1.5">Viewing tips</div>
+              <div className="text-xs font-semibold text-[#cbd5e1] mb-1.5">Viewing tips</div>
               <div className="space-y-2">
-                <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+                <p className="text-sm text-[#94a3b8] leading-relaxed">
                   <span className="text-[#94a3b8]">No equipment needed:</span>{" "}
                   binoculars and telescopes narrow your field of view too much. Lie flat on your back,
                   look up, and let your eyes scan the whole sky — meteors can appear anywhere, not just
                   near the radiant.
                 </p>
-                <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+                <p className="text-sm text-[#94a3b8] leading-relaxed">
                   <span className="text-[#94a3b8]">After midnight is best:</span>{" "}
                   your location rotates to face the direction Earth is traveling, scooping up more meteors
                   in the second half of the night. Rates typically double compared to early evening.
                 </p>
-                <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+                <p className="text-sm text-[#94a3b8] leading-relaxed">
                   <span className="text-[#94a3b8]">Dark adaptation takes 15–20 minutes:</span>{" "}
                   your eyes need time to adjust after any bright light. Avoid your phone — if you must
                   use it, switch to red mode. Once adapted, you&apos;ll see far more.
                 </p>
-                <p className="text-[12px] text-[#94a3b8] leading-relaxed">
+                <p className="text-sm text-[#94a3b8] leading-relaxed">
                   <span className="text-[#94a3b8]">Moon phase matters:</span>{" "}
                   a full or gibbous moon washes out faint meteors just like light pollution. A new moon
                   gives the best conditions. Check the phase for peak night before heading out.
