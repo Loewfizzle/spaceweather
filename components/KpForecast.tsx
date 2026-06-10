@@ -117,7 +117,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-3 w-3 text-[#94a3b8]" />
-            <span className="text-xs text-[#94a3b8]">Kp Index</span>
+            <span className="text-xs text-[#94a3b8]">KP INDEX</span>
           </div>
           <button
             onClick={() => setShowModal(true)}

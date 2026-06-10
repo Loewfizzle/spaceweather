@@ -76,7 +76,7 @@ export function HeroOutlook({
             Details <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
-        <p className="text-sm text-[#94a3b8] mb-3">
+        <p className="text-xs text-[#64748b] mb-3">
           Solar wind and Kp · live OVATION model
         </p>
 

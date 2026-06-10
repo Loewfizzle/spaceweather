@@ -108,7 +108,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
               Details <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
-          <p className="text-sm text-[#94a3b8] mb-3">
+          <p className="text-xs text-[#64748b] mb-3">
             36-hr NOAA Kp forecast — may differ from current conditions above
           </p>
 

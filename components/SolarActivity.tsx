@@ -207,7 +207,7 @@ export function SolarActivity() {
               for aurora potential.
             </p>
             <div className="flex items-center justify-between pb-1">
-              <span className="text-xs text-[#94a3b8]">Updates every ~15 min</span>
+              <span className="text-xs text-[#64748b]">Updates every ~15 min</span>
               <a
                 href={SDO_DATA_URL}
                 target="_blank"
@@ -244,7 +244,7 @@ export function SolarActivity() {
               view. Dark patches are coronal holes — tap Details to learn how they affect aurora.
             </p>
             <div className="flex items-center justify-between pb-1">
-              <span className="text-xs text-[#94a3b8]">Updates every ~15 min</span>
+              <span className="text-xs text-[#64748b]">Updates every ~15 min</span>
               <a
                 href={SDO_DATA_URL}
                 target="_blank"

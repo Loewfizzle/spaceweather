@@ -262,20 +262,20 @@ export function MeteorActivity() {
               {/* Footer: dot legend + source + definition */}
               <div className="border-t border-[#1e2937] pt-3 mt-3 space-y-2">
                 <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     {([
                       { color: "#a78bfa", label: "≥3 kt"   },
                       { color: "#ef4444", label: "≥1 kt"   },
                       { color: "#eab308", label: "≥0.1 kt" },
                       { color: "#64748b", label: "<0.1 kt" },
                     ] as const).map(({ color, label }) => (
-                      <span key={label} className="flex items-center gap-1 text-xs text-[#94a3b8]">
+                      <span key={label} className="flex items-center gap-1 text-[10px] text-[#94a3b8]">
                         <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                         {label}
                       </span>
                     ))}
                   </div>
-                  <span className="text-xs text-[#94a3b8] flex-shrink-0">Impact energy (kt TNT)</span>
+                  <span className="text-[10px] text-[#94a3b8] flex-shrink-0">Impact energy (kt TNT)</span>
                 </div>
               </div>
             </>
