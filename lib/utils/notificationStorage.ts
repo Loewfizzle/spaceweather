@@ -10,9 +10,9 @@ export const ALERT_THRESHOLDS = {
 export type AlertSensitivity = "sensitive" | "balanced" | "strong";
 
 export const PRESETS: { key: AlertSensitivity; label: string; desc: string }[] = [
-  { key: "sensitive", label: "Low",  desc: "Kp ≥3 or 10%" },
-  { key: "balanced",  label: "Med",  desc: "Kp ≥4 or 15%" },
-  { key: "strong",    label: "High", desc: "Kp ≥5 or 25%" },
+  { key: "sensitive", label: "Any",      desc: "Kp ≥3 or 10%" },
+  { key: "balanced",  label: "Moderate", desc: "Kp ≥4 or 15%" },
+  { key: "strong",    label: "Strong",   desc: "Kp ≥5 or 25%" },
 ];
 
 // ── Preference loaders (SSR-safe: return defaults when window is unavailable) ─
