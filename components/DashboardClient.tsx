@@ -9,6 +9,7 @@ import {
 } from "../lib/use-noaa-data";
 import { getLocationAuroraProb, getPersonalizedOutlook } from "../lib/aurora/outlook";
 import { useGlobalFreshness } from "../lib/hooks/useGlobalFreshness";
+import { useNotifications } from "../lib/hooks/useNotifications";
 import { useCloudCover } from "../lib/hooks/useCloudCover";
 import { UserLocationProvider, useUserLocationContext } from "../lib/context/UserLocationContext";
 import dynamic from "next/dynamic";
@@ -80,6 +81,8 @@ function DashboardInner() {
     cityProbs,
     refetchAll,
   } = conditions;
+
+  useNotifications({ kp, maxAuroraProbNA, bz, isLoading });
 
   const latestGlobalUpdate = useGlobalFreshness(
     kpTime,

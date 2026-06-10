@@ -24,24 +24,32 @@ export function IosInstallPrompt() {
     setModalOpen(false);
   }
 
+  // Always register — NotificationPrompt dispatches this event on iOS non-installed
+  // even after the persistent button has been dismissed.
+  useEffect(() => {
+    const handler = () => setModalOpen(true);
+    window.addEventListener("skyglow:open-install-prompt", handler);
+    return () => window.removeEventListener("skyglow:open-install-prompt", handler);
+  }, []);
+
   useEffect(() => {
     if (!modalOpen) return;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, [modalOpen]);
 
-  if (!show) return null;
-
   return (
     <>
-      <button
-        onClick={openModal}
-        className="flex items-center gap-0.5 text-[#94a3b8] underline underline-offset-2 decoration-[#94a3b8]/40 ml-1"
-        aria-label="Add SkyGlow to your Home Screen"
-      >
-        <Share className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
-        <span>Add to Home Screen</span>
-      </button>
+      {show && (
+        <button
+          onClick={openModal}
+          className="flex items-center gap-0.5 text-[#94a3b8] underline underline-offset-2 decoration-[#94a3b8]/40 ml-1"
+          aria-label="Add SkyGlow to your Home Screen"
+        >
+          <Share className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
+          <span>Add to Home Screen</span>
+        </button>
+      )}
 
       {modalOpen && (
         <div
