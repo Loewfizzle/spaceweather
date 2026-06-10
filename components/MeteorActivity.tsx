@@ -17,6 +17,7 @@ import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
 import { FireballModal } from "./FireballModal";
 import { MeteorShowerModal } from "./solar/MeteorShowerModal";
+import { FireballsModal } from "./solar/FireballsModal";
 
 // ── Location helper ───────────────────────────────────────────────────────────
 
@@ -71,6 +72,7 @@ export function MeteorActivity() {
   const fireballsQuery = useFireballs();
   const nextMeteor = getNextMeteorShower();
   const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
+  const [showFireballsModal, setShowFireballsModal] = useState(false);
   const [showMeteorModal, setShowMeteorModal] = useState(false);
   const [now] = useState(Date.now);
   const closeFireball = () => setSelectedFireball(null);
@@ -193,9 +195,17 @@ export function MeteorActivity() {
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
-              <span className="text-[10px] text-[#475569] tabular-nums">
-                NASA JPL · {fireballsQuery.fireballs.length} events
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] text-[#475569] tabular-nums">
+                  NASA JPL · {fireballsQuery.fireballs.length} events
+                </span>
+                <button
+                  onClick={() => setShowFireballsModal(true)}
+                  className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                >
+                  Details <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             )}
           </div>
 
@@ -272,13 +282,6 @@ export function MeteorActivity() {
                   </div>
                   <span className="text-[10px] text-[#475569] flex-shrink-0">Impact energy (kt TNT)</span>
                 </div>
-                <p className="text-[10px] text-[#475569] leading-relaxed">
-                  Fireballs are exceptionally bright meteors that explode in Earth&apos;s atmosphere.
-                  This tracker shows events energetic enough to be detected by US government sensors.
-                </p>
-                <p className="text-[10px] text-[#475569] leading-relaxed">
-                  Data from NASA JPL CNEOS. Events are added after analysis is complete and may not reflect recent fireballs.
-                </p>
               </div>
             </>
           )}
@@ -290,6 +293,10 @@ export function MeteorActivity() {
           fireball={selectedFireball}
           onClose={closeFireball}
         />
+      )}
+
+      {showFireballsModal && (
+        <FireballsModal onClose={() => setShowFireballsModal(false)} />
       )}
 
       {showMeteorModal && nextMeteor && (
