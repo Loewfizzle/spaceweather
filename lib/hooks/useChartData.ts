@@ -53,8 +53,8 @@ const CHART_OPTIONS: Record<string, any> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         color: (context: any) => {
           const v = context.tick?.value;
-          if (v === 5) return "rgba(249, 115, 22, 0.22)"; // orange — active onset
-          if (v === 4) return "rgba(234, 179, 8, 0.18)";  // yellow — moderate onset
+          if (v === 5) return "rgba(234, 179, 8, 0.22)";  // yellow — active onset (G1)
+          if (v === 4) return "rgba(34, 197, 94, 0.18)";  // green  — moderate onset
           return "#171f2e";
         },
       },
