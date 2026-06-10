@@ -139,7 +139,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
                 )}
                 {/* When location is not shared, surface a gentle nudge */}
                 {!locationGranted && (
-                  <div className="mt-2 text-sm text-[#94a3b8]">
+                  <div className="mt-2 text-sm text-white">
                     Share location for personalised sky conditions
                   </div>
                 )}

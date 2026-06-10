@@ -104,7 +104,7 @@ export function HeroOutlook({
 
             <p className={`text-[15px] leading-relaxed ${outlook.reasons.length > 0 ? 'mb-1' : 'mb-3'}`}>
               <span className="text-[#94a3b8]">Current indicators — </span>
-              <span className="text-[#cbd5e1]">{outlook.message}</span>
+              <span className="font-semibold text-white">{outlook.message}</span>
             </p>
             {outlook.reasons.length > 0 && (
               <ul className="mb-3 space-y-0.5">
@@ -148,11 +148,11 @@ export function HeroOutlook({
                 onClick={() => setShowPicker(true)}
                 className="flex items-center gap-2 py-0.5 w-full text-left group"
               >
-                <span className="block h-1.5 w-1.5 rounded-full bg-[#1e2937] border border-[#475569] flex-shrink-0 group-hover:border-[#64748b] transition-colors" />
-                <span className="flex-1 text-sm text-[#94a3b8] group-hover:text-[#94a3b8] transition-colors">
+                <span className="block h-1.5 w-1.5 rounded-full bg-[#1e2937] border border-[#475569] flex-shrink-0 group-hover:border-[#94a3b8] transition-colors" />
+                <span className="flex-1 text-sm text-white group-hover:text-[#cbd5e1] transition-colors">
                   Your location
                 </span>
-                <span className="text-sm text-[#94a3b8] group-hover:text-[#94a3b8] transition-colors tabular-nums">
+                <span className="text-sm text-white group-hover:text-[#cbd5e1] transition-colors tabular-nums">
                   + Add yours
                 </span>
               </button>
@@ -236,7 +236,7 @@ export function HeroOutlook({
                     <button
                       onClick={onRequestLocation}
                       disabled={isLocating}
-                      style={{ color: '#94a3b8' }}
+                      style={{ color: 'white' }}
                       className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-opacity disabled:opacity-50"
                       title="Get aurora probability for your current location"
                     >
@@ -251,7 +251,7 @@ export function HeroOutlook({
                   <button
                     onClick={() => setShowPicker(true)}
                     className="flex items-center gap-1.5 text-xs font-medium hover:opacity-80 transition-colors"
-                    style={{ color: '#94a3b8' }}
+                    style={{ color: 'white' }}
                   >
                     <MapPin className="h-3.5 w-3.5" />
                     {onRequestLocation ? "Enter manually" : "Set location"}
@@ -264,7 +264,7 @@ export function HeroOutlook({
             {/* RIGHT: Share forecast — always anchored right, hidden only when picker is open */}
             {!showPicker && (
               <div className="shrink-0 pt-0.5">
-                <ShareButton accentColor="#94a3b8" />
+                <ShareButton accentColor="white" />
               </div>
             )}
           </div>

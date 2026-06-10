@@ -79,7 +79,7 @@ export default function AuroraWatch() {
               contact@skyglow.app
             </a>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-y-2 justify-between">
+          <div className="flex flex-col gap-y-2">
             <div>
               Data provided by{" "}
               <a
