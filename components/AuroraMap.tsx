@@ -175,12 +175,10 @@ export default function AuroraMap({
         <div className="absolute inset-0 z-[10] flex items-center justify-center pointer-events-none">
           <div className="bg-[#0a0e1a]/85 backdrop-blur-sm border border-[#1e2937] rounded-xl px-5 py-4 text-center mx-6 max-w-[260px]">
             <div className="text-[#94a3b8] text-sm font-medium mb-1.5">
-              {minProb > 3 ? "No areas above threshold" : "Geomagnetically quiet"}
+              Geomagnetically quiet
             </div>
             <div className="text-[10px] text-[#64748b] leading-relaxed">
-              {minProb > 3
-                ? `No aurora areas ≥ ${minProb}% visible. Lower the filter slider to see more of the aurora oval.`
-                : "The aurora oval is currently positioned away from North America. Conditions may improve when Kp rises."}
+              The aurora oval is currently positioned away from North America. Conditions may improve when Kp rises.
             </div>
           </div>
         </div>
@@ -223,7 +221,7 @@ export default function AuroraMap({
           <span>100%</span>
         </div>
         <div className="text-[9px] text-[#475569] tabular-nums">
-          {safePoints.length} areas{minProb > 0 ? ` ≥ ${minProb}%` : ""} · NA
+          {safePoints.length} areas · NA
         </div>
       </div>
     </div>

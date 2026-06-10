@@ -141,7 +141,6 @@ describe('HeroOutlook', () => {
     );
     expect(screen.getByText('Your skies tonight:')).toBeInTheDocument();
     expect(screen.getByText(/Partly cloudy/)).toBeInTheDocument();
-    expect(screen.getByText('· 8pm–6am avg')).toBeInTheDocument();
   });
 
   it('opens CurrentConditionsModal when the Details button is clicked', () => {

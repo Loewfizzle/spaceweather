@@ -279,7 +279,6 @@ export function HeroOutlook({
                   <span className="font-medium" style={{ color: cloudCoverColor(cloudCoverPct) }}>
                     {cloudCoverLabel ?? "Unknown"} ({cloudCoverPct}%)
                   </span>
-                  <span className="text-[#475569]">· 8pm–6am avg</span>
                 </div>
               )}
               <NotificationPrompt accentColor="#94a3b8" />

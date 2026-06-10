@@ -127,17 +127,6 @@ export function AuroraMapModal({ userProb, onClose }: AuroraMapModalProps) {
               </p>
             </div>
 
-            {/* 4 — How the slider works */}
-            <div>
-              <div className="text-xs font-medium text-[#94a3b8] mb-1.5">How the filter slider works</div>
-              <p className="text-[12px] text-[#64748b] leading-relaxed">
-                The slider at the bottom sets a minimum probability threshold for what gets drawn on
-                the map. At 3% (the default) you see all active aurora areas. Drag it right to filter
-                out low-probability regions and focus on where aurora is strongest — useful when the
-                map is busy during an active event. Drag it back left to see the full picture again.
-              </p>
-            </div>
-
             {/* Limitations */}
             <div>
               <div className="text-xs font-medium text-[#94a3b8] mb-1.5">What the map can&apos;t tell you</div>

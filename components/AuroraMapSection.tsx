@@ -39,23 +39,6 @@ function formatObsTime(iso?: string): string | null {
 
 export function AuroraMapSection({ userProb, ovationPoints }: AuroraMapSectionProps) {
   const { userLat, userLon } = useUserLocationContext();
-  const [minProb, setMinProbState] = useState<number>(() => {
-    if (typeof window === "undefined") return 3;
-    try {
-      const saved = localStorage.getItem("aurora-min-prob");
-      if (saved !== null) {
-        const n = parseInt(saved, 10);
-        if (Number.isFinite(n) && n >= 0 && n <= 50) return n;
-      }
-    } catch { /* localStorage unavailable */ }
-    return 3;
-  });
-
-  const setMinProb = (value: number) => {
-    setMinProbState(value);
-    try { localStorage.setItem("aurora-min-prob", String(value)); } catch { /* ignore */ }
-  };
-
   const { data: ovationData } = useOvationData();
   const observedAt = formatObsTime(ovationData?.["Observation Time"]);
 
@@ -84,53 +67,18 @@ export function AuroraMapSection({ userProb, ovationPoints }: AuroraMapSectionPr
         {/* Map — fills full card width */}
         <AuroraMap
           insideCard={true}
-          minProb={minProb}
           userLat={userLat}
           userLon={userLon}
           userProb={userProb}
           ovationPoints={ovationPoints}
         />
 
-        {/* Slider footer */}
-        <div className="px-5 pt-4 pb-5">
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-[#64748b] shrink-0">Min probability</span>
-            <input
-              type="range"
-              min={0}
-              max={50}
-              step={1}
-              value={minProb}
-              onChange={(e) => setMinProb(parseInt(e.target.value))}
-              className="flex-1 accent-[#22c55e] cursor-pointer"
-              aria-label="Minimum aurora probability to show on map"
-              aria-valuemin={0}
-              aria-valuemax={50}
-              aria-valuenow={minProb}
-            />
-            <span className="text-xs tabular-nums font-mono w-7 text-right text-[#22c55e] shrink-0">
-              {minProb}%
-            </span>
-            {minProb > 3 && (
-              <button
-                onClick={() => setMinProb(3)}
-                className="text-[10px] px-2 py-1 rounded-md bg-[#1e2937] hover:bg-[#334155] transition-colors shrink-0 min-h-[28px] min-w-[40px]"
-                title="Reset filter to default"
-              >
-                reset
-              </button>
-            )}
+        {/* Footer — observation timestamp */}
+        {observedAt && (
+          <div className="px-5 pt-3 pb-4">
+            <span className="tabular-nums text-[10px] text-[#3d4f63]">Observed {observedAt}</span>
           </div>
-          <div className="flex items-center gap-2 text-[10px] text-[#475569] mt-1.5">
-            <span>Drag to filter low-probability areas</span>
-            {observedAt && (
-              <>
-                <span className="text-[#2d3748]">·</span>
-                <span className="tabular-nums text-[#3d4f63]">Observed {observedAt}</span>
-              </>
-            )}
-          </div>
-        </div>
+        )}
 
       </div>
 
