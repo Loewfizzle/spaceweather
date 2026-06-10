@@ -241,12 +241,12 @@ describe('CHART_OPTIONS — grid.color', () => {
   const { chartOptions } = buildChartData([], [])
   const gridColor = chartOptions.scales.y.grid.color
 
-  it('returns orange tint at Kp 5 (active onset threshold)', () => {
-    expect(gridColor({ tick: { value: 5 } })).toBe('rgba(249, 115, 22, 0.22)')
+  it('returns yellow tint at Kp 5 (active onset threshold)', () => {
+    expect(gridColor({ tick: { value: 5 } })).toBe('rgba(234, 179, 8, 0.22)')
   })
 
-  it('returns yellow tint at Kp 4 (moderate onset threshold)', () => {
-    expect(gridColor({ tick: { value: 4 } })).toBe('rgba(234, 179, 8, 0.18)')
+  it('returns green tint at Kp 4 (moderate onset threshold)', () => {
+    expect(gridColor({ tick: { value: 4 } })).toBe('rgba(34, 197, 94, 0.18)')
   })
 
   it('returns default dark color for all other values', () => {
