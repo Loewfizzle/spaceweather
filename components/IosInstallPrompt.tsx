@@ -6,16 +6,15 @@ import { Share, X } from "lucide-react";
 const DISMISSED_KEY = "skyglow_ios_install_dismissed";
 
 export function IosInstallPrompt() {
-  const [show, setShow] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-
-  useEffect(() => {
+  const [show, setShow] = useState(() => {
+    if (typeof window === 'undefined') return false;
     const ua = navigator.userAgent;
     const isIosSafari = /iPhone|iPad/.test(ua) && !/CriOS|FxiOS/.test(ua);
     const isInstalled = (navigator as Navigator & { standalone?: boolean }).standalone === true;
     const isDismissed = localStorage.getItem(DISMISSED_KEY) !== null;
-    if (isIosSafari && !isInstalled && !isDismissed) setShow(true);
-  }, []);
+    return isIosSafari && !isInstalled && !isDismissed;
+  });
+  const [modalOpen, setModalOpen] = useState(false);
 
   function openModal() { setModalOpen(true); }
   function closeModal() { setModalOpen(false); }
