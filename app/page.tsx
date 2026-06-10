@@ -26,11 +26,11 @@ export default function AuroraWatch() {
             <BrandIcon />
             <div>
               {/* Slightly larger title for more presence */}
-              <div className="font-semibold tracking-tighter text-3xl sm:text-4xl leading-tight">
+              <div className="font-semibold tracking-tighter text-4xl leading-tight">
                 SkyGlow
               </div>
               {/* Subtitle + live dot on one line */}
-              <div className="flex items-center gap-1.5 text-xs sm:text-xs text-[#94a3b8] leading-none">
+              <div className="flex items-center gap-1.5 text-sm text-[#94a3b8] leading-none">
                 <span>Aurora · solar · sky events</span>
                 <LiveIndicator />
               </div>

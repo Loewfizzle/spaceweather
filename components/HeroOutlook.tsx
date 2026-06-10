@@ -66,7 +66,7 @@ export function HeroOutlook({
     >
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-[#94a3b8]">
+          <span className="text-xs font-semibold text-[#94a3b8]">
             CURRENT DATA SUGGESTS
           </span>
           <button
@@ -90,7 +90,7 @@ export function HeroOutlook({
           <>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
               <div
-                className="text-4xl font-semibold tracking-tighter"
+                className="text-5xl font-semibold tracking-tighter"
                 style={{ color: outlook.accentColor }}
               >
                 {outlook.status}

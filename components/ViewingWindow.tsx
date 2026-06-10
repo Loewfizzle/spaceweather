@@ -97,7 +97,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <Clock className="h-3 w-3 text-[#94a3b8]" />
-              <span className="text-xs text-[#94a3b8]">
+              <span className="text-xs font-semibold text-[#94a3b8]">
                 TONIGHT&apos;S FORECAST
               </span>
             </div>

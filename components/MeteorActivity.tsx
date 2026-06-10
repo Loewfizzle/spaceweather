@@ -92,7 +92,7 @@ export function MeteorActivity() {
           {nextMeteor && showerDays !== null ? (
             <>
               <div className="flex items-center justify-between mb-3">
-                <div className="text-xs text-[#94a3b8]">
+                <div className="text-xs font-semibold text-[#94a3b8]">
                   NEXT METEOR SHOWER
                 </div>
                 <button
@@ -191,7 +191,7 @@ export function MeteorActivity() {
         {/* ── Fireball Tracker ───────────────────────────────────────────── */}
         <div className="card p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-xs text-[#94a3b8]">
+            <div className="text-xs font-semibold text-[#94a3b8]">
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (

@@ -58,7 +58,7 @@ export function SolarActivity() {
             aria-label={latestFlare ? `Latest flare: ${flareClass}. Press Enter for details.` : "Latest flare: none detected"}
           >
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs font-semibold">
                 <Zap
                   className="w-4 h-4"
                   style={flareClass ? { color: flareInfo.color } : undefined}
@@ -105,7 +105,7 @@ export function SolarActivity() {
           {/* Recent CMEs */}
           <div className="metric">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs font-semibold">
                 <TrendingUp className="w-4 h-4" style={solarActivity.recentCmes.length > 0 ? { color: cmeImpactColor(solarActivity.recentCmes[0].earthImpact) } : undefined} /> RECENT CMEs
               </div>
               <button
@@ -168,7 +168,7 @@ export function SolarActivity() {
         <div className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden">
           <div className="flex items-start justify-between px-4 py-3 border-b border-[#1e2937]">
             <div className="flex flex-col">
-              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs font-semibold">
                 <Sun className="w-4 h-4" /> SUNSPOTS
               </div>
               {sunCtx !== null && solarActivity.sunspotNumber !== null ? (

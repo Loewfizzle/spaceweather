@@ -307,7 +307,7 @@ export function CurrentConditions({
           {/* Solar Wind */}
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs font-semibold">
                 <Wind className="w-4 h-4" style={solarWindSpeed !== null ? { color: solarWindSpeedColor(solarWindSpeed) } : undefined} /> SOLAR WIND
               </div>
               <button
@@ -318,7 +318,7 @@ export function CurrentConditions({
                 <Info className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={solarWindSpeed !== null ? { color: solarWindSpeedColor(solarWindSpeed) } : undefined}>
+            <div className="text-5xl font-semibold tracking-tighter tabular-nums" style={solarWindSpeed !== null ? { color: solarWindSpeedColor(solarWindSpeed) } : undefined}>
               {solarWindSpeed !== null ? Math.round(solarWindSpeed) : "—"}
             </div>
             <div className="text-sm text-[#94a3b8] -mt-1">
@@ -338,7 +338,7 @@ export function CurrentConditions({
           {/* IMF Bz */}
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs font-semibold">
                 <Zap className="w-4 h-4" style={bz !== null ? { color: bzColor(bz) } : undefined} /> IMF Bz
               </div>
               <button
@@ -349,7 +349,7 @@ export function CurrentConditions({
                 <Info className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={bz !== null ? { color: bzColor(bz) } : undefined}>
+            <div className="text-5xl font-semibold tracking-tighter tabular-nums" style={bz !== null ? { color: bzColor(bz) } : undefined}>
               {bz !== null ? bz.toFixed(1) : "—"}
             </div>
             <div className="text-sm text-[#94a3b8] -mt-1">
@@ -362,7 +362,7 @@ export function CurrentConditions({
           {/* Planetary Kp */}
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs font-semibold">
                 <Activity className="w-4 h-4" style={kp !== null ? { color: AURORA_TIERS[getKpTier(kp)].color } : undefined} /> PLANETARY Kp
               </div>
               <button
@@ -373,7 +373,7 @@ export function CurrentConditions({
                 <Info className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={kp !== null ? { color: AURORA_TIERS[getKpTier(kp)].color } : undefined}>
+            <div className="text-5xl font-semibold tracking-tighter tabular-nums" style={kp !== null ? { color: AURORA_TIERS[getKpTier(kp)].color } : undefined}>
               {kp !== null ? kp.toFixed(1) : "—"}
             </div>
             <div className="text-sm text-[#94a3b8] -mt-1">
@@ -385,7 +385,7 @@ export function CurrentConditions({
           {/* OVATION */}
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs font-semibold">
                 <Satellite className="w-4 h-4" style={ovationProcessed && maxAuroraProbNA !== null ? { color: getAuroraColor(maxAuroraProbNA) } : undefined} /> OVATION (NA)
               </div>
               <button
@@ -396,7 +396,7 @@ export function CurrentConditions({
                 <Info className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={ovationProcessed && maxAuroraProbNA !== null ? { color: getAuroraColor(maxAuroraProbNA) } : undefined}>
+            <div className="text-5xl font-semibold tracking-tighter tabular-nums" style={ovationProcessed && maxAuroraProbNA !== null ? { color: getAuroraColor(maxAuroraProbNA) } : undefined}>
               {ovationProcessed && maxAuroraProbNA !== null ? `${Math.round(maxAuroraProbNA)}%` : "—"}
             </div>
             <div className="text-sm text-[#94a3b8] -mt-1">

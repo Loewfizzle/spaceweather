@@ -51,7 +51,7 @@ export function AuroraMapSection({ userProb, ovationPoints }: AuroraMapSectionPr
         {/* Card header */}
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-[#94a3b8]">
+            <span className="text-xs font-semibold text-[#94a3b8]">
               OVATION MODEL
             </span>
             <button
