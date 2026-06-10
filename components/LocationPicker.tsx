@@ -62,7 +62,7 @@ export function LocationPicker({ onConfirm, onCancel }: LocationPickerProps) {
         onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
         className="flex items-center gap-2 px-3 py-2.5 border-b border-[#1e2937]"
       >
-        <Search className="h-3.5 w-3.5 text-[#475569] shrink-0" />
+        <Search className="h-3.5 w-3.5 text-[#64748b] shrink-0" />
         <input
           ref={inputRef}
           type="text"
@@ -85,7 +85,7 @@ export function LocationPicker({ onConfirm, onCancel }: LocationPickerProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="shrink-0 text-[#475569] hover:text-[#94a3b8] transition-colors"
+          className="shrink-0 text-[#64748b] hover:text-[#94a3b8] transition-colors"
           aria-label="Cancel location search"
         >
           <X className="h-3.5 w-3.5" />
@@ -93,9 +93,9 @@ export function LocationPicker({ onConfirm, onCancel }: LocationPickerProps) {
       </form>
 
       {notFound && (
-        <div className="px-3 py-2.5 text-xs text-[#64748b]">
+        <div className="px-3 py-2.5 text-xs text-[#94a3b8]">
           No locations found — try a different spelling, or enter{" "}
-          <span className="text-[#475569]">lat, lon</span> directly.
+          <span className="text-[#64748b]">lat, lon</span> directly.
         </div>
       )}
 

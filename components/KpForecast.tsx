@@ -116,12 +116,12 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-3 w-3 text-[#64748b]" />
-            <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">Kp Index</span>
+            <TrendingUp className="h-3 w-3 text-[#94a3b8]" />
+            <span className="uppercase tracking-[2.5px] text-[10px] text-[#94a3b8]">Kp Index</span>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+            className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
           >
             Details <ChevronRight className="h-3.5 w-3.5" />
           </button>
@@ -142,7 +142,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
               plugins={chartPlugins as Plugin<"line">[]}
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-[#64748b]">
+            <div className="flex h-full items-center justify-center text-[#94a3b8]">
               No recent Kp data
             </div>
           )}
@@ -159,7 +159,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
           </div>
         </div>
 
-        <div className="mt-3 text-[10px] text-[#475569] space-y-1">
+        <div className="mt-3 text-[10px] text-[#64748b] space-y-1">
           <div>
             Solid line = recent observations · Dashed = NOAA 36-hr forecast
             {hasTonight && " · Shaded = tonight's viewing window"}
@@ -174,7 +174,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
         {/* 3-Day Storm Outlook */}
         {(forecastIsLoading || forecastError || stormDays.length > 0) && (
           <div className="mt-5 pt-5 border-t border-[#1e2937]">
-            <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
+            <div className="uppercase tracking-[2px] text-[10px] text-[#94a3b8] mb-3">
               {forecastIsLoading ? (
                 <div className="h-2.5 w-32 rounded animate-pulse bg-[#1e2937]" />
               ) : (
@@ -192,7 +192,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
                   ))
                 : forecastError && stormDays.length === 0
                 ? (
-                    <div className="col-span-3 text-[11px] text-amber-400/70 py-1">
+                    <div className="col-span-3 text-xs text-amber-400/70 py-1">
                       Forecast temporarily unavailable.{" "}
                       <button
                         onClick={onRefetchForecast}
@@ -210,7 +210,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
                         className="rounded-lg bg-[#0a0e1a] border border-[#1e2937] p-3"
                         style={{ borderLeftColor: color, borderLeftWidth: "3px" }}
                       >
-                        <div className="text-[10px] text-[#64748b] mb-2">{date}</div>
+                        <div className="text-[10px] text-[#94a3b8] mb-2">{date}</div>
                         <div
                           className="text-2xl font-bold tabular-nums leading-none mb-2"
                           style={{ color }}

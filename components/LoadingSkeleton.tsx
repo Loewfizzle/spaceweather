@@ -103,7 +103,7 @@ export function LoadingSkeleton({
       <div className={`map-placeholder h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center ${className}`}>
         <div className="text-center">
           <div className={`${base} h-4 w-32 mb-2 mx-auto`} />
-          <div className="text-[#64748b] text-sm">Loading map data…</div>
+          <div className="text-[#94a3b8] text-sm">Loading map data…</div>
         </div>
       </div>
     );

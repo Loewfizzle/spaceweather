@@ -30,7 +30,7 @@ export default function AuroraWatch() {
                 SkyGlow
               </div>
               {/* Subtitle + live dot on one line */}
-              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-[#64748b] leading-none">
+              <div className="flex items-center gap-1.5 text-xs sm:text-xs text-[#94a3b8] leading-none">
                 <span>Aurora · solar · sky events</span>
                 <LiveIndicator />
               </div>
@@ -51,7 +51,7 @@ export default function AuroraWatch() {
         {/* Hero copy — server-rendered for LCP + crawlability */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-0">
           <div className="max-w-3xl">
-            <div className="uppercase tracking-[2.5px] text-[10px] text-[#64748b] mb-3">
+            <div className="uppercase tracking-[2.5px] text-[10px] text-[#94a3b8] mb-3">
               LIVE • NOAA SWPC DATA
             </div>
             <h1 className="text-6xl sm:text-7xl font-semibold tracking-tighter leading-[0.92] mb-5">
@@ -68,7 +68,7 @@ export default function AuroraWatch() {
       </main>
 
       {/* Footer — server-rendered */}
-      <footer className="border-t border-[#1e2937] pt-8 pb-10 text-xs text-[#64748b]">
+      <footer className="border-t border-[#1e2937] pt-8 pb-10 text-xs text-[#94a3b8]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-[#94a3b8] mb-6">
             Questions, bug reports, or inquiries —{" "}
@@ -92,15 +92,15 @@ export default function AuroraWatch() {
               </a>
               . OVATION, planetary K-index, and real-time solar wind.
             </div>
-            <div className="text-[#475569]">
+            <div className="text-[#64748b]">
               Not for navigation • Updates every few minutes
             </div>
           </div>
-          <div className="mt-4 text-[#475569] text-[10px]">
+          <div className="mt-4 text-[#64748b] text-[10px]">
             SkyGlow v0.1.0 ·{" "}
             <a
               href="https://skyglow.app"
-              className="hover:text-[#64748b] transition-colors"
+              className="hover:text-[#94a3b8] transition-colors"
             >
               skyglow.app
             </a>

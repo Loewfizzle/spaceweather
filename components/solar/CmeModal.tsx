@@ -46,14 +46,14 @@ export function CmeModal({
           {/* Modal header */}
           <div className="flex items-center justify-between px-5 pt-5 pb-0">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-[#64748b]" />
-              <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+              <TrendingUp className="h-4 w-4 text-[#94a3b8]" />
+              <span className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
                 Recent CME Activity
               </span>
             </div>
             <button
               onClick={onClose}
-              className="text-[#475569] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
+              className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -80,19 +80,19 @@ export function CmeModal({
                         </div>
                       </div>
                       {cme.direction && (
-                        <div className="text-[11px] text-[#64748b] ml-4 mb-0.5">
+                        <div className="text-xs text-[#94a3b8] ml-4 mb-0.5">
                           Direction: {cme.direction}
                         </div>
                       )}
-                      <div className="text-[11px] ml-4 mt-0.5" style={{ color }}>
+                      <div className="text-xs ml-4 mt-0.5" style={{ color }}>
                         {cme.earthImpact || "Analyzed — Earth impact uncertain"}
                       </div>
                       {cme.note && (
-                        <div className="text-[11px] text-[#475569] ml-4 mt-1 leading-relaxed">
+                        <div className="text-xs text-[#64748b] ml-4 mt-1 leading-relaxed">
                           {cme.note}
                         </div>
                       )}
-                      <div className="text-[10px] text-[#475569] ml-4 mt-1">
+                      <div className="text-[10px] text-[#64748b] ml-4 mt-1">
                         Alert issued {formatCmeAge(cme.time)}
                       </div>
                     </div>
@@ -100,7 +100,7 @@ export function CmeModal({
                 })}
               </div>
             ) : (
-              <p className="text-[13px] text-[#64748b]">No CMEs detected recently.</p>
+              <p className="text-[13px] text-[#94a3b8]">No CMEs detected recently.</p>
             )}
 
             {/* Color legend */}
@@ -119,7 +119,7 @@ export function CmeModal({
                     />
                     <div>
                       <span className="text-[12px] font-medium" style={{ color }}>{label}</span>
-                      <span className="text-[11px] text-[#475569] ml-1.5">{desc}</span>
+                      <span className="text-xs text-[#64748b] ml-1.5">{desc}</span>
                     </div>
                   </div>
                 ))}
@@ -129,7 +129,7 @@ export function CmeModal({
             {/* Educational section */}
             <div>
               <div className="text-xs font-medium text-[#94a3b8] mb-2">Understanding CMEs</div>
-              <div className="space-y-3 text-[12px] text-[#64748b] leading-relaxed">
+              <div className="space-y-3 text-[12px] text-[#94a3b8] leading-relaxed">
                 <p>
                   A coronal mass ejection is a large cloud of magnetized plasma expelled from the Sun. Unlike X-ray flares — which travel at light speed — CMEs travel at hundreds to thousands of kilometers per second and take 1–3 days to reach Earth.
                 </p>
@@ -153,7 +153,7 @@ export function CmeModal({
               href="https://www.swpc.noaa.gov/products/real-time-solar-wind"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-full text-xs text-[#475569] hover:text-[#64748b] transition-colors pt-3 border-t border-[#1e2937]"
+              className="flex items-center justify-between w-full text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors pt-3 border-t border-[#1e2937]"
             >
               <span>Real-Time Solar Wind on NOAA SWPC</span>
               <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />

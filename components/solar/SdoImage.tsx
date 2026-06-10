@@ -50,20 +50,20 @@ export function SdoImage({ src, alt }: { src: string; alt: string }) {
       )}
       {imgState === "failed" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
-          <span className="text-[#475569] text-xs leading-relaxed">
+          <span className="text-[#64748b] text-xs leading-relaxed">
             {autoRefreshPaused
               ? "NASA SDO temporarily unreachable"
               : "Image temporarily unavailable"}
           </span>
           <button
             onClick={openSdo}
-            className="text-[10px] text-[#64748b] hover:text-white underline underline-offset-2 transition-colors"
+            className="text-[10px] text-[#94a3b8] hover:text-white underline underline-offset-2 transition-colors"
           >
             View on NASA SDO ↗
           </button>
           <button
             onClick={retry}
-            className="text-[10px] text-[#475569] hover:text-[#64748b] transition-colors"
+            className="text-[10px] text-[#64748b] hover:text-[#94a3b8] transition-colors"
           >
             Retry
           </button>

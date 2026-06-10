@@ -71,7 +71,7 @@ export function InstallPrompt({ accentColor = "#38bdf8" }: InstallPromptProps) {
       </button>
       <button
         onClick={handleDismiss}
-        className="text-[#475569] hover:text-[#64748b] transition-colors p-0.5"
+        className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-0.5"
         title="Dismiss"
         aria-label="Dismiss install prompt"
       >

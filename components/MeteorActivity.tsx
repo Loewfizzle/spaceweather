@@ -92,12 +92,12 @@ export function MeteorActivity() {
           {nextMeteor && showerDays !== null ? (
             <>
               <div className="flex items-center justify-between mb-3">
-                <div className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+                <div className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
                   NEXT METEOR SHOWER
                 </div>
                 <button
                   onClick={() => setShowMeteorModal(true)}
-                  className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                  className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
                 >
                   Details <ChevronRight className="h-3.5 w-3.5" />
                 </button>
@@ -124,7 +124,7 @@ export function MeteorActivity() {
 
               <div className="mb-3">
                 <span
-                  className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
                   style={{
                     color: showerColor,
                     backgroundColor: showerColor + "1a",
@@ -144,20 +144,20 @@ export function MeteorActivity() {
               </p>
 
               <div className="border-t border-[#1e2937] pt-3 space-y-3">
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="flex items-center gap-1.5 text-[#64748b]">
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center gap-1.5 text-[#94a3b8]">
                     <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
                     Best after midnight
                   </div>
-                  <div className="flex items-center gap-1.5 text-[#64748b]">
+                  <div className="flex items-center gap-1.5 text-[#94a3b8]">
                     <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
                     Dark rural skies
                   </div>
-                  <div className="flex items-center gap-1.5 text-[#64748b]">
+                  <div className="flex items-center gap-1.5 text-[#94a3b8]">
                     <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
                     No equipment needed
                   </div>
-                  <div className="flex items-center gap-1.5 text-[#64748b]">
+                  <div className="flex items-center gap-1.5 text-[#94a3b8]">
                     <span className="h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
                     Allow 15–20 min dark adaptation
                   </div>
@@ -176,7 +176,7 @@ export function MeteorActivity() {
             </>
           ) : (
             <>
-              <div className="uppercase tracking-[2px] text-[10px] text-[#64748b] mb-3">
+              <div className="uppercase tracking-[2px] text-[10px] text-[#94a3b8] mb-3">
                 NEXT METEOR SHOWER
               </div>
               <EmptyState
@@ -191,13 +191,13 @@ export function MeteorActivity() {
         {/* ── Fireball Tracker ───────────────────────────────────────────── */}
         <div className="card p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+            <div className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
               FIREBALL TRACKER
             </div>
             {!fireballsQuery.isLoading && !fireballsQuery.error && fireballsQuery.fireballs.length > 0 && (
               <button
                 onClick={() => setShowFireballsModal(true)}
-                className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
               >
                 Details <ChevronRight className="h-3.5 w-3.5" />
               </button>
@@ -237,7 +237,7 @@ export function MeteorActivity() {
                         <div className="text-[13px] font-medium text-[#cbd5e1] tabular-nums leading-tight">
                           {dateShort(fb.date)}
                         </div>
-                        <div className="text-[11px] text-[#64748b] truncate mt-0.5">
+                        <div className="text-xs text-[#94a3b8] truncate mt-0.5">
                           {locationLabel(fb)}
                         </div>
                       </div>
@@ -253,7 +253,7 @@ export function MeteorActivity() {
                           {formatFireballEnergy(fb.impactE)}
                         </span>
                       )}
-                      <ChevronRight className="h-3.5 w-3.5 text-[#334155] group-hover:text-[#475569] transition-colors flex-shrink-0" />
+                      <ChevronRight className="h-3.5 w-3.5 text-[#334155] group-hover:text-[#64748b] transition-colors flex-shrink-0" />
                     </button>
                   );
                 })}
@@ -269,13 +269,13 @@ export function MeteorActivity() {
                       { color: "#eab308", label: "≥0.1 kt" },
                       { color: "#64748b", label: "<0.1 kt" },
                     ] as const).map(({ color, label }) => (
-                      <span key={label} className="flex items-center gap-1 text-[10px] text-[#475569]">
+                      <span key={label} className="flex items-center gap-1 text-[10px] text-[#64748b]">
                         <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                         {label}
                       </span>
                     ))}
                   </div>
-                  <span className="text-[10px] text-[#475569] flex-shrink-0">Impact energy (kt TNT)</span>
+                  <span className="text-[10px] text-[#64748b] flex-shrink-0">Impact energy (kt TNT)</span>
                 </div>
               </div>
             </>

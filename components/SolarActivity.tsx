@@ -58,7 +58,7 @@ export function SolarActivity() {
             aria-label={latestFlare ? `Latest flare: ${flareClass}. Press Enter for details.` : "Latest flare: none detected"}
           >
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#64748b] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
                 <Zap
                   className="w-4 h-4"
                   style={flareClass ? { color: flareInfo.color } : undefined}
@@ -68,7 +68,7 @@ export function SolarActivity() {
               {latestFlare && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setOpenModal("flare"); }}
-                  className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                  className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
                 >
                   Details <ChevronRight className="h-3.5 w-3.5" />
                 </button>
@@ -88,7 +88,7 @@ export function SolarActivity() {
               </div>
             )}
 
-            <div className="text-xs text-[#64748b] mt-0.5">
+            <div className="text-xs text-[#94a3b8] mt-0.5">
               {flareTime
                 ? `Detected ${formatDistanceToNow(new Date(normalizeTimeTag(flareTime)), { addSuffix: true })}`
                 : "—"}
@@ -96,7 +96,7 @@ export function SolarActivity() {
             </div>
 
             {!latestFlare && !solarActivity.error && (
-              <div className="text-[10px] text-[#475569] mt-1">
+              <div className="text-[10px] text-[#64748b] mt-1">
                 No flares detected recently.
               </div>
             )}
@@ -105,12 +105,12 @@ export function SolarActivity() {
           {/* Recent CMEs */}
           <div className="metric">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#64748b] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
                 <TrendingUp className="w-4 h-4" style={solarActivity.recentCmes.length > 0 ? { color: cmeImpactColor(solarActivity.recentCmes[0].earthImpact) } : undefined} /> RECENT CMEs
               </div>
               <button
                 onClick={() => setOpenModal("cme")}
-                className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
               >
                 Details <ChevronRight className="h-3.5 w-3.5" />
               </button>
@@ -135,12 +135,12 @@ export function SolarActivity() {
                     )}
 
                     {cme.associatedFlare && (
-                      <div className="text-[11px] text-[#64748b] mt-1">
+                      <div className="text-xs text-[#94a3b8] mt-1">
                         Associated with {cme.associatedFlare} flare
                       </div>
                     )}
 
-                    <div className="text-[10px] text-[#475569] mt-0.5">
+                    <div className="text-[10px] text-[#64748b] mt-0.5">
                       Alert issued {formatCmeIssued(cme.time)}
                       {solarActivity.recentCmes.length > 1 && ` · ${solarActivity.recentCmes.length} total`}
                     </div>
@@ -148,10 +148,10 @@ export function SolarActivity() {
                 );
               })
             ) : (
-              <div className="text-sm text-[#64748b]">—</div>
+              <div className="text-sm text-[#94a3b8]">—</div>
             )}
 
-            <div className="text-[10px] text-[#475569] mt-3 pt-2.5 border-t border-[#0f1425]">
+            <div className="text-[10px] text-[#64748b] mt-3 pt-2.5 border-t border-[#0f1425]">
               {solarActivity.recentCmes.some((c) => {
                 const lc = (c.earthImpact ?? "").toLowerCase();
                 return lc.includes("likely");
@@ -168,7 +168,7 @@ export function SolarActivity() {
         <div className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden">
           <div className="flex items-start justify-between px-4 py-3 border-b border-[#1e2937]">
             <div className="flex flex-col">
-              <div className="flex items-center gap-2 text-[#64748b] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
                 <Sun className="w-4 h-4" /> SUNSPOTS
               </div>
               {sunCtx !== null && solarActivity.sunspotNumber !== null ? (
@@ -187,7 +187,7 @@ export function SolarActivity() {
             {solarActivity.sunspotNumber !== null && (
               <button
                 onClick={() => setOpenModal("sunspot")}
-                className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+                className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
               >
                 Details <ChevronRight className="h-3.5 w-3.5" />
               </button>
@@ -200,8 +200,8 @@ export function SolarActivity() {
           />
 
           <div className="px-4 pt-3 pb-2 space-y-2.5">
-            <p className="text-[10px] text-[#475569] leading-relaxed">
-              <span className="text-[#64748b] font-medium">HMI Continuum</span> — visible-light
+            <p className="text-[10px] text-[#64748b] leading-relaxed">
+              <span className="text-[#94a3b8] font-medium">HMI Continuum</span> — visible-light
               view of the solar disk. Sunspot groups are the source of flares and CMEs. Active
               regions near the center of the disk are Earth-facing and most relevant to watch
               for aurora potential.
@@ -212,7 +212,7 @@ export function SolarActivity() {
                 href={SDO_DATA_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-[#475569] hover:text-[#64748b] transition-colors"
+                className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors"
               >
                 View full data on NASA SDO ↗
               </a>
@@ -222,12 +222,12 @@ export function SolarActivity() {
 
         <div className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2937]">
-            <div className="flex items-center gap-2 text-[#64748b] text-xs">
+            <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
               <TrendingUp className="w-4 h-4" /> CORONAL HOLES
             </div>
             <button
               onClick={() => setOpenModal("coronal")}
-              className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+              className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
             >
               Details <ChevronRight className="h-3.5 w-3.5" />
             </button>
@@ -239,8 +239,8 @@ export function SolarActivity() {
           />
 
           <div className="px-4 pt-3 pb-2 space-y-2.5">
-            <p className="text-[10px] text-[#475569] leading-relaxed">
-              <span className="text-[#64748b] font-medium">AIA 193Å</span> extreme ultraviolet
+            <p className="text-[10px] text-[#64748b] leading-relaxed">
+              <span className="text-[#94a3b8] font-medium">AIA 193Å</span> extreme ultraviolet
               view. Dark patches are coronal holes — tap Details to learn how they affect aurora.
             </p>
             <div className="flex items-center justify-between pb-1">
@@ -249,7 +249,7 @@ export function SolarActivity() {
                 href={SDO_DATA_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-[#475569] hover:text-[#64748b] transition-colors"
+                className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors"
               >
                 View full data on NASA SDO ↗
               </a>
@@ -265,7 +265,7 @@ export function SolarActivity() {
         </div>
       )}
 
-      <div className="text-[10px] text-[#64748b] mt-3">
+      <div className="text-[10px] text-[#94a3b8] mt-3">
         NOAA SWPC data · NASA SDO imagery · Flares update frequently; CMEs when analyzed; sunspots daily.
         {solarActivity.flareTime && (
           <span className="ml-2">

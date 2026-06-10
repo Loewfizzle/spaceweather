@@ -51,13 +51,13 @@ export function SunspotModal({
           <div className="flex items-center justify-between px-5 pt-5 pb-0">
             <div className="flex items-center gap-2">
               <Sun className="h-4 w-4" style={{ color: ctx.color }} />
-              <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+              <span className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
                 Sunspot Number
               </span>
             </div>
             <button
               onClick={onClose}
-              className="text-[#475569] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
+              className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -81,7 +81,7 @@ export function SunspotModal({
             {/* Solar Cycle 25 context */}
             <div>
               <div className="text-xs font-medium text-[#94a3b8] mb-2">Solar Cycle 25</div>
-              <p className="text-[13px] text-[#64748b] leading-relaxed">
+              <p className="text-[13px] text-[#94a3b8] leading-relaxed">
                 We are currently near the peak of Solar Cycle 25, which was predicted to reach
                 maximum activity around 2025. Solar maxima bring higher sunspot counts, more
                 frequent flares, and more CMEs — making aurora more common and potentially intense.
@@ -104,7 +104,7 @@ export function SunspotModal({
                     <span className="font-medium" style={{ color: tier.color }}>
                       {tier.label}
                     </span>
-                    <span className="tabular-nums text-[#475569]">{tier.range}</span>
+                    <span className="tabular-nums text-[#64748b]">{tier.range}</span>
                   </div>
                 ))}
               </div>
@@ -112,7 +112,7 @@ export function SunspotModal({
 
             {/* Aurora connection */}
             <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-              <p className="text-[12px] text-[#64748b] leading-relaxed">
+              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
                 Higher sunspot numbers mean more active magnetic regions on the solar surface.
                 These are the source of X-ray flares and coronal mass ejections (CMEs) — the
                 events that drive geomagnetic storms and aurora here on Earth.
@@ -124,7 +124,7 @@ export function SunspotModal({
               href="https://www.swpc.noaa.gov/products/solar-cycle-progression"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-full text-xs text-[#475569] hover:text-[#64748b] transition-colors pt-3 border-t border-[#1e2937]"
+              className="flex items-center justify-between w-full text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors pt-3 border-t border-[#1e2937]"
             >
               <span>Solar Cycle Progression on NOAA SWPC</span>
               <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />

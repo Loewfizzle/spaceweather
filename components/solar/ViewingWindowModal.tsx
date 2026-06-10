@@ -50,14 +50,14 @@ export function ViewingWindowModal({
           {/* Header */}
           <div className="flex items-center justify-between px-5 pt-5 pb-0">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-[#64748b]" />
-              <span id="viewing-window-modal-title" className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+              <Clock className="h-4 w-4 text-[#94a3b8]" />
+              <span id="viewing-window-modal-title" className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
                 Tonight&apos;s Forecast
               </span>
             </div>
             <button
               onClick={onClose}
-              className="text-[#475569] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
+              className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -71,7 +71,7 @@ export function ViewingWindowModal({
               <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
                 <p className="text-[12px] leading-relaxed">
                   <span className="font-semibold text-[#94a3b8]">{locBlurb.first}</span>
-                  {locBlurb.rest && <>{" "}<span className="text-[#64748b]">{locBlurb.rest}</span></>}
+                  {locBlurb.rest && <>{" "}<span className="text-[#94a3b8]">{locBlurb.rest}</span></>}
                 </p>
               </div>
             )}
@@ -79,7 +79,7 @@ export function ViewingWindowModal({
             {/* What this card is */}
             <div>
               <div className="text-xs font-medium text-[#94a3b8] mb-1.5">About this forecast</div>
-              <p className="text-[12px] text-[#64748b] leading-relaxed">
+              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
                 This is the big-picture prediction for the night ahead — think of it like a weather
                 forecast for aurora. It uses NOAA&apos;s 36-hour Kp forecast and the OVATION
                 model to estimate when conditions will peak after sunset.
@@ -93,7 +93,7 @@ export function ViewingWindowModal({
               <div className="text-xs font-medium text-[#94a3b8] mb-1.5">
                 What Kp {effectiveKp.toFixed(1)} means
               </div>
-              <p className="text-[12px] text-[#64748b] leading-relaxed">
+              <p className="text-[12px] text-[#94a3b8] leading-relaxed">
                 {forecastKpBlurb(effectiveKp)}
               </p>
             </div>
@@ -112,16 +112,16 @@ export function ViewingWindowModal({
                         className="flex items-center justify-between text-[12px]"
                       >
                         <span className="text-[#94a3b8]">{city.name}, {city.state}</span>
-                        <span className="text-[#475569] tabular-nums">{city.lat.toFixed(1)}°N</span>
+                        <span className="text-[#64748b] tabular-nums">{city.lat.toFixed(1)}°N</span>
                       </div>
                     ))}
                   </div>
-                  <p className="text-[11px] text-[#475569] leading-relaxed pt-2">
+                  <p className="text-xs text-[#64748b] leading-relaxed pt-2">
                     Cities above ~{minLat.toFixed(0)}°N are within the viewing zone at this activity level.
                   </p>
                 </>
               ) : (
-                <p className="text-[12px] text-[#64748b] leading-relaxed">
+                <p className="text-[12px] text-[#94a3b8] leading-relaxed">
                   At current activity levels aurora is visible mainly in Alaska and northern Canada.
                   Conditions would need to strengthen significantly for the lower 48 to see anything.
                 </p>
@@ -133,7 +133,7 @@ export function ViewingWindowModal({
               <div className="text-xs font-medium text-[#94a3b8] mb-1.5">What affects what you see</div>
               <div className="space-y-2.5">
                 {cloudCoverPct != null && (
-                  <p className="text-[12px] text-[#64748b] leading-relaxed">
+                  <p className="text-[12px] text-[#94a3b8] leading-relaxed">
                     <span className="text-[#94a3b8]">Cloud cover:</span>{" "}
                     {cloudCoverLabel} ({cloudCoverPct}%) forecast for your area tonight.{" "}
                     {cloudCoverPct <= 20
@@ -143,13 +143,13 @@ export function ViewingWindowModal({
                       : "Significant cloud cover will likely block your view. Check for breaks later in the night."}
                   </p>
                 )}
-                <p className="text-[12px] text-[#64748b] leading-relaxed">
+                <p className="text-[12px] text-[#94a3b8] leading-relaxed">
                   <span className="text-[#94a3b8]">Light pollution:</span>{" "}
                   Aurora can cut through city glow during strong storms, but for anything below
                   Kp 6 a short drive out of town makes a big difference. Even 15–20 minutes away
                   from streetlights opens up the view significantly.
                 </p>
-                <p className="text-[12px] text-[#64748b] leading-relaxed">
+                <p className="text-[12px] text-[#94a3b8] leading-relaxed">
                   <span className="text-[#94a3b8]">Horizon and dark adaptation:</span>{" "}
                   Aurora usually appears low on the northern horizon first. Give your eyes 10–15
                   minutes to fully adjust to the dark before deciding there&apos;s nothing there.
@@ -162,7 +162,7 @@ export function ViewingWindowModal({
               href="https://www.swpc.noaa.gov/products/3-day-forecast"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-full text-xs text-[#475569] hover:text-[#64748b] transition-colors pt-3 border-t border-[#1e2937]"
+              className="flex items-center justify-between w-full text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors pt-3 border-t border-[#1e2937]"
             >
               <span>3-Day Forecast on NOAA SWPC</span>
               <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />

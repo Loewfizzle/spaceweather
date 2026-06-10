@@ -36,14 +36,14 @@ export function RecentAlertsModal({
         >
           <div className="flex items-center justify-between px-5 pt-5 pb-0">
             <div className="flex items-center gap-2">
-              <Bell className="h-4 w-4 text-[#64748b]" />
-              <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+              <Bell className="h-4 w-4 text-[#94a3b8]" />
+              <span className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
                 Recent NOAA Alerts
               </span>
             </div>
             <button
               onClick={onClose}
-              className="text-[#475569] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
+              className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -52,7 +52,7 @@ export function RecentAlertsModal({
 
           <div className="px-5 pb-5 pt-4">
             {items.length === 0 ? (
-              <p className="text-[13px] text-[#64748b]">No recent alerts.</p>
+              <p className="text-[13px] text-[#94a3b8]">No recent alerts.</p>
             ) : (
               <div className="space-y-3">
                 {items.map((alert, i) => {
@@ -63,9 +63,9 @@ export function RecentAlertsModal({
                     <div key={i} className="text-[12px]">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="font-medium" style={{ color }}>{text}</span>
-                        <span className="text-[#475569] tabular-nums">{ago}</span>
+                        <span className="text-[#64748b] tabular-nums">{ago}</span>
                       </div>
-                      <div className="text-[#64748b] leading-snug">{firstLine}</div>
+                      <div className="text-[#94a3b8] leading-snug">{firstLine}</div>
                     </div>
                   );
                 })}

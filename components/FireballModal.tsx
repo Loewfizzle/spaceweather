@@ -21,7 +21,7 @@ interface FireballModalProps {
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between text-sm border-b border-[#1e2937] pb-2 last:border-b-0 last:pb-0">
-      <span className="text-[#64748b]">{label}</span>
+      <span className="text-[#94a3b8]">{label}</span>
       <span className="text-[#cbd5e1] tabular-nums ml-4 text-right">{value}</span>
     </div>
   );
@@ -105,7 +105,7 @@ export function FireballModal({ fireball, onClose }: FireballModalProps) {
         )}
 
         <div className="px-5 py-4">
-          <div className="uppercase tracking-[1.5px] text-[10px] text-[#64748b] mb-3">
+          <div className="uppercase tracking-[1.5px] text-[10px] text-[#94a3b8] mb-3">
             FIREBALL IMPACT
           </div>
           <div className="space-y-2">

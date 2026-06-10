@@ -68,16 +68,16 @@ function SourceRow({ record }: { record: DataHealthRecord }) {
           className="h-1.5 w-1.5 shrink-0 rounded-full"
           style={{ backgroundColor: dotColor }}
         />
-        <span className="truncate text-[11px] text-[#94a3b8]">
+        <span className="truncate text-xs text-[#94a3b8]">
           {SOURCE_LABELS[record.source]}
         </span>
         {isError && record.lastErrorMessage && (
-          <span className="hidden sm:block max-w-[110px] truncate text-[9px] text-[#475569]">
+          <span className="hidden sm:block max-w-[110px] truncate text-[9px] text-[#64748b]">
             {record.lastErrorMessage}
           </span>
         )}
       </div>
-      <span className="shrink-0 tabular-nums text-[10px] text-[#64748b]">
+      <span className="shrink-0 tabular-nums text-[10px] text-[#94a3b8]">
         {refTime ? formatDistanceToNow(refTime, { addSuffix: true }) : '—'}
       </span>
     </div>
@@ -183,7 +183,7 @@ export function DataStatus() {
         >
           {/* Header row */}
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[9px] font-semibold uppercase tracking-[2px] text-[#475569]">
+            <span className="text-[9px] font-semibold uppercase tracking-[2px] text-[#64748b]">
               Data Sources
             </span>
             <span className="text-[10px] font-medium" style={{ color }}>
@@ -211,7 +211,7 @@ export function DataStatus() {
           )}
 
           {records.length === 0 && (
-            <p className="py-1 text-[11px] text-[#64748b]">
+            <p className="py-1 text-xs text-[#94a3b8]">
               No data tracked yet this session.
             </p>
           )}

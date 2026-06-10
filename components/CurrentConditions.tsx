@@ -144,10 +144,10 @@ const MODAL_CONTENT: Record<CardId, { title: string; sections: ModalSection[] }>
 };
 
 function cardIcon(id: CardId) {
-  if (id === "wind")    return <Wind     className="h-4 w-4 text-[#64748b]" />;
-  if (id === "bz")      return <Zap      className="h-4 w-4 text-[#64748b]" />;
-  if (id === "kp")      return <Activity className="h-4 w-4 text-[#64748b]" />;
-  return                       <Satellite className="h-4 w-4 text-[#64748b]" />;
+  if (id === "wind")    return <Wind     className="h-4 w-4 text-[#94a3b8]" />;
+  if (id === "bz")      return <Zap      className="h-4 w-4 text-[#94a3b8]" />;
+  if (id === "kp")      return <Activity className="h-4 w-4 text-[#94a3b8]" />;
+  return                       <Satellite className="h-4 w-4 text-[#94a3b8]" />;
 }
 
 function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void }) {
@@ -170,13 +170,13 @@ function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void 
           <div className="flex items-center justify-between px-5 pt-5 pb-0">
             <div className="flex items-center gap-2">
               {cardIcon(card)}
-              <span className="uppercase tracking-[2px] text-[10px] text-[#64748b]">
+              <span className="uppercase tracking-[2px] text-[10px] text-[#94a3b8]">
                 {content.title}
               </span>
             </div>
             <button
               onClick={onClose}
-              className="text-[#475569] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
+              className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -191,14 +191,14 @@ function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void 
                     {section.legend.map(({ color, range, desc }) => (
                       <div key={range} className="flex items-start gap-2.5">
                         <span className="mt-[3px] h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                        <span className="text-[11px] text-[#64748b] leading-snug">
+                        <span className="text-xs text-[#94a3b8] leading-snug">
                           <span className="font-medium text-[#cbd5e1]">{range}</span>
                           {" — "}{desc}
                         </span>
                       </div>
                     ))}
                     {section.note && (
-                      <p className="text-[11px] text-[#475569] leading-relaxed pt-1">{section.note}</p>
+                      <p className="text-xs text-[#64748b] leading-relaxed pt-1">{section.note}</p>
                     )}
                   </div>
                 ) : "rows" in section ? (
@@ -206,16 +206,16 @@ function MetricInfoModal({ card, onClose }: { card: CardId; onClose: () => void 
                     {section.rows.map(({ kp, cities, lat }) => (
                       <div key={kp} className="flex items-center gap-2">
                         <span className="text-[12px] font-medium text-[#cbd5e1] tabular-nums w-14 flex-shrink-0">{kp}</span>
-                        <span className="text-[11px] text-[#64748b] leading-snug">{cities}</span>
-                        <span className="text-[10px] text-[#475569] flex-shrink-0 ml-auto">{lat}</span>
+                        <span className="text-xs text-[#94a3b8] leading-snug">{cities}</span>
+                        <span className="text-[10px] text-[#64748b] flex-shrink-0 ml-auto">{lat}</span>
                       </div>
                     ))}
-                    <p className="text-[11px] text-[#475569] leading-relaxed pt-1">
+                    <p className="text-xs text-[#64748b] leading-relaxed pt-1">
                       Higher latitudes need lower Kp. Dark skies away from light pollution are essential at any Kp.
                     </p>
                   </div>
                 ) : (
-                  <p className="text-[12px] text-[#64748b] leading-relaxed">{section.body}</p>
+                  <p className="text-[12px] text-[#94a3b8] leading-relaxed">{section.body}</p>
                 )}
               </div>
             ))}
@@ -307,12 +307,12 @@ export function CurrentConditions({
           {/* Solar Wind */}
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#64748b] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
                 <Wind className="w-4 h-4" style={solarWindSpeed !== null ? { color: solarWindSpeedColor(solarWindSpeed) } : undefined} /> SOLAR WIND
               </div>
               <button
                 onClick={() => setOpenCard("wind")}
-                className="text-[#475569] hover:text-[#64748b] transition-colors p-1 -mr-1 -mt-1"
+                className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1 -mt-1"
                 aria-label="About Solar Wind data"
               >
                 <Info className="h-3.5 w-3.5" />
@@ -321,7 +321,7 @@ export function CurrentConditions({
             <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={solarWindSpeed !== null ? { color: solarWindSpeedColor(solarWindSpeed) } : undefined}>
               {solarWindSpeed !== null ? Math.round(solarWindSpeed) : "—"}
             </div>
-            <div className="text-sm text-[#64748b] -mt-1">
+            <div className="text-sm text-[#94a3b8] -mt-1">
               km/s{" "}
               <span className="text-xs ml-1">
                 • {solarWindDensity !== null ? solarWindDensity.toFixed(1) : "—"} p/cm³
@@ -331,19 +331,19 @@ export function CurrentConditions({
               {!!solarWindError && (
                 <div className="text-[9px] text-amber-400 mb-0.5">data delayed</div>
               )}
-              <div className="text-[10px] text-[#475569]">Updates every minute</div>
+              <div className="text-[10px] text-[#64748b]">Updates every minute</div>
             </div>
           </div>
 
           {/* IMF Bz */}
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#64748b] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
                 <Zap className="w-4 h-4" style={bz !== null ? { color: bzColor(bz) } : undefined} /> IMF Bz
               </div>
               <button
                 onClick={() => setOpenCard("bz")}
-                className="text-[#475569] hover:text-[#64748b] transition-colors p-1 -mr-1 -mt-1"
+                className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1 -mt-1"
                 aria-label="About IMF Bz"
               >
                 <Info className="h-3.5 w-3.5" />
@@ -352,22 +352,22 @@ export function CurrentConditions({
             <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={bz !== null ? { color: bzColor(bz) } : undefined}>
               {bz !== null ? bz.toFixed(1) : "—"}
             </div>
-            <div className="text-sm text-[#64748b] -mt-1">
+            <div className="text-sm text-[#94a3b8] -mt-1">
               nT <span className="text-xs ml-1">• Southward = favorable</span>
             </div>
             {bzHistory && bzHistory.length >= 3 && <BzSparkline data={bzHistory} />}
-            <div className="text-[10px] text-[#475569] mt-auto pt-2">Updates every minute</div>
+            <div className="text-[10px] text-[#64748b] mt-auto pt-2">Updates every minute</div>
           </div>
 
           {/* Planetary Kp */}
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#64748b] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
                 <Activity className="w-4 h-4" style={kp !== null ? { color: AURORA_TIERS[getKpTier(kp)].color } : undefined} /> PLANETARY Kp
               </div>
               <button
                 onClick={() => setOpenCard("kp")}
-                className="text-[#475569] hover:text-[#64748b] transition-colors p-1 -mr-1 -mt-1"
+                className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1 -mt-1"
                 aria-label="About Planetary Kp index"
               >
                 <Info className="h-3.5 w-3.5" />
@@ -376,21 +376,21 @@ export function CurrentConditions({
             <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={kp !== null ? { color: AURORA_TIERS[getKpTier(kp)].color } : undefined}>
               {kp !== null ? kp.toFixed(1) : "—"}
             </div>
-            <div className="text-sm text-[#64748b] -mt-1">
+            <div className="text-sm text-[#94a3b8] -mt-1">
               3-hour average · {kp !== null ? AURORA_TIERS[getKpTier(kp)].label : "—"}
             </div>
-            <div className="text-[10px] text-[#475569] mt-auto pt-2">Updates every 3 hrs</div>
+            <div className="text-[10px] text-[#64748b] mt-auto pt-2">Updates every 3 hrs</div>
           </div>
 
           {/* OVATION */}
           <div className="metric flex flex-col">
             <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2 text-[#64748b] text-xs">
+              <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
                 <Satellite className="w-4 h-4" style={ovationProcessed && maxAuroraProbNA !== null ? { color: getAuroraColor(maxAuroraProbNA) } : undefined} /> OVATION (NA)
               </div>
               <button
                 onClick={() => setOpenCard("ovation")}
-                className="text-[#475569] hover:text-[#64748b] transition-colors p-1 -mr-1 -mt-1"
+                className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1 -mt-1"
                 aria-label="About OVATION aurora probability"
               >
                 <Info className="h-3.5 w-3.5" />
@@ -399,14 +399,14 @@ export function CurrentConditions({
             <div className="text-4xl font-semibold tracking-tighter tabular-nums" style={ovationProcessed && maxAuroraProbNA !== null ? { color: getAuroraColor(maxAuroraProbNA) } : undefined}>
               {ovationProcessed && maxAuroraProbNA !== null ? `${Math.round(maxAuroraProbNA)}%` : "—"}
             </div>
-            <div className="text-sm text-[#64748b] -mt-1">
+            <div className="text-sm text-[#94a3b8] -mt-1">
               {ovationProcessed === false
                 ? "Temporarily unavailable"
                 : maxAuroraProbNA === 0
                 ? "Quiet — aurora oval outside NA"
                 : "Max probability (North America)"}
             </div>
-            <div className="text-[10px] text-[#475569] mt-auto pt-2">Updates every 2 min</div>
+            <div className="text-[10px] text-[#64748b] mt-auto pt-2">Updates every 2 min</div>
           </div>
 
         </div>

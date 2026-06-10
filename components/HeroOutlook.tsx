@@ -66,17 +66,17 @@ export function HeroOutlook({
     >
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
+          <span className="uppercase tracking-[2.5px] text-[10px] text-[#94a3b8]">
             CURRENT DATA SUGGESTS
           </span>
           <button
             onClick={() => setShowConditionsModal(true)}
-            className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+            className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
           >
             Details <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
-        <p className="text-[11px] text-[#475569] mb-3">
+        <p className="text-xs text-[#64748b] mb-3">
           Solar wind and Kp · live OVATION model
         </p>
 
@@ -96,20 +96,20 @@ export function HeroOutlook({
                 {outlook.status}
               </div>
               {outlook.drivers && (
-                <div className="text-sm text-[#64748b] tabular-nums font-medium">
+                <div className="text-sm text-[#94a3b8] tabular-nums font-medium">
                   {outlook.drivers}
                 </div>
               )}
             </div>
 
             <p className={`text-[15px] leading-relaxed ${outlook.reasons.length > 0 ? 'mb-1' : 'mb-3'}`}>
-              <span className="text-[#64748b]">Current indicators — </span>
+              <span className="text-[#94a3b8]">Current indicators — </span>
               <span className="text-[#cbd5e1]">{outlook.message}</span>
             </p>
             {outlook.reasons.length > 0 && (
               <ul className="mb-3 space-y-0.5">
                 {outlook.reasons.map((reason, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-[#64748b]">
+                  <li key={i} className="flex items-start gap-2 text-sm text-[#94a3b8]">
                     <span className="mt-[7px] h-1 w-1 rounded-full bg-[#334155] flex-shrink-0" />
                     {reason}
                   </li>
@@ -123,7 +123,7 @@ export function HeroOutlook({
           <div className="space-y-1 mb-2">
             {(displayedCities.length > 0 || userLocationProb != null) && (
               <div className="border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
-                <span className="text-[11px] text-[#64748b]">Aurora in the sky right now</span>
+                <span className="text-xs text-[#94a3b8]">Aurora in the sky right now</span>
               </div>
             )}
 
@@ -149,10 +149,10 @@ export function HeroOutlook({
                 className="flex items-center gap-2 py-0.5 w-full text-left group"
               >
                 <span className="block h-1.5 w-1.5 rounded-full bg-[#1e2937] border border-[#475569] flex-shrink-0 group-hover:border-[#64748b] transition-colors" />
-                <span className="flex-1 text-sm text-[#475569] group-hover:text-[#64748b] transition-colors">
+                <span className="flex-1 text-sm text-[#64748b] group-hover:text-[#94a3b8] transition-colors">
                   Your location
                 </span>
-                <span className="text-[11px] text-[#475569] group-hover:text-[#64748b] transition-colors tabular-nums">
+                <span className="text-xs text-[#64748b] group-hover:text-[#94a3b8] transition-colors tabular-nums">
                   + Add yours
                 </span>
               </button>
@@ -173,7 +173,7 @@ export function HeroOutlook({
 
             {displayedCities.length === 0 && userLocationProb == null && (
               <div className="border-t border-[#1e2937] pt-2 mt-1">
-                <p className="text-[11px] text-[#475569]">
+                <p className="text-xs text-[#64748b]">
                   No aurora expected at surveyed US locations under current conditions.
                 </p>
               </div>
@@ -221,7 +221,7 @@ export function HeroOutlook({
                       <span className="text-[#2d3748] shrink-0">·</span>
                       <button
                         onClick={() => onClearLocation()}
-                        className="shrink-0 whitespace-nowrap text-[#475569] hover:text-[#94a3b8] transition-colors"
+                        className="shrink-0 whitespace-nowrap text-[#64748b] hover:text-[#94a3b8] transition-colors"
                         aria-label="Clear saved location"
                       >
                         Clear
@@ -256,7 +256,7 @@ export function HeroOutlook({
                     <MapPin className="h-3.5 w-3.5" />
                     {onRequestLocation ? "Enter manually" : "Set location"}
                   </button>
-                  <p className="text-[11px] text-[#475569]">See your exact aurora probability and cloud cover forecast</p>
+                  <p className="text-xs text-[#64748b]">See your exact aurora probability and cloud cover forecast</p>
                 </div>
               ) : null}
             </div>

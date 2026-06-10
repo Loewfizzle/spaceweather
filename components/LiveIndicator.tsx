@@ -82,7 +82,7 @@ export function LiveIndicator() {
 
       {/* Show compact data age only when stale; dot alone signals live */}
       {!isLive && (
-        <span aria-hidden="true" className="text-[9px] tabular-nums text-[#64748b]">
+        <span aria-hidden="true" className="text-[9px] tabular-nums text-[#94a3b8]">
           {compactAge(now, latestGlobalUpdate)}
         </span>
       )}

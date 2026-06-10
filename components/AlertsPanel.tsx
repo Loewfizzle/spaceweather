@@ -50,9 +50,9 @@ export function AlertsPanel({ riskLevel, alerts, alertsLoading }: AlertsPanelPro
                 <div key={i} className="text-[12px]">
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="font-medium" style={{ color }}>{text}</span>
-                    <span className="text-[#475569] tabular-nums">{ago}</span>
+                    <span className="text-[#64748b] tabular-nums">{ago}</span>
                   </div>
-                  <div className="text-[#64748b] leading-snug">{firstLine}</div>
+                  <div className="text-[#94a3b8] leading-snug">{firstLine}</div>
                 </div>
               );
             })

@@ -13,8 +13,8 @@ export function EmptyState({
 }: EmptyStateProps) {
   const content = (
     <>
-      <div className="text-[#64748b] text-sm">{title}</div>
-      {description && <p className="text-[#475569] text-xs mt-1">{description}</p>}
+      <div className="text-[#94a3b8] text-sm">{title}</div>
+      {description && <p className="text-[#64748b] text-xs mt-1">{description}</p>}
     </>
   );
 

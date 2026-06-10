@@ -14,7 +14,7 @@ const AuroraMap = dynamic(() => import("./AuroraMap"), {
     <div className="h-[420px] sm:h-[480px] md:h-[520px] flex items-center justify-center bg-[#0c1222]">
       <div className="text-center">
         <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
-        <div className="text-[#64748b] text-sm">Loading map data…</div>
+        <div className="text-[#94a3b8] text-sm">Loading map data…</div>
       </div>
     </div>
   ),
@@ -51,12 +51,12 @@ export function AuroraMapSection({ userProb, ovationPoints }: AuroraMapSectionPr
         {/* Card header */}
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="uppercase tracking-[2.5px] text-[10px] text-[#64748b]">
+            <span className="uppercase tracking-[2.5px] text-[10px] text-[#94a3b8]">
               OVATION MODEL
             </span>
             <button
               onClick={() => setShowModal(true)}
-              className="text-xs text-[#64748b] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
+              className="text-xs text-[#94a3b8] hover:text-[#94a3b8] transition-colors flex items-center gap-0.5"
             >
               Details <ChevronRight className="h-3.5 w-3.5" />
             </button>

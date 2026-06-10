@@ -36,7 +36,7 @@ export function LiveHeader() {
       {/* NOAA alerts bell */}
       <button
         onClick={handleBellClick}
-        className="relative flex items-center gap-1 text-[#64748b] hover:text-[#94a3b8] transition-colors p-1"
+        className="relative flex items-center gap-1 text-[#94a3b8] hover:text-[#94a3b8] transition-colors p-1"
         aria-label="View recent NOAA alerts"
       >
         <Bell className="w-4 h-4" />

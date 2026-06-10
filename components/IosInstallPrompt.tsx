@@ -60,7 +60,7 @@ export function IosInstallPrompt() {
               </div>
               <button
                 onClick={closeModal}
-                className="text-[#475569] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
+                className="text-[#64748b] hover:text-[#94a3b8] transition-colors p-1 -mr-1"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />
@@ -72,7 +72,7 @@ export function IosInstallPrompt() {
                 <span className="text-[#22c55e] font-semibold text-xs mt-0.5 shrink-0 w-4">1</span>
                 <span className="text-sm text-[#94a3b8]">
                   Tap the <span className="text-white font-medium">Share</span>{" "}
-                  <span className="text-[#64748b]">↑</span> button at the bottom of Safari
+                  <span className="text-[#94a3b8]">↑</span> button at the bottom of Safari
                 </span>
               </li>
               <li className="flex items-start gap-3">

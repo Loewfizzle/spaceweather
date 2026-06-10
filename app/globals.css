@@ -10,8 +10,8 @@
   --bg-card: #0f1425;
   --border: #1e2937;
   --text: #f1f5f9;
-  --text-muted: #64748b;
-  --text-subtle: #475569;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
 
   /* Aurora-inspired restrained accents */
   --accent-green: #22c55e;   /* moderate Kp (4–4.9) — northern tier possible */
@@ -319,14 +319,14 @@ body {
 /* Leaflet attribution — override default white background to match dark theme */
 .leaflet-control-attribution {
   background: rgba(10, 14, 26, 0.85) !important;
-  color: #475569 !important;
+  color: #64748b !important;
   border-radius: 6px !important;
   font-size: 9px !important;
   backdrop-filter: blur(4px);
 }
 
 .leaflet-control-attribution a {
-  color: #64748b !important;
+  color: #94a3b8 !important;
 }
 
 .leaflet-control-attribution a:hover {

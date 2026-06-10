@@ -40,7 +40,7 @@ export function NotificationPrompt({ accentColor = "#38bdf8" }: NotificationProm
   if (phase === "picking") {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-xs text-[#64748b]">Notify me for:</span>
+        <span className="text-xs text-[#94a3b8]">Notify me for:</span>
         {PRESETS.map((p) => (
           <button
             key={p.key}

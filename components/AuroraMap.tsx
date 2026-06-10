@@ -113,7 +113,7 @@ export default function AuroraMap({
       <div className={placeholderCls}>
         <div className="text-center">
           <div className="h-4 w-32 bg-[#1e2937] rounded animate-pulse mb-2 mx-auto" />
-          <div className="text-[#64748b] text-sm">Syncing OVATION aurora data…</div>
+          <div className="text-[#94a3b8] text-sm">Syncing OVATION aurora data…</div>
         </div>
       </div>
     );
@@ -126,7 +126,7 @@ export default function AuroraMap({
           <div className="text-[#94a3b8] mb-2">Aurora data temporarily unavailable.</div>
           <button
             onClick={() => refetch()}
-            className="text-[#64748b] underline underline-offset-2 hover:text-white transition-colors"
+            className="text-[#94a3b8] underline underline-offset-2 hover:text-white transition-colors"
           >
             Try refreshing
           </button>
@@ -177,7 +177,7 @@ export default function AuroraMap({
             <div className="text-[#94a3b8] text-sm font-medium mb-1.5">
               Geomagnetically quiet
             </div>
-            <div className="text-[10px] text-[#64748b] leading-relaxed">
+            <div className="text-[10px] text-[#94a3b8] leading-relaxed">
               The aurora oval is currently positioned away from North America. Conditions may improve when Kp rises.
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function AuroraMap({
       {/* Legend — z-[20] keeps it above the empty state overlay */}
       <div className="absolute bottom-3 right-3 z-[20] px-3 py-2 text-[10px] text-[#cbd5e1]">
         <div className="mb-0.5 font-medium tracking-wide text-[#94a3b8]">Aurora Probability</div>
-        <div className="text-[9px] text-[#475569] mb-1">NOAA OVATION model</div>
+        <div className="text-[9px] text-[#64748b] mb-1">NOAA OVATION model</div>
         <div
           className="h-2 w-32 rounded-full mb-1 border border-[#1e2937]/50"
           style={{
@@ -215,12 +215,12 @@ export default function AuroraMap({
               "linear-gradient(to right, #166534, #22c55e, #eab308, #f97316, #a78bfa, #c084fc)",
           }}
         />
-        <div className="flex justify-between text-[9px] text-[#64748b] w-32 mb-1 tabular-nums">
+        <div className="flex justify-between text-[9px] text-[#94a3b8] w-32 mb-1 tabular-nums">
           <span>0</span>
           <span>50</span>
           <span>100%</span>
         </div>
-        <div className="text-[9px] text-[#475569] tabular-nums">
+        <div className="text-[9px] text-[#64748b] tabular-nums">
           {safePoints.length} areas · NA
         </div>
       </div>

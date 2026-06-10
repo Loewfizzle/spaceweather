@@ -28,7 +28,7 @@ export function DataUnderstanding() {
             </div>
           </div>
           <ChevronDown
-            className={`w-5 h-5 text-[#64748b] transition-transform ${isDataInfoExpanded ? "rotate-180" : ""}`}
+            className={`w-5 h-5 text-[#94a3b8] transition-transform ${isDataInfoExpanded ? "rotate-180" : ""}`}
           />
         </button>
 
@@ -65,7 +65,7 @@ export function DataUnderstanding() {
             </ul>
           </div>
 
-          <div className="text-[10px] text-[#64748b] pt-2 border-t border-[#1e2937]">
+          <div className="text-[10px] text-[#94a3b8] pt-2 border-t border-[#1e2937]">
             Data is provided by NOAA Space Weather Prediction Center (SWPC) for personal and educational use. This dashboard is not intended for navigation or safety-critical decisions. Conditions can change rapidly.
           </div>
         </div>
