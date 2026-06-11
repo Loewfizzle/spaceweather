@@ -9,6 +9,7 @@ import {
 } from "../utils/retry";
 import {
   fetchXrayFlaresLatest,
+  fetchXrayFlares7Day,
   fetchAlerts,
   fetchSolarRegions,
 } from "../api/fetchers";
@@ -24,6 +25,17 @@ export function useSolarActivity() {
     refetchInterval: 1000 * 60 * 5,
     refetchIntervalInBackground: false,
     retry: shouldRetryCritical,
+    retryDelay: exponentialBackoff,
+  });
+
+  const flares7DayQuery = useQuery<XrayFlare[]>({
+    queryKey: ["xray-flares-7day"],
+    queryFn: fetchXrayFlares7Day,
+    staleTime: 1000 * 60 * 15,
+    gcTime: 1000 * 60 * 60,
+    refetchInterval: 1000 * 60 * 15,
+    refetchIntervalInBackground: false,
+    retry: shouldRetryNonCritical,
     retryDelay: exponentialBackoff,
   });
 
@@ -51,7 +63,20 @@ export function useSolarActivity() {
   const latestFlare = flaresQuery.data && flaresQuery.data.length > 0
     ? flaresQuery.data[0]
     : null;
-  const recentFlares: XrayFlare[] = flaresQuery.data ?? [];
+
+  // 7-day data sorted newest-first; drop entry matching latestFlare so the modal
+  // doesn't repeat the featured flare in the "recent" list.
+  const recentFlares: XrayFlare[] = useMemo(() => {
+    const all = flares7DayQuery.data ?? [];
+    const sorted = [...all].sort((a, b) => {
+      const ta = new Date(a.max_time ?? a.time_tag).getTime();
+      const tb = new Date(b.max_time ?? b.time_tag).getTime();
+      return tb - ta;
+    });
+    if (!latestFlare) return sorted;
+    const latestTag = latestFlare.max_time ?? latestFlare.time_tag;
+    return sorted.filter((f) => (f.max_time ?? f.time_tag) !== latestTag);
+  }, [flares7DayQuery.data, latestFlare]);
 
   // parseRecentCmes and currentSunspotNumber produce new array/value references every call;
   // memoize so consumers (e.g. tonightOutlook useMemo in DashboardClient) get stable deps.

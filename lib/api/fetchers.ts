@@ -160,6 +160,22 @@ export async function fetchXrayFlaresLatest(): Promise<XrayFlare[]> {
   }
 }
 
+export async function fetchXrayFlares7Day(): Promise<XrayFlare[]> {
+  const url = 'https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json';
+  try {
+    const raw = await fetchJson<unknown>(url);
+    const result = z.array(XrayFlareSchema).safeParse(raw);
+    if (!result.success) {
+      logDataError('XrayFlares7Day parse', result.error, { url }, false, 'xray-flares');
+      return [];
+    }
+    return result.data;
+  } catch (e) {
+    logDataError('XrayFlares7Day fetch', e, { url }, false, 'xray-flares');
+    return [];
+  }
+}
+
 // Alerts
 export async function fetchAlerts(): Promise<Alert[]> {
   const url = 'https://services.swpc.noaa.gov/products/alerts.json';
