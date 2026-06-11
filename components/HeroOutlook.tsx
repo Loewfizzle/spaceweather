@@ -269,9 +269,9 @@ export function HeroOutlook({
             )}
           </div>
 
-          {/* Secondary row: cloud cover + notification + install prompts */}
+          {/* Secondary rows: cloud cover on its own line, alert/install below */}
           {!showPicker && (
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div className="mt-2 flex flex-col gap-2">
               {cloudCoverPct != null && (
                 <div className="flex items-center gap-1.5 text-xs text-[#94a3b8]">
                   <Cloud className="h-3.5 w-3.5 flex-shrink-0" />
@@ -281,8 +281,10 @@ export function HeroOutlook({
                   </span>
                 </div>
               )}
-              <NotificationPrompt accentColor="white" />
-              <InstallPrompt accentColor="#94a3b8" />
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <NotificationPrompt accentColor="white" />
+                <InstallPrompt accentColor="#94a3b8" />
+              </div>
             </div>
           )}
 
