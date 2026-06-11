@@ -78,7 +78,7 @@ describe('AuroraMapModal', () => {
   it('calls onClose when the close button is clicked', () => {
     const onClose = vi.fn();
     render(<AuroraMapModal onClose={onClose} />);
-    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /close/i })[0]);
     expect(onClose).toHaveBeenCalledOnce();
   });
 
