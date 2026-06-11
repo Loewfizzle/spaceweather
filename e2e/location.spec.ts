@@ -5,8 +5,8 @@ test.describe('Location flows', () => {
   test.beforeEach(async ({ page }) => {
     await mockNoaaApis(page);
     await page.goto('/');
-    // Wait for hero to exit Loading state (requires Kp data)
-    await page.getByRole('heading', { name: /very low|low|good|moderate|excellent/i }).waitFor();
+    // Wait for hero to exit Loading state — "Current indicators —" only renders with Kp data
+    await page.getByText(/Current indicators/).waitFor();
   });
 
   test('direct lat/lon entry sets location label in hero', async ({ page }) => {
@@ -14,15 +14,17 @@ test.describe('Location flows', () => {
 
     // LocationPicker — type a valid lat,lon string (bypasses the search API)
     await page.getByPlaceholder(/City, state/i).fill('44.0, -93.0');
-    await page.getByRole('button', { name: 'Search' }).click();
+    // exact: true — the Cancel button's aria-label "Cancel location search" also substring-matches "Search"
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
 
-    // onConfirm fires immediately (no API call for direct coords)
-    await expect(page.getByText(/44\.0000°/)).toBeVisible();
-    // Change / Clear buttons appear when location is set
-    await expect(page.getByRole('button', { name: 'Change' })).toBeVisible();
+    // onConfirm fires immediately (no API call for direct coords).
+    // The label can appear in both the hero list and the footer row — first() avoids strict-mode failure.
+    await expect(page.getByText(/44\.0000°/).first()).toBeVisible();
+    // Clear control appears when location is set
+    await expect(page.getByRole('button', { name: 'Clear saved location' })).toBeVisible();
   });
 
-  test('GPS location flow resolves and shows Change/Clear controls', async ({ browser }) => {
+  test('GPS location flow resolves and shows Clear control', async ({ browser }) => {
     const context = await browser.newContext({
       permissions: ['geolocation'],
       geolocation: { latitude: 46.5, longitude: -84.3 },
@@ -30,13 +32,12 @@ test.describe('Location flows', () => {
     const page = await context.newPage();
     await mockNoaaApis(page);
     await page.goto('/');
-    await page.getByRole('heading', { name: /very low|low|good|moderate|excellent/i }).waitFor();
+    await page.getByText(/Current indicators/).waitFor();
 
     await page.getByRole('button', { name: 'Use my location' }).click();
 
-    // GPS resolves via browser geolocation mock — nearest city name appears
-    await expect(page.getByRole('button', { name: 'Change' })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole('button', { name: 'Clear saved location' })).toBeVisible();
+    // GPS resolves via browser geolocation mock — Clear control appears
+    await expect(page.getByRole('button', { name: 'Clear saved location' })).toBeVisible({ timeout: 15_000 });
     await context.close();
   });
 
@@ -44,7 +45,8 @@ test.describe('Location flows', () => {
     // Set location first
     await page.getByRole('button', { name: 'Enter manually' }).click();
     await page.getByPlaceholder(/City, state/i).fill('44.0, -93.0');
-    await page.getByRole('button', { name: 'Search' }).click();
+    // exact: true — the Cancel button's aria-label "Cancel location search" also substring-matches "Search"
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Clear saved location' })).toBeVisible();
 
     // Clear it

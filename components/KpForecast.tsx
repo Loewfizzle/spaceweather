@@ -140,6 +140,7 @@ export function KpForecast({ guidance, kpHistory, kpForecastData, kpIsLoading, k
               data={chartData}
               options={chartOptions}
               plugins={chartPlugins as Plugin<"line">[]}
+              aria-label="Kp index history and forecast chart"
             />
           ) : (
             <div className="flex h-full items-center justify-center text-[#94a3b8]">

@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Simple per-instance sliding-window rate limiter (10 req/min per IP).
+// Per-instance only — resets on cold start, but sufficient for launch-scale abuse prevention.
+const RL_WINDOW_MS = 60_000;
+const RL_MAX_HITS = 10;
+const _rl = new Map<string, number[]>();
+function isRateLimited(ip: string | null): boolean {
+  // No x-forwarded-for means local dev or tests; Vercel always sets it in production.
+  if (!ip) return false;
+  const now = Date.now();
+  if (_rl.size > 1000) {
+    for (const [key, times] of _rl) {
+      if (now - times[times.length - 1] >= RL_WINDOW_MS) _rl.delete(key);
+    }
+  }
+  const hits = (_rl.get(ip) ?? []).filter((t) => now - t < RL_WINDOW_MS);
+  if (hits.length >= RL_MAX_HITS) return true;
+  hits.push(now);
+  _rl.set(ip, hits);
+  return false;
+}
+
 export interface LocationSearchResult {
   lat: number;
   lon: number;
@@ -36,6 +57,11 @@ function buildLabel(addr: Record<string, string>, displayName: string): string {
 }
 
 export async function GET(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ results: [] }, { status: 429 });
+  }
+
   const q = request.nextUrl.searchParams.get("q")?.trim();
   if (!q || q.length < 2) {
     return NextResponse.json({ results: [] });

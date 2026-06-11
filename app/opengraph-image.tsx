@@ -130,7 +130,7 @@ export default async function OGImage() {
               SkyGlow
             </span>
             <span style={{ color: '#334155', fontSize: 18, marginLeft: 8 }}>
-              Northern US · Great Lakes
+              Northern US &amp; Canada
             </span>
           </div>
 

@@ -45,7 +45,7 @@ export function AuroraMapSection({ userProb, ovationPoints }: AuroraMapSectionPr
   const [showModal, setShowModal] = useState(false);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12" data-testid="aurora-map-section">
       <div className="card overflow-hidden">
 
         {/* Card header */}

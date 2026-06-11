@@ -14,8 +14,10 @@ test.describe('Metric info modals', () => {
 
     const dialog = page.getByRole('dialog', { name: 'Solar Wind' });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText('Speed')).toBeVisible();
-    await expect(dialog.getByText('Density')).toBeVisible();
+    // exact: true — "speed"/"density" also appear inside body copy, which would
+    // otherwise trip Playwright's strict mode with multiple matches
+    await expect(dialog.getByText('Speed', { exact: true })).toBeVisible();
+    await expect(dialog.getByText('Density', { exact: true })).toBeVisible();
     await expect(dialog.getByText('Aurora relevance')).toBeVisible();
   });
 
@@ -33,7 +35,9 @@ test.describe('Metric info modals', () => {
 
     const dialog = page.getByRole('dialog', { name: 'Planetary Kp Index' });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText('Kp 5')).toBeVisible();
+    // exact: true — the color legend also contains "Kp 5 (Active)", which would
+    // otherwise make getByText('Kp 5') match twice
+    await expect(dialog.getByText('Kp 5', { exact: true })).toBeVisible();
     await expect(dialog.getByText('Minneapolis, Seattle, Montreal')).toBeVisible();
   });
 

@@ -6,8 +6,8 @@ test.describe('Accessibility', () => {
   test.beforeEach(async ({ page }) => {
     await mockNoaaApis(page);
     await page.goto('/');
-    // Wait for the page to exit the initial Loading skeleton
-    await page.getByRole('heading', { name: /very low|low|good|moderate|excellent/i }).waitFor();
+    // Wait for hero to exit Loading state — "Current indicators —" only renders with Kp data
+    await page.getByText(/Current indicators/).waitFor();
   });
 
   test('no critical or serious axe violations on homepage', async ({ page }) => {
@@ -27,12 +27,10 @@ test.describe('Accessibility', () => {
   });
 
   test('aurora map section has no critical axe violations', async ({ page }) => {
-    const mapSection = page.locator('text=AURORA MAP — OVATION MODEL').locator('../..');
+    await expect(page.getByText('OVATION MODEL', { exact: true })).toBeVisible();
+
     const results = await new AxeBuilder({ page })
-      .include(await mapSection.evaluate((el) => {
-        // Return a unique selector for the map section
-        return el.className ? `.${el.className.split(' ')[0]}` : 'body';
-      }))
+      .include('[data-testid="aurora-map-section"]')
       .disableRules(['color-contrast', 'color-contrast-enhanced'])
       .analyze();
 
@@ -57,15 +55,15 @@ test.describe('Accessibility', () => {
     await expect(dialog).not.toBeVisible();
   });
 
-  test('probability slider is keyboard controllable', async ({ page }) => {
-    const slider = page.getByRole('slider', { name: /minimum aurora probability/i });
-    await slider.focus();
+  test('aurora map Details button is keyboard accessible', async ({ page }) => {
+    const mapCard = page.locator('.card', { hasText: 'Aurora Visibility Forecast' });
+    await mapCard.getByRole('button', { name: 'Details' }).focus();
+    await page.keyboard.press('Enter');
 
-    const initialValue = await slider.inputValue();
+    const dialog = page.getByRole('dialog', { name: 'Aurora Map' });
+    await expect(dialog).toBeVisible();
 
-    // Arrow Right increases value
-    await page.keyboard.press('ArrowRight');
-    const newValue = await slider.inputValue();
-    expect(parseInt(newValue)).toBeGreaterThan(parseInt(initialValue));
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
   });
 });
