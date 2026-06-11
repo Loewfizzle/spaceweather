@@ -205,7 +205,7 @@ export function FlareModal({
 
           <button
             onClick={onClose}
-            className="w-full py-2.5 text-sm text-[#64748b] hover:text-[#94a3b8] border border-[#1e2937] hover:border-[#293548] rounded-lg transition-colors"
+            className="w-full py-2.5 text-sm text-[#94a3b8] hover:text-white border border-[#293548] hover:border-[#475569] rounded-lg transition-colors"
           >
             Close
           </button>

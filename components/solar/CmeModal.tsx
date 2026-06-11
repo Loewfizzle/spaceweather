@@ -124,58 +124,7 @@ export function CmeModal({
           </div>
 
           <div className="px-5 pb-5 pt-4 space-y-5">
-            {/* DONKI impact forecast — shown only when data is available, fails silently */}
-            {donkiLoading ? (
-              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3 space-y-2">
-                <div className="h-3.5 w-28 rounded animate-pulse bg-[#1e2937]" />
-                <div className="h-3 w-full rounded animate-pulse bg-[#1e2937]" />
-                <div className="h-3 w-4/5 rounded animate-pulse bg-[#1e2937]" />
-              </div>
-            ) : donkiCme ? (
-              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-                <div className="text-xs font-semibold text-[#cbd5e1] uppercase tracking-wide mb-3">
-                  Impact Forecast
-                </div>
-
-                {/* Arrival time */}
-                <div className="flex items-baseline gap-2 mb-2 flex-wrap">
-                  <span className="text-xs text-[#64748b] shrink-0">
-                    {donkiCme.isEstimatedArrival ? 'Est. arrival:' : 'Predicted arrival:'}
-                  </span>
-                  <span className="text-sm font-semibold text-white">
-                    {formatDistanceToNow(new Date(donkiCme.arrivalTime), { addSuffix: true })}
-                  </span>
-                  <span className="text-xs text-[#64748b]">
-                    ({formatArrivalDatetime(donkiCme.arrivalTime)})
-                  </span>
-                </div>
-                {donkiCme.isEstimatedArrival && (
-                  <p className="text-[10px] text-[#475569] mb-2">
-                    Estimated from CME speed and trajectory — ENLIL model not yet available.
-                  </p>
-                )}
-
-                {/* G-scale badge */}
-                {gScale && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs text-[#64748b]">Expected storm:</span>
-                    <span
-                      className="text-xs font-bold px-2 py-0.5 rounded border"
-                      style={{ color: gScale.color, borderColor: gScale.color, backgroundColor: gScale.color + '1a' }}
-                    >
-                      {gScale.scale} Storm
-                    </span>
-                  </div>
-                )}
-
-                {/* Aurora visibility */}
-                {visibilityText && (
-                  <p className="text-sm text-[#94a3b8] leading-relaxed">{visibilityText}</p>
-                )}
-              </div>
-            ) : null}
-
-            {/* CME list */}
+            {/* CME list — Impact Forecast is embedded inside the first card */}
             {recentCmes.length > 0 ? (
               <div className="space-y-3">
                 {recentCmes.map((cme, i) => {
@@ -209,9 +158,99 @@ export function CmeModal({
                       <div className="text-[10px] text-[#64748b] ml-4 mt-1">
                         Alert issued {formatCmeAge(cme.time)}
                       </div>
+
+                      {/* Impact Forecast embedded in the first CME card */}
+                      {i === 0 && (donkiLoading || donkiCme) && (
+                        <div className="mt-3 pt-3 border-t border-[#1e2937]">
+                          {donkiLoading ? (
+                            <div className="space-y-2">
+                              <div className="h-3 w-24 rounded animate-pulse bg-[#1e2937]" />
+                              <div className="h-3 w-full rounded animate-pulse bg-[#1e2937]" />
+                            </div>
+                          ) : donkiCme ? (
+                            <>
+                              <div className="text-xs font-semibold text-[#cbd5e1] uppercase tracking-wide mb-2">
+                                Impact Forecast
+                              </div>
+                              <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
+                                <span className="text-xs text-[#64748b] shrink-0">
+                                  {donkiCme.isEstimatedArrival ? 'Est. arrival:' : 'Predicted arrival:'}
+                                </span>
+                                <span className="text-sm font-semibold text-white">
+                                  {formatDistanceToNow(new Date(donkiCme.arrivalTime), { addSuffix: true })}
+                                </span>
+                                <span className="text-xs text-[#64748b]">
+                                  ({formatArrivalDatetime(donkiCme.arrivalTime)})
+                                </span>
+                              </div>
+                              {donkiCme.isEstimatedArrival && (
+                                <p className="text-[10px] text-[#475569] mb-1.5">
+                                  Estimated from CME speed — ENLIL model not yet available.
+                                </p>
+                              )}
+                              {gScale && (
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-xs text-[#64748b]">Expected storm:</span>
+                                  <span
+                                    className="text-xs font-bold px-2 py-0.5 rounded border"
+                                    style={{ color: gScale.color, borderColor: gScale.color, backgroundColor: gScale.color + '1a' }}
+                                  >
+                                    {gScale.scale} Storm
+                                  </span>
+                                </div>
+                              )}
+                              {visibilityText && (
+                                <p className="text-sm text-[#94a3b8] leading-relaxed">{visibilityText}</p>
+                              )}
+                            </>
+                          ) : null}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
+              </div>
+            ) : donkiLoading ? (
+              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3 space-y-2">
+                <div className="h-3.5 w-28 rounded animate-pulse bg-[#1e2937]" />
+                <div className="h-3 w-full rounded animate-pulse bg-[#1e2937]" />
+                <div className="h-3 w-4/5 rounded animate-pulse bg-[#1e2937]" />
+              </div>
+            ) : donkiCme ? (
+              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
+                <div className="text-xs font-semibold text-[#cbd5e1] uppercase tracking-wide mb-3">
+                  Impact Forecast
+                </div>
+                <div className="flex items-baseline gap-2 mb-2 flex-wrap">
+                  <span className="text-xs text-[#64748b] shrink-0">
+                    {donkiCme.isEstimatedArrival ? 'Est. arrival:' : 'Predicted arrival:'}
+                  </span>
+                  <span className="text-sm font-semibold text-white">
+                    {formatDistanceToNow(new Date(donkiCme.arrivalTime), { addSuffix: true })}
+                  </span>
+                  <span className="text-xs text-[#64748b]">
+                    ({formatArrivalDatetime(donkiCme.arrivalTime)})
+                  </span>
+                </div>
+                {donkiCme.isEstimatedArrival && (
+                  <p className="text-[10px] text-[#475569] mb-2">
+                    Estimated from CME speed — ENLIL model not yet available.
+                  </p>
+                )}
+                {gScale && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs text-[#64748b]">Expected storm:</span>
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded border"
+                      style={{ color: gScale.color, borderColor: gScale.color, backgroundColor: gScale.color + '1a' }}
+                    >
+                      {gScale.scale} Storm
+                    </span>
+                  </div>
+                )}
+                {visibilityText && (
+                  <p className="text-sm text-[#94a3b8] leading-relaxed">{visibilityText}</p>
+                )}
               </div>
             ) : (
               <p className="text-sm text-[#94a3b8]">No CMEs detected recently.</p>
@@ -275,7 +314,7 @@ export function CmeModal({
 
             <button
               onClick={onClose}
-              className="w-full py-2.5 text-sm text-[#64748b] hover:text-[#94a3b8] border border-[#1e2937] hover:border-[#293548] rounded-lg transition-colors"
+              className="w-full py-2.5 text-sm text-[#94a3b8] hover:text-white border border-[#293548] hover:border-[#475569] rounded-lg transition-colors"
             >
               Close
             </button>
