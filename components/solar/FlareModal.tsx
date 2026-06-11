@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Zap, X, ChevronRight } from "lucide-react";
 import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { formatDistanceToNow } from "date-fns";
@@ -73,18 +72,13 @@ export function FlareModal({
   const info = flareClassInfo(cls);
   const duration = flareDuration(flare.begin_time, flare.end_time);
   const peakTime = flare.max_time || flare.time_tag;
-  const [goesState, setGoesState] = useState<"loading" | "loaded" | "failed">("loading");
-  const [goesUrl] = useState(
-    () => `https://services.swpc.noaa.gov/images/goes-xray-flux-1-minute.png?t=${Date.now()}`
-  );
+  const priorFlares = recentFlares.slice(1, 5);
 
   const timingRows = [
     { label: "Begin", time: flare.begin_time },
     { label: "Peak", time: flare.max_time },
     { label: "End", time: flare.end_time },
   ] as const;
-
-  const priorFlares = recentFlares.slice(1, 5);
 
   return (
     // Overlay is the scroll container — avoids the mobile-Safari 100vh chrome bug
@@ -197,37 +191,6 @@ export function FlareModal({
               </div>
             </div>
           )}
-
-          {/* GOES X-ray flux chart */}
-          <div>
-            <div className="text-sm font-semibold text-[#cbd5e1] mb-2">
-              GOES X-ray flux · last 24 hours
-            </div>
-            {goesState !== "failed" ? (
-              <div className="rounded-lg overflow-hidden border border-[#1e2937] bg-black">
-                {goesState === "loading" && (
-                  <div className="h-28 animate-pulse bg-[#0f1425]" />
-                )}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={goesUrl}
-                  alt="GOES X-ray flux chart showing recent solar flare activity"
-                  onLoad={() => setGoesState("loaded")}
-                  onError={() => setGoesState("failed")}
-                  className={goesState === "loaded" ? "w-full" : "hidden"}
-                />
-              </div>
-            ) : (
-              <div className="h-14 flex items-center justify-center text-xs text-[#334155] border border-[#1e2937] rounded-lg">
-                Chart temporarily unavailable
-              </div>
-            )}
-            {goesState !== "failed" && (
-              <div className="mt-1 text-[9px] text-[#334155]">
-                Updates every minute · Source: NOAA GOES satellite
-              </div>
-            )}
-          </div>
 
           {/* External link */}
           <a
