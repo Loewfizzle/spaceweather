@@ -5,6 +5,8 @@ import { normalizeTimeTag } from "../utils/viewingWindow";
 // Raw shape returned by NASA DONKI CMEAnalysis endpoint — intentionally permissive.
 const DonkiCmeRawSchema = z.object({
   time21_5: z.string().nullable().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
   speed: z.number().nullable().optional(),
   halfAngle: z.number().nullable().optional(),
   type: z.string().nullable().optional(),
@@ -36,14 +38,36 @@ export async function fetchDonkiCmeDetails(signal?: AbortSignal): Promise<DonkiC
   const raw = await res.json();
   const result = z.array(DonkiCmeRawSchema).safeParse(raw);
   if (!result.success) return [];
+  // ~1 AU in km minus the 21.5 solar-radii already traveled at measurement point
+  const REMAINING_KM = 135_000_000;
+
   return result.data
-    .filter((item) => item.isMostAccurate === true && item.predictedEarthImpactTime != null)
-    .map((item) => ({
-      speed: item.speed ?? null,
-      arrivalTime: item.predictedEarthImpactTime!,
-      kpIndex: item.kpIndex18 ?? null,
-      note: item.note ?? '',
-    }));
+    .filter((item) =>
+      item.isMostAccurate === true &&
+      item.longitude != null && Math.abs(item.longitude) <= 45
+    )
+    .map((item): DonkiCme | null => {
+      // Prefer DONKI's confirmed arrival prediction; estimate from transit time otherwise.
+      let arrivalTime = item.predictedEarthImpactTime ?? null;
+      let isEstimatedArrival = false;
+      if (!arrivalTime && item.speed && item.speed > 50 && item.time21_5) {
+        const transitMs = (REMAINING_KM / item.speed) * 1_000; // km / (km/s) = s → ms
+        const depart = new Date(item.time21_5).getTime();
+        if (!isNaN(depart)) {
+          arrivalTime = new Date(depart + transitMs).toISOString();
+          isEstimatedArrival = true;
+        }
+      }
+      if (!arrivalTime) return null;
+      return {
+        speed: item.speed ?? null,
+        arrivalTime,
+        isEstimatedArrival,
+        kpIndex: item.kpIndex18 ?? null,
+        note: item.note ?? '',
+      };
+    })
+    .filter((item): item is DonkiCme => item !== null);
 }
 /* v8 ignore stop */
 

@@ -125,6 +125,7 @@ export type KpForecastEntry = z.infer<typeof KpForecastEntrySchema>;
 export const DonkiCmeSchema = z.object({
   speed: z.number().nullable(),
   arrivalTime: z.string(),
+  isEstimatedArrival: z.boolean(),
   kpIndex: z.number().nullable(),
   note: z.string(),
 });

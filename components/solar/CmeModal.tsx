@@ -137,9 +137,11 @@ export function CmeModal({
                   Impact Forecast
                 </div>
 
-                {/* Predicted arrival */}
+                {/* Arrival time */}
                 <div className="flex items-baseline gap-2 mb-2 flex-wrap">
-                  <span className="text-xs text-[#64748b] shrink-0">Predicted arrival:</span>
+                  <span className="text-xs text-[#64748b] shrink-0">
+                    {donkiCme.isEstimatedArrival ? 'Est. arrival:' : 'Predicted arrival:'}
+                  </span>
                   <span className="text-sm font-semibold text-white">
                     {formatDistanceToNow(new Date(donkiCme.arrivalTime), { addSuffix: true })}
                   </span>
@@ -147,6 +149,11 @@ export function CmeModal({
                     ({formatArrivalDatetime(donkiCme.arrivalTime)})
                   </span>
                 </div>
+                {donkiCme.isEstimatedArrival && (
+                  <p className="text-[10px] text-[#475569] mb-2">
+                    Estimated from CME speed and trajectory — ENLIL model not yet available.
+                  </p>
+                )}
 
                 {/* G-scale badge */}
                 {gScale && (
