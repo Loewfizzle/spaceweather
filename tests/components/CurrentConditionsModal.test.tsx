@@ -93,10 +93,19 @@ describe('CurrentConditionsModal', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('calls onClose when the close button is clicked', () => {
+  it('calls onClose when the top close (X) button is clicked', () => {
     const onClose = vi.fn();
     render(<CurrentConditionsModal {...defaultProps} onClose={onClose} />);
-    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    // Two close buttons now exist; first in DOM order is the X in the header
+    fireEvent.click(screen.getAllByRole('button', { name: /close/i })[0]);
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('calls onClose when the bottom close button is clicked', () => {
+    const onClose = vi.fn();
+    render(<CurrentConditionsModal {...defaultProps} onClose={onClose} />);
+    // Bottom button has visible text "Close"; X button renders only an SVG
+    fireEvent.click(screen.getByText('Close'));
     expect(onClose).toHaveBeenCalledOnce();
   });
 

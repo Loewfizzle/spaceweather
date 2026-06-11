@@ -19,21 +19,10 @@ const DonkiCmeRawSchema = z.object({
   link: z.string().nullable().optional(),
 });
 
-/** Fetch Earth-directed CME predictions from NASA DONKI (last 3 days). */
+/** Fetch Earth-directed CME predictions via the /api/donki-cmes proxy (avoids CORS). */
 /* v8 ignore start */
 export async function fetchDonkiCmeDetails(signal?: AbortSignal): Promise<DonkiCme[]> {
-  const fmt = (d: Date) => d.toISOString().split('T')[0];
-  const today = new Date();
-  const startDate = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
-  const params = new URLSearchParams({
-    startDate: fmt(startDate),
-    endDate: fmt(today),
-    mostAccurateOnly: 'true',
-    speed: '0',
-    halfAngle: '0',
-  });
-  const url = `https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get/CMEAnalysis?${params}`;
-  const res = await fetch(url, { cache: 'no-store', signal });
+  const res = await fetch('/api/donki-cmes', { cache: 'no-store', signal });
   if (!res.ok) throw new Error(`DONKI CMEAnalysis: ${res.status}`);
   const raw = await res.json();
   const result = z.array(DonkiCmeRawSchema).safeParse(raw);
