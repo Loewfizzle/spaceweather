@@ -180,6 +180,12 @@ export function KpForecastModal({ onClose }: KpForecastModalProps) {
               <span>3-Day Forecast on NOAA SWPC</span>
               <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
             </a>
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 text-sm text-[#94a3b8] hover:text-white border border-[#293548] hover:border-[#475569] rounded-lg transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
