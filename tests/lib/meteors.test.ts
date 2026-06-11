@@ -3,6 +3,8 @@ import {
   getNextMeteorShower,
   formatMeteorPeak,
   createGoogleCalendarLink,
+  createIcsContent,
+  icsFileName,
 } from '../../lib/aurora/meteors';
 import type { MeteorShower } from '../../lib/aurora/meteors';
 
@@ -108,5 +110,98 @@ describe('createGoogleCalendarLink', () => {
     const url = createGoogleCalendarLink(singleDay, d);
     expect(url).toContain('20260422');
     expect(url).toContain('20260423'); // 1-day span → end is next day
+  });
+});
+
+// ── createIcsContent ──────────────────────────────────────────────────────────
+
+describe('createIcsContent', () => {
+  const shower: MeteorShower = {
+    name: 'Perseids', peakMonth: 8, peakDay: 12,
+    peakEndMonth: 8, peakEndDay: 13,
+    description: 'A great shower.', activityLevel: 'High',
+  };
+  const date = new Date(2026, 7, 12);
+  const now = new Date('2026-06-11T20:00:00Z'); // injected for deterministic DTSTAMP
+
+  it('produces a structurally valid VCALENDAR with one VEVENT', () => {
+    const ics = createIcsContent(shower, date, now);
+    expect(ics).toMatch(/^BEGIN:VCALENDAR\r\n/);
+    expect(ics).toContain('VERSION:2.0');
+    expect(ics).toContain('BEGIN:VEVENT');
+    expect(ics).toContain('END:VEVENT');
+    expect(ics).toMatch(/END:VCALENDAR\r\n$/);
+  });
+
+  it('uses CRLF line endings throughout (RFC 5545)', () => {
+    const ics = createIcsContent(shower, date, now);
+    // No bare LF: every \n must be preceded by \r
+    expect(ics.replace(/\r\n/g, '')).not.toContain('\n');
+  });
+
+  it('sets all-day DTSTART/DTEND with a 2-day span for multi-night peaks', () => {
+    const ics = createIcsContent(shower, date, now);
+    expect(ics).toContain('DTSTART;VALUE=DATE:20260812');
+    expect(ics).toContain('DTEND;VALUE=DATE:20260814'); // exclusive end
+  });
+
+  it('sets a 1-day span when peakEndDay is absent', () => {
+    const singleDay: MeteorShower = { name: 'Lyrids', peakMonth: 4, peakDay: 22, description: '', activityLevel: '' };
+    const ics = createIcsContent(singleDay, new Date(2026, 3, 22), now);
+    expect(ics).toContain('DTSTART;VALUE=DATE:20260422');
+    expect(ics).toContain('DTEND;VALUE=DATE:20260423');
+  });
+
+  it('includes the shower name in SUMMARY', () => {
+    const ics = createIcsContent(shower, date, now);
+    expect(ics).toContain('SUMMARY:Meteor Shower Peak: Perseids');
+  });
+
+  it('formats DTSTAMP as a UTC timestamp from the injected now', () => {
+    const ics = createIcsContent(shower, date, now);
+    expect(ics).toContain('DTSTAMP:20260611T200000Z');
+  });
+
+  it('generates a deterministic UID from shower and year', () => {
+    const ics = createIcsContent(shower, date, now);
+    expect(ics).toContain('UID:perseids-2026@skyglow.app');
+  });
+
+  it('escapes commas and newlines in DESCRIPTION text', () => {
+    const tricky: MeteorShower = {
+      name: 'Test', peakMonth: 4, peakDay: 22,
+      description: 'Fast, bright; reliable.', activityLevel: 'High',
+    };
+    const ics = createIcsContent(tricky, new Date(2026, 3, 22), now);
+    // Unfold first (RFC 5545: CRLF + space is a fold), as a real parser would —
+    // folding may split an escape sequence across physical lines
+    const unfolded = ics.replace(/\r\n /g, '');
+    expect(unfolded).toContain('Fast\\, bright\\; reliable.');
+    // Real newlines in the description become literal \n sequences
+    expect(unfolded).toContain('\\n\\nExpected activity');
+  });
+
+  it('folds long lines to at most 75 octets followed by a space continuation', () => {
+    const ics = createIcsContent(shower, date, now);
+    const physicalLines = ics.split('\r\n');
+    for (const line of physicalLines) {
+      expect(line.length).toBeLessThanOrEqual(75);
+    }
+    // The long DESCRIPTION must actually have been folded
+    expect(ics).toMatch(/\r\n [^\r\n]/);
+  });
+});
+
+// ── icsFileName ───────────────────────────────────────────────────────────────
+
+describe('icsFileName', () => {
+  it('builds a slugged filename with the peak year', () => {
+    const shower: MeteorShower = { name: 'Perseids', peakMonth: 8, peakDay: 12, description: '', activityLevel: '' };
+    expect(icsFileName(shower, new Date(2026, 7, 12))).toBe('perseids-2026-peak.ics');
+  });
+
+  it('slugs multi-word shower names', () => {
+    const shower: MeteorShower = { name: 'Eta Aquariids', peakMonth: 5, peakDay: 5, description: '', activityLevel: '' };
+    expect(icsFileName(shower, new Date(2027, 4, 5))).toBe('eta-aquariids-2027-peak.ics');
   });
 });

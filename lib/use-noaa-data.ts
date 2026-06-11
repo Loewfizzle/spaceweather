@@ -14,7 +14,7 @@ import { latest } from "./noaa";
 import { getTonightOutlook, getLocationAuroraProb } from "./aurora/outlook";
 import type { CityAuroraProb, TonightOutlook } from "./aurora/outlook";
 import { getAuroraRiskLevel } from "./aurora/kp";
-import { getNextMeteorShower, formatMeteorPeak, createGoogleCalendarLink } from "./aurora/meteors";
+import { getNextMeteorShower, formatMeteorPeak, createGoogleCalendarLink, createIcsContent, icsFileName } from "./aurora/meteors";
 import type { MeteorShower } from "./aurora/meteors";
 import { formatFireballDate, formatFireballLocation, formatFireballEnergy } from "./aurora/fireballs";
 import { approximateLocation } from "./aurora/location";
@@ -114,6 +114,8 @@ export {
   getNextMeteorShower,
   formatMeteorPeak,
   createGoogleCalendarLink,
+  createIcsContent,
+  icsFileName,
   getTonightOutlook,
   getLocationAuroraProb,
   getAuroraRiskLevel,

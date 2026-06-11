@@ -6,6 +6,8 @@ import {
   getNextMeteorShower,
   formatMeteorPeak,
   createGoogleCalendarLink,
+  createIcsContent,
+  icsFileName,
   useFireballs,
   formatFireballLocation,
   formatFireballEnergy,
@@ -73,6 +75,26 @@ export function MeteorActivity() {
   const nextMeteor = getNextMeteorShower();
   const [selectedFireball, setSelectedFireball] = useState<Fireball | null>(null);
   const [showFireballsModal, setShowFireballsModal] = useState(false);
+  const [showCalendarMenu, setShowCalendarMenu] = useState(false);
+
+  // Downloads an .ics file the OS hands to the user's default calendar app
+  // (Apple Calendar, Outlook, Thunderbird, …) — the closest the web gets to
+  // "add to default calendar". Google Calendar web users get the direct link
+  // instead, since Google's web app doesn't auto-import downloaded .ics files.
+  function handleDownloadIcs() {
+    if (!nextMeteor) return;
+    const ics = createIcsContent(nextMeteor.shower, nextMeteor.peakDate);
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = icsFileName(nextMeteor.shower, nextMeteor.peakDate);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setShowCalendarMenu(false);
+  }
   const [showMeteorModal, setShowMeteorModal] = useState(false);
   const [now] = useState(Date.now);
   const closeFireball = () => setSelectedFireball(null);
@@ -162,16 +184,38 @@ export function MeteorActivity() {
                     Allow 15–20 min dark adaptation
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    const url = createGoogleCalendarLink(nextMeteor.shower, nextMeteor.peakDate);
-                    window.open(url, "_blank", "noopener");
-                  }}
-                  className="button w-full justify-center gap-2 text-xs px-4 py-1.5 min-h-0"
-                >
-                  <CalendarPlus className="h-3.5 w-3.5" />
-                  Add Peak Night to Calendar
-                </button>
+                <div>
+                  <button
+                    onClick={() => setShowCalendarMenu((v) => !v)}
+                    aria-expanded={showCalendarMenu}
+                    className="button w-full justify-center gap-2 text-xs px-4 py-1.5 min-h-0"
+                  >
+                    <CalendarPlus className="h-3.5 w-3.5" />
+                    Add Peak Night to Calendar
+                  </button>
+                  {showCalendarMenu && (
+                    <div className="mt-2 rounded-lg border border-[#1e2937] bg-[#0a0e1a] overflow-hidden divide-y divide-[#1e2937]">
+                      <button
+                        onClick={handleDownloadIcs}
+                        className="w-full text-left px-3 py-2.5 text-xs text-[#94a3b8] hover:bg-[#1e2937] hover:text-white transition-colors"
+                      >
+                        <span className="font-medium text-[#cbd5e1]">Apple, Outlook &amp; default calendar</span>
+                        <span className="block text-[#64748b] mt-0.5">Downloads an .ics file your calendar app opens</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const url = createGoogleCalendarLink(nextMeteor.shower, nextMeteor.peakDate);
+                          window.open(url, "_blank", "noopener");
+                          setShowCalendarMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2.5 text-xs text-[#94a3b8] hover:bg-[#1e2937] hover:text-white transition-colors"
+                      >
+                        <span className="font-medium text-[#cbd5e1]">Google Calendar</span>
+                        <span className="block text-[#64748b] mt-0.5">Opens calendar.google.com in a new tab</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           ) : (
