@@ -278,7 +278,6 @@ export function SolarActivity() {
       {openModal === "flare" && latestFlare && (
         <FlareModal
           flare={latestFlare}
-          recentCmes={solarActivity.recentCmes}
           onClose={closeModal}
         />
       )}

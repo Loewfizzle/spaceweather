@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Zap, X, ChevronRight } from "lucide-react";
 import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { formatDistanceToNow } from "date-fns";
 import type { XrayFlare, CmeSummary } from "../../lib/api/schemas";
-import { assessEarthImpact } from "../../lib/aurora/solar";
 import { normalizeTimeTag } from "../../lib/utils/viewingWindow";
 
 const GOES_FLUX_URL = "https://services.swpc.noaa.gov/images/goes-xray-flux-1-minute.png";
@@ -64,11 +63,9 @@ function formatUTC(iso: string | undefined): string {
 
 export function FlareModal({
   flare,
-  recentCmes,
   onClose,
 }: {
   flare: XrayFlare;
-  recentCmes: CmeSummary[];
   onClose: () => void;
 }) {
   useBodyScrollLock();
@@ -77,7 +74,6 @@ export function FlareModal({
   const duration = flareDuration(flare.begin_time, flare.end_time);
   const peakTime = flare.max_time || flare.time_tag;
   const [goesState, setGoesState] = useState<"loading" | "loaded" | "failed">("loading");
-  const impact = useMemo(() => assessEarthImpact(recentCmes), [recentCmes]);
 
   const timingRows = [
     { label: "Begin", time: flare.begin_time },
@@ -169,38 +165,6 @@ export function FlareModal({
             <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Aurora impact</div>
             <p className="text-sm text-[#94a3b8] leading-relaxed">{info.impact}</p>
           </div>
-
-          {/* Earth impact assessment */}
-          {(() => {
-            const dotColor =
-              impact.level === "likely"   ? "#a78bfa"  // purple — highest severity, matches CME card
-              : impact.level === "glancing" ? "#f97316"  // orange — stepped down
-              : impact.level === "possible" ? "#eab308"  // yellow — uncertain
-              : "#475569";                               // gray — none
-            return (
-              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="h-2 w-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: dotColor }}
-                  />
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: dotColor }}
-                  >
-                    {impact.headline}
-                  </span>
-                </div>
-                <p className="text-sm text-[#94a3b8] leading-relaxed">{impact.detail}</p>
-                {impact.cme && (
-                  <div className="mt-1.5 text-[10px] text-[#64748b]">
-                    Detected{" "}
-                    {formatDistanceToNow(new Date(normalizeTimeTag(impact.cme.time)), { addSuffix: true })}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
 
           {/* GOES X-ray flux chart */}
           <div>
