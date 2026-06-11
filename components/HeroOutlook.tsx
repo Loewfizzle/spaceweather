@@ -123,7 +123,7 @@ export function HeroOutlook({
           <div className="space-y-1 mb-2">
             {(displayedCities.length > 0 || userLocationProb != null) && (
               <div className="border-t border-[#1e2937] pt-2 mt-1 mb-0.5">
-                <span className="text-xs text-[#94a3b8]">Aurora in the sky right now</span>
+                <span className="text-sm font-semibold text-[#cbd5e1]">Aurora in the sky right now</span>
               </div>
             )}
 
