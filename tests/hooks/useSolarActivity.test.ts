@@ -3,13 +3,14 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { useSolarActivity } from '../../lib/hooks/useSolarActivity';
-import { fetchXrayFlaresLatest, fetchAlerts, fetchSolarRegions } from '../../lib/api/fetchers';
+import { fetchXrayFlaresLatest, fetchXrayFlares7Day, fetchAlerts, fetchSolarRegions } from '../../lib/api/fetchers';
 import type { XrayFlare, Alert, SolarRegion } from '../../lib/api/schemas';
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
 vi.mock('../../lib/api/fetchers', () => ({
   fetchXrayFlaresLatest: vi.fn(),
+  fetchXrayFlares7Day: vi.fn(),
   fetchAlerts: vi.fn(),
   fetchSolarRegions: vi.fn(),
 }));
@@ -23,6 +24,7 @@ vi.mock('../../lib/utils/retry', () => ({
 }));
 
 const mockedFetchFlares = vi.mocked(fetchXrayFlaresLatest);
+const mockedFetchFlares7Day = vi.mocked(fetchXrayFlares7Day);
 const mockedFetchAlerts = vi.mocked(fetchAlerts);
 const mockedFetchRegions = vi.mocked(fetchSolarRegions);
 
@@ -58,6 +60,7 @@ function createWrapper() {
 beforeEach(() => {
   vi.clearAllMocks();
   mockedFetchFlares.mockResolvedValue(flareFixtures);
+  mockedFetchFlares7Day.mockResolvedValue(flareFixtures);
   mockedFetchAlerts.mockResolvedValue(alertFixtures);
   mockedFetchRegions.mockResolvedValue(regionFixtures);
 });
