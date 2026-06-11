@@ -103,7 +103,7 @@ export function NotificationPrompt({ accentColor = "#38bdf8" }: NotificationProm
             const thresh = ALERT_THRESHOLDS["balanced"];
             new Notification("SkyGlow", {
               body: `Alerts on. You'll hear from us when Kp ≥ ${thresh.kp} or OVATION ≥ ${thresh.prob}%.`,
-              icon: "/icons/icon-192.png",
+              icon: "/icon-192.png",
             });
           } catch {}
         }
