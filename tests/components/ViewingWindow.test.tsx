@@ -111,7 +111,7 @@ describe('ViewingWindow', () => {
 
   it('shows share-location nudge when locationGranted is false', () => {
     render(<ViewingWindow {...defaultProps} locationGranted={false} />);
-    expect(screen.getByText(/Share location for personalised sky conditions/i)).toBeInTheDocument();
+    expect(screen.getByText(/Share location for personalized sky conditions/i)).toBeInTheDocument();
   });
 
   it('renders last-night fallback when kpHistory is empty and not loading', () => {

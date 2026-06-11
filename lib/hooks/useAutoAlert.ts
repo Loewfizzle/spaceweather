@@ -53,7 +53,11 @@ export function useAutoAlert({
         new Notification("SkyGlow Alert", { body, tag: "skyglow-mi" });
         lastNotifiedRef.current = now;
         saveLastNotified(now);
-      } catch (e) { console.warn("Could not show notification", e); }
+      } catch (e) {
+        /* v8 ignore start */
+        if (process.env.NODE_ENV === 'development') console.warn("Could not show notification", e);
+        /* v8 ignore stop */
+      }
     }
   }, [kp, maxAuroraProbNA, bz, notificationPermission, isLoading, alertsEnabled, alertSensitivity]);
 }

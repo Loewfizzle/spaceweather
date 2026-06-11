@@ -80,7 +80,7 @@ export function useNotifications({
           body: `Test. You will receive real alerts when Kp ≥ ${thresh.kp} or OVATION ≥ ${thresh.prob}% (or strong −Bz) for the northern US.`,
           tag: "skyglow-test",
         });
-      } catch (e) { console.warn("Could not send test notification", e); }
+      } catch (e) { if (process.env.NODE_ENV === 'development') console.warn("Could not send test notification", e); }
       return;
     }
     const perm = await Notification.requestPermission();

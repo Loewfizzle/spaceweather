@@ -148,7 +148,7 @@ export function CurrentConditionsModal({
             <div>
               <div className="text-sm font-semibold text-[#cbd5e1] mb-1">NOAA OVATION Model</div>
               <p className="text-sm text-[#94a3b8] leading-relaxed mb-2">
-                OVATION is a scientific model from NOAA that analyses live solar wind data and calculates
+                OVATION is a scientific model from NOAA that analyzes live solar wind data and calculates
                 where the aurora oval is and how intense it is right now. The percentage shown on the
                 card is the <span className="text-[#94a3b8]">peak model output anywhere in North America</span>{" "}—
                 not a simple &ldquo;chance of seeing aurora.&rdquo; Think of it more like a radar return:

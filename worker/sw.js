@@ -8,9 +8,27 @@ const CACHE_NAME = 'skyglow-sw-v1';
 const KP_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json';
 const THROTTLE_MS = 30 * 60 * 1000;       // 30 min between background alerts
 const STATE_MAX_AGE_MS = 2 * 60 * 60 * 1000; // cached Bz / maxProb valid for 2 hours
+const OFFLINE_URL = '/offline.html';
 
-self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL))
+  );
+  self.skipWaiting();
+});
 self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
+
+// Intercept navigation requests and serve the offline page if the network fails.
+// Only handles document navigations (HTML page loads); API/asset requests are ignored.
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode !== 'navigate') return;
+  event.respondWith(
+    fetch(event.request).catch(async () => {
+      const cache = await caches.open(CACHE_NAME);
+      return cache.match(OFFLINE_URL);
+    })
+  );
+});
 
 // Periodic Background Sync — fires even when the browser tab is closed (Chrome/Edge only).
 // Falls back to in-tab polling (useNotifications) on other browsers.

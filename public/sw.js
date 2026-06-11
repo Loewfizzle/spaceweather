@@ -26,8 +26,23 @@
   var KP_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json";
   var THROTTLE_MS = 30 * 60 * 1e3;
   var STATE_MAX_AGE_MS = 2 * 60 * 60 * 1e3;
-  self.addEventListener("install", () => self.skipWaiting());
+  var OFFLINE_URL = "/offline.html";
+  self.addEventListener("install", (event) => {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL))
+    );
+    self.skipWaiting();
+  });
   self.addEventListener("activate", (event) => event.waitUntil(clients.claim()));
+  self.addEventListener("fetch", (event) => {
+    if (event.request.mode !== "navigate") return;
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        return cache.match(OFFLINE_URL);
+      })
+    );
+  });
   self.addEventListener("periodicsync", (event) => {
     if (event.tag === "aurora-check") {
       event.waitUntil(checkAurora());

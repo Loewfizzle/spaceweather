@@ -28,7 +28,7 @@ export function SdoImage({ src, alt }: { src: string; alt: string }) {
   const onError = () => {
     setImgState("failed");
     setConsecutiveFails((n) => n + 1);
-    console.warn("[SkyGlow] SDO image failed to load:", src);
+    if (process.env.NODE_ENV === 'development') console.warn("[SkyGlow] SDO image failed to load:", src);
   };
   const retry = (e: React.MouseEvent) => {
     e.preventDefault();

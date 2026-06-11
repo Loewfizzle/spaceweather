@@ -128,7 +128,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
 
                 <div className="text-[15px] text-[#94a3b8]">{tonight.guidance}</div>
 
-                {/* When location is shared, show personalised sky conditions */}
+                {/* When location is shared, show personalized sky conditions */}
                 {locationGranted && hasClear && (
                   <div className="mt-2 text-sm">
                     <span className="text-[#94a3b8]">Your skies tonight: </span>
@@ -140,7 +140,7 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
                 {/* When location is not shared, surface a gentle nudge */}
                 {!locationGranted && (
                   <div className="mt-2 text-sm text-white">
-                    Share location for personalised sky conditions
+                    Share location for personalized sky conditions
                   </div>
                 )}
               </div>
