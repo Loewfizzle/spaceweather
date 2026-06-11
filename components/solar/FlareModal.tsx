@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Zap, X, ChevronRight } from "lucide-react";
 import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { formatDistanceToNow } from "date-fns";
@@ -74,9 +74,8 @@ export function FlareModal({
   const duration = flareDuration(flare.begin_time, flare.end_time);
   const peakTime = flare.max_time || flare.time_tag;
   const [goesState, setGoesState] = useState<"loading" | "loaded" | "failed">("loading");
-  const goesUrl = useMemo(
-    () => `https://services.swpc.noaa.gov/images/goes-xray-flux-1-minute.png?t=${Date.now()}`,
-    []
+  const [goesUrl] = useState(
+    () => `https://services.swpc.noaa.gov/images/goes-xray-flux-1-minute.png?t=${Date.now()}`
   );
 
   const timingRows = [
