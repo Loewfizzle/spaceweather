@@ -119,10 +119,13 @@ export function ViewingWindow({ kpForecast, kpHistory, cloudCoverPct, cloudCover
                   const startStr = formatET(windowData.windowStart!);
                   const endStr   = formatET(windowData.windowEnd!);
                   return (
-                    <div className="text-xl font-semibold text-white tracking-tight mb-1">
-                      {startStr} – {endStr}
-                      <span className="text-[#94a3b8] text-sm font-normal ml-1.5">ET</span>
-                    </div>
+                    <>
+                      <div className="text-xs text-[#94a3b8] mb-0.5">Best viewing window</div>
+                      <div className="text-xl font-semibold text-white tracking-tight mb-1">
+                        {startStr} – {endStr}
+                        <span className="text-[#94a3b8] text-sm font-normal ml-1.5">ET</span>
+                      </div>
+                    </>
                   );
                 })() : null}
 

@@ -9,7 +9,7 @@ import { fetchFireballs } from "../api/fetchers";
 import type { Fireball } from "../api/schemas";
 
 // Fireball tracker (proxied via our /api/fireballs route to avoid CORS issues in production)
-export function useFireballs(limit = 10) {
+export function useFireballs(limit = 5) {
   const query = useQuery<Fireball[]>({
     queryKey: ["fireballs", limit],
     queryFn: () => fetchFireballs(limit),

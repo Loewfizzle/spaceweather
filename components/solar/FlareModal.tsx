@@ -192,6 +192,30 @@ export function FlareModal({
             </div>
           )}
 
+          {/* Flare class reference */}
+          <div>
+            <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Flare classes</div>
+            <div className="space-y-1.5">
+              {[
+                { color: "#a78bfa", label: "X-class", desc: "Extreme — major radio blackouts; strong CME and aurora potential" },
+                { color: "#f97316", label: "M-class", desc: "Moderate — brief high-latitude radio blackouts; aurora possible from associated CMEs" },
+                { color: "#eab308", label: "C-class", desc: "Minor — routine activity; minimal aurora impact on their own" },
+                { color: "#64748b", label: "B/A-class", desc: "Background — normal solar noise; no meaningful aurora impact" },
+              ].map(({ color, label, desc }) => (
+                <div key={label} className="flex items-start gap-2.5">
+                  <span
+                    className="h-2 w-2 rounded-full flex-shrink-0 mt-1"
+                    style={{ backgroundColor: color }}
+                  />
+                  <div>
+                    <span className="text-sm font-semibold" style={{ color }}>{label}</span>
+                    <span className="text-sm text-[#94a3b8] ml-1.5">{desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* External link */}
           <a
             href="https://www.swpc.noaa.gov/products/goes-x-ray-flux"
