@@ -102,11 +102,41 @@ describe('parseRecentCmes', () => {
     expect(parseRecentCmes([{ product_id: 'WATA30', issue_datetime: freshDate, message: 'CME Earth-directed 800 km/s' }])).toHaveLength(1);
   });
 
-  it('truncates the note at 140 characters when the message is long', () => {
+  it('produces a short plain-English note even for very long raw messages', () => {
     const longMsg = 'Coronal Mass Ejection detected. ' + 'A'.repeat(200);
     const result = parseRecentCmes([makeAlert('AL0001', longMsg)]);
-    expect(result[0].note.endsWith('…')).toBe(true);
-    expect(result[0].note.length).toBeLessThanOrEqual(141);
+    expect(result[0].note.length).toBeLessThan(100);
+    expect(result[0].note).not.toMatch(/SERIAL|SPACE WEATHER MESSAGE CODE|ISSUE TIME/);
+  });
+
+  it('generates a G-scale storm watch note from WATA product ID', () => {
+    const result = parseRecentCmes([makeAlert('WATA20', 'CME Earth-directed 700 km/s')]);
+    expect(result[0].note).toBe('A G2 geomagnetic storm watch is in effect.');
+  });
+
+  it('includes latitude in note when ABOVE GEOMAGNETIC LATITUDE is present', () => {
+    const msg = 'CME Earth-directed.\nABOVE GEOMAGNETIC LATITUDE 50 DEGREES: Impacts possible.';
+    const result = parseRecentCmes([makeAlert('WATA30', msg)]);
+    expect(result[0].note).toContain('50°');
+    expect(result[0].note).toContain('G3');
+  });
+
+  it('produces plain-English note for non-WATA Earth-directed CME', () => {
+    const result = parseRecentCmes([makeAlert('AL0001', 'CME will reach Earth at 800 km/s.')]);
+    expect(result[0].note).toBe('Earth-directed CME detected at 800 km/s.');
+  });
+
+  it('produces plain-English note for non-WATA glancing CME', () => {
+    const result = parseRecentCmes([makeAlert('AL0001', 'CME with partial halo at 600 km/s.')]);
+    expect(result[0].note).toBe('A glancing CME impact is possible at 600 km/s.');
+  });
+
+  it('includes compacted arrival window in note when VALID TIME is present', () => {
+    const msg = 'CME Earth-directed.\nVALID TIME: 2026 Jun 14 0000 UTC - 2026 Jun 15 2359 UTC';
+    const result = parseRecentCmes([makeAlert('WATA20', msg)]);
+    expect(result[0].note).toContain('Active:');
+    expect(result[0].note).toContain('Jun 14');
+    expect(result[0].note).not.toContain('2026');
   });
 });
 

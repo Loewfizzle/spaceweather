@@ -5,6 +5,8 @@ import { formatDistanceToNow } from "date-fns";
 import type { CmeSummary } from "../../lib/api/schemas";
 import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { normalizeTimeTag } from "../../lib/utils/viewingWindow";
+import { useDonkiCmes } from "../../lib/hooks/useNoaaQueries";
+import { getVisibleCities } from "../../lib/aurora/visibleCities";
 
 function formatCmeAge(isoTime: string): string {
   const t = new Date(normalizeTimeTag(isoTime)).getTime();
@@ -12,6 +14,37 @@ function formatCmeAge(isoTime: string): string {
   return t > Date.now()
     ? 'just now'
     : formatDistanceToNow(new Date(t), { addSuffix: true });
+}
+
+// G-scale colors: green(G1) → yellow(G2) → orange(G3) → red(G4) → purple(G5)
+const G_SCALE_COLORS: Record<string, string> = {
+  G1: '#22c55e',
+  G2: '#eab308',
+  G3: '#f97316',
+  G4: '#ef4444',
+  G5: '#a78bfa',
+};
+
+function kpToGScale(kp: number | null): { scale: string; color: string } | null {
+  if (kp === null || kp < 5) return null;
+  if (kp >= 9) return { scale: 'G5', color: G_SCALE_COLORS.G5 };
+  if (kp >= 8) return { scale: 'G4', color: G_SCALE_COLORS.G4 };
+  if (kp >= 7) return { scale: 'G3', color: G_SCALE_COLORS.G3 };
+  if (kp >= 6) return { scale: 'G2', color: G_SCALE_COLORS.G2 };
+  return { scale: 'G1', color: G_SCALE_COLORS.G1 };
+}
+
+function formatArrivalDatetime(iso: string): string {
+  const d = new Date(iso);
+  if (!isFinite(d.getTime())) return '';
+  return d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'UTC',
+    timeZoneName: 'short',
+  });
 }
 
 export function cmeImpactColor(impact: string | undefined): string {
@@ -30,6 +63,35 @@ export function CmeModal({
   onClose: () => void;
 }) {
   useBodyScrollLock();
+
+  const { data: donkiData, isLoading: donkiLoading } = useDonkiCmes();
+
+  // Most relevant CME: prefer the earliest future arrival; fall back to most recent past.
+  const donkiCme = donkiData && donkiData.length > 0
+    ? donkiData.reduce((best, curr) => {
+        const bTime = new Date(best.arrivalTime).getTime();
+        const cTime = new Date(curr.arrivalTime).getTime();
+        const now = Date.now();
+        const bFuture = bTime > now;
+        const cFuture = cTime > now;
+        if (bFuture && cFuture) return bTime < cTime ? best : curr;
+        if (bFuture) return best;
+        if (cFuture) return curr;
+        return bTime > cTime ? best : curr;
+      })
+    : null;
+
+  const gScale = donkiCme ? kpToGScale(donkiCme.kpIndex) : null;
+  const { cities } = donkiCme?.kpIndex != null
+    ? getVisibleCities(donkiCme.kpIndex)
+    : { cities: [] };
+  const cityExamples = cities.slice(0, 2).map((c) => `${c.name}, ${c.state}`).join(' and ');
+  const visibilityText = cityExamples
+    ? `Aurora may be visible as far south as ${cityExamples} under dark skies.`
+    : donkiCme?.kpIndex != null
+      ? 'Aurora may be visible at high latitudes under dark skies.'
+      : '';
+
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/70"
@@ -61,6 +123,50 @@ export function CmeModal({
           </div>
 
           <div className="px-5 pb-5 pt-4 space-y-5">
+            {/* DONKI impact forecast — shown only when data is available, fails silently */}
+            {donkiLoading ? (
+              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3 space-y-2">
+                <div className="h-3.5 w-28 rounded animate-pulse bg-[#1e2937]" />
+                <div className="h-3 w-full rounded animate-pulse bg-[#1e2937]" />
+                <div className="h-3 w-4/5 rounded animate-pulse bg-[#1e2937]" />
+              </div>
+            ) : donkiCme ? (
+              <div className="rounded-lg border border-[#1e2937] bg-[#0a0f1e] px-4 py-3">
+                <div className="text-xs font-semibold text-[#cbd5e1] uppercase tracking-wide mb-3">
+                  Impact Forecast
+                </div>
+
+                {/* Predicted arrival */}
+                <div className="flex items-baseline gap-2 mb-2 flex-wrap">
+                  <span className="text-xs text-[#64748b] shrink-0">Predicted arrival:</span>
+                  <span className="text-sm font-semibold text-white">
+                    {formatDistanceToNow(new Date(donkiCme.arrivalTime), { addSuffix: true })}
+                  </span>
+                  <span className="text-xs text-[#64748b]">
+                    ({formatArrivalDatetime(donkiCme.arrivalTime)})
+                  </span>
+                </div>
+
+                {/* G-scale badge */}
+                {gScale && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs text-[#64748b]">Expected storm:</span>
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded border"
+                      style={{ color: gScale.color, borderColor: gScale.color, backgroundColor: gScale.color + '1a' }}
+                    >
+                      {gScale.scale} Storm
+                    </span>
+                  </div>
+                )}
+
+                {/* Aurora visibility */}
+                {visibilityText && (
+                  <p className="text-sm text-[#94a3b8] leading-relaxed">{visibilityText}</p>
+                )}
+              </div>
+            ) : null}
+
             {/* CME list */}
             {recentCmes.length > 0 ? (
               <div className="space-y-3">

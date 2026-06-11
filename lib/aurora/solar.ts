@@ -1,11 +1,61 @@
-import type { Alert, CmeSummary, SolarRegion } from "../api/schemas";
+import { z } from "zod";
+import type { Alert, CmeSummary, DonkiCme, SolarRegion } from "../api/schemas";
 import { normalizeTimeTag } from "../utils/viewingWindow";
+
+// Raw shape returned by NASA DONKI CMEAnalysis endpoint — intentionally permissive.
+const DonkiCmeRawSchema = z.object({
+  time21_5: z.string().nullable().optional(),
+  speed: z.number().nullable().optional(),
+  halfAngle: z.number().nullable().optional(),
+  type: z.string().nullable().optional(),
+  isMostAccurate: z.boolean().nullable().optional(),
+  note: z.string().nullable().optional(),
+  predictedEarthImpactTime: z.string().nullable().optional(),
+  kpIndex18: z.number().nullable().optional(),
+  catalog: z.string().nullable().optional(),
+  associatedCMEID: z.string().nullable().optional(),
+  link: z.string().nullable().optional(),
+});
+
+/** Fetch Earth-directed CME predictions from NASA DONKI (last 3 days). */
+/* v8 ignore start */
+export async function fetchDonkiCmeDetails(signal?: AbortSignal): Promise<DonkiCme[]> {
+  const fmt = (d: Date) => d.toISOString().split('T')[0];
+  const today = new Date();
+  const startDate = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+  const params = new URLSearchParams({
+    startDate: fmt(startDate),
+    endDate: fmt(today),
+    mostAccurateOnly: 'true',
+    speed: '0',
+    halfAngle: '0',
+  });
+  const url = `https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get/CMEAnalysis?${params}`;
+  const res = await fetch(url, { cache: 'no-store', signal });
+  if (!res.ok) throw new Error(`DONKI CMEAnalysis: ${res.status}`);
+  const raw = await res.json();
+  const result = z.array(DonkiCmeRawSchema).safeParse(raw);
+  if (!result.success) return [];
+  return result.data
+    .filter((item) => item.isMostAccurate === true && item.predictedEarthImpactTime != null)
+    .map((item) => ({
+      speed: item.speed ?? null,
+      arrivalTime: item.predictedEarthImpactTime!,
+      kpIndex: item.kpIndex18 ?? null,
+      note: item.note ?? '',
+    }));
+}
+/* v8 ignore stop */
 
 // NOAA geomagnetic storm watch product IDs — issued specifically when Earth-directed CMEs
 // are detected and projected to impact Earth. More reliable as a primary signal than
 // body-text regex alone, which can break if NOAA changes alert wording.
 // G1=WATA07, G2=WATA20, G3=WATA30, G4=WATA40, G5=WATA50
 const STORM_WATCH_IDS = new Set(['WATA07', 'WATA20', 'WATA30', 'WATA40', 'WATA50']);
+
+const STORM_WATCH_LEVEL: Record<string, string> = {
+  WATA07: 'G1', WATA20: 'G2', WATA30: 'G3', WATA40: 'G4', WATA50: 'G5',
+};
 
 /** Parse recent Earth-directed or relevant CMEs from NOAA alerts. */
 export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
@@ -34,15 +84,50 @@ export function parseRecentCmes(alerts: Alert[] | undefined): CmeSummary[] {
     const isGlancing = !isDirectHit && /partial halo|glancing/i.test(msg);
     const impactNote = isDirectHit ? "Likely Earth impact" : isGlancing ? "Glancing impact possible" : "Monitor for effects";
     const flareMatch = msg.match(/\b([BCMX]\d+\.?\d*)\b/);
-    const lines = msg.split("\n").filter(Boolean);
-    const joined = lines.slice(0, 3).join(" ").replace(/\s+/g, " ");
-    const shortNote = joined.length > 140 ? joined.substring(0, 140) + "…" : joined;
+
+    // G-scale from product_id WATA code
+    const gLevel = STORM_WATCH_LEVEL[a.product_id];
+
+    // Geomagnetic latitude from "ABOVE GEOMAGNETIC LATITUDE NN DEGREES"
+    const latMatch = msg.match(/ABOVE\s+GEOMAGNETIC\s+LATITUDE\s+(\d+)/i);
+    const affectedLat = latMatch ? parseInt(latMatch[1], 10) : null;
+
+    // Arrival window — VALID TIME takes priority, then inline EXPECTED / ARRIVAL mentions
+    const validTimeMatch = msg.match(/VALID\s+TIME[:\s]+([^\n]+)/i);
+    const arrivalLineMatch = msg.match(/(?:expected\s+arrival|arrival\s+expected|estimated\s+to\s+arrive)[^\n]*/i);
+    const rawWindow = validTimeMatch?.[1]?.trim() ?? arrivalLineMatch?.[0]?.trim() ?? null;
+    // Compact the window: "2026 Jun 14 0000 UTC - 2026 Jun 15 2359 UTC" → "Jun 14 0000–Jun 15 2359 UTC"
+    const arrivalWindow = rawWindow
+      ? rawWindow.replace(/\b\d{4}\s+/g, '').replace(/\s*UTC\s*-\s*/i, '–').replace(/\s+UTC$/, ' UTC').trim()
+      : null;
+
+    let note: string;
+    if (gLevel) {
+      const parts: string[] = [`A ${gLevel} geomagnetic storm watch is in effect.`];
+      if (affectedLat != null) {
+        parts.push(`Aurora may be visible as far south as ${affectedLat}° latitude.`);
+      }
+      if (arrivalWindow) {
+        parts.push(`Active: ${arrivalWindow}.`);
+      }
+      note = parts.join(' ');
+    } else {
+      const speedText = speedMatch ? ` at ${parseInt(speedMatch[1], 10).toLocaleString()} km/s` : '';
+      if (isDirectHit) {
+        note = `Earth-directed CME detected${speedText}.`;
+      } else if (isGlancing) {
+        note = `A glancing CME impact is possible${speedText}.`;
+      } else {
+        note = `CME activity detected${speedText}.`;
+      }
+    }
+
     return {
       time: a.issue_datetime,
       speed: speedMatch ? parseInt(speedMatch[1], 10) : undefined,
       direction: dirMatch ? dirMatch[0] : undefined,
       earthImpact: impactNote,
-      note: shortNote,
+      note,
       associatedFlare: flareMatch ? flareMatch[1] : undefined,
     };
   });

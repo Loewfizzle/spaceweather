@@ -547,14 +547,14 @@ describe('parseRecentCmes', () => {
     expect(parseRecentCmes(alerts)[0].speed).toBeUndefined()
   })
 
-  it('truncates note to 140 chars with ellipsis for long messages', () => {
+  it('produces a short plain-English note even for very long raw messages', () => {
     const line = 'CME detected. ' + 'A'.repeat(160) // must contain CME to pass body filter
     const alerts: Alert[] = [
       { message: line, issue_datetime: T1 } as Alert,
     ]
     const note = parseRecentCmes(alerts)[0].note
-    expect(note.endsWith('…')).toBe(true)
-    expect(note.length).toBeLessThanOrEqual(143) // 140 chars + "…"
+    expect(note.length).toBeLessThan(100)
+    expect(note).not.toMatch(/SERIAL|SPACE WEATHER MESSAGE CODE|ISSUE TIME/)
   })
 })
 

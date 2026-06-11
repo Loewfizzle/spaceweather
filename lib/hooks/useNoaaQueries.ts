@@ -12,9 +12,10 @@ import {
   fetchKpForecast,
   fetchPlasma,
   fetchMag,
+  fetchDonkiCmes,
 } from "../api/fetchers";
 import { latest } from "../noaa";
-import type { OvationResponse, KpEntry, KpForecastEntry, PlasmaEntry, MagEntry } from "../api/schemas";
+import type { OvationResponse, KpEntry, KpForecastEntry, PlasmaEntry, MagEntry, DonkiCme } from "../api/schemas";
 
 export function useOvationData() {
   return useQuery<OvationResponse>({
@@ -88,6 +89,19 @@ export function useKpForecast() {
   return useQuery<KpForecastEntry[]>({
     queryKey: ["kp-forecast"],
     queryFn: fetchKpForecast,
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
+    refetchInterval: 1000 * 60 * 30,
+    refetchIntervalInBackground: false,
+    retry: shouldRetryNonCritical,
+    retryDelay: exponentialBackoff,
+  });
+}
+
+export function useDonkiCmes() {
+  return useQuery<DonkiCme[]>({
+    queryKey: ["donki-cmes"],
+    queryFn: fetchDonkiCmes,
     staleTime: 1000 * 60 * 30,
     gcTime: 1000 * 60 * 60,
     refetchInterval: 1000 * 60 * 30,

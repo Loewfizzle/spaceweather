@@ -121,6 +121,15 @@ export const KpForecastEntrySchema = z.object({
 export const KpForecastResponseSchema = z.array(KpForecastEntrySchema);
 export type KpForecastEntry = z.infer<typeof KpForecastEntrySchema>;
 
+// --- NASA DONKI CME Analysis (parsed/normalized output, not the raw API shape) ---
+export const DonkiCmeSchema = z.object({
+  speed: z.number().nullable(),
+  arrivalTime: z.string(),
+  kpIndex: z.number().nullable(),
+  note: z.string(),
+});
+export type DonkiCme = z.infer<typeof DonkiCmeSchema>;
+
 // Meteor shower (static data, not from external API but for type safety)
 export const MeteorShowerSchema = z.object({
   name: z.string(),

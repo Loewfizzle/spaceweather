@@ -20,8 +20,10 @@ import type {
   Alert,
   SolarRegion,
   Fireball,
+  DonkiCme,
 } from './schemas';
 import { logDataError, recordDataSuccess } from '../utils/retry';
+import { fetchDonkiCmeDetails } from '../aurora/solar';
 
 // Base fetch helper (shared, server + client safe).
 // Pure HTTP utility — intentionally has no logDataError calls so that each
@@ -253,6 +255,17 @@ export async function fetchFireballs(limit = 10): Promise<Fireball[]> {
     .filter((f) => f.date !== '');
   recordDataSuccess('fireballs');
   return fireballs;
+}
+
+// NASA DONKI CME Analysis — Earth-directed CMEs with predicted arrival times.
+// Uses a 10-second timeout; returns [] on any error so the modal degrades gracefully.
+export async function fetchDonkiCmes(): Promise<DonkiCme[]> {
+  try {
+    return await fetchDonkiCmeDetails(AbortSignal.timeout(10_000));
+  } catch (e) {
+    logDataError('DonkiCmes', e, { url: 'DONKI/CMEAnalysis' }, false, 'alerts');
+    return [];
+  }
 }
 
 // Types are exported from ./schemas (the single source of truth).
