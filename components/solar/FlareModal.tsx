@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Zap, X, ChevronRight } from "lucide-react";
 import { useBodyScrollLock } from "../../lib/hooks/useBodyScrollLock";
 import { formatDistanceToNow } from "date-fns";
-import type { XrayFlare, CmeSummary } from "../../lib/api/schemas";
+import type { XrayFlare } from "../../lib/api/schemas";
 import { normalizeTimeTag } from "../../lib/utils/viewingWindow";
-
-const GOES_FLUX_URL = "https://services.swpc.noaa.gov/images/goes-xray-flux-1-minute.png";
 
 type FlareInfo = { color: string; tier: string; impact: string };
 
@@ -63,9 +61,11 @@ function formatUTC(iso: string | undefined): string {
 
 export function FlareModal({
   flare,
+  recentFlares = [],
   onClose,
 }: {
   flare: XrayFlare;
+  recentFlares?: XrayFlare[];
   onClose: () => void;
 }) {
   useBodyScrollLock();
@@ -74,12 +74,18 @@ export function FlareModal({
   const duration = flareDuration(flare.begin_time, flare.end_time);
   const peakTime = flare.max_time || flare.time_tag;
   const [goesState, setGoesState] = useState<"loading" | "loaded" | "failed">("loading");
+  const goesUrl = useMemo(
+    () => `https://services.swpc.noaa.gov/images/goes-xray-flux-1-minute.png?t=${Date.now()}`,
+    []
+  );
 
   const timingRows = [
     { label: "Begin", time: flare.begin_time },
     { label: "Peak", time: flare.max_time },
     { label: "End", time: flare.end_time },
   ] as const;
+
+  const priorFlares = recentFlares.slice(1, 5);
 
   return (
     // Overlay is the scroll container — avoids the mobile-Safari 100vh chrome bug
@@ -166,6 +172,33 @@ export function FlareModal({
             <p className="text-sm text-[#94a3b8] leading-relaxed">{info.impact}</p>
           </div>
 
+          {/* Recent flares */}
+          {priorFlares.length > 0 && (
+            <div>
+              <div className="text-sm font-semibold text-[#cbd5e1] mb-2">Recent flares</div>
+              <div className="space-y-2">
+                {priorFlares.map((f, i) => {
+                  const fCls = f.max_class || f.current_class;
+                  const { color } = flareClassInfo(fCls);
+                  const t = f.max_time || f.time_tag;
+                  return (
+                    <div key={i} className="flex items-center gap-3 text-xs">
+                      <span className="font-mono font-semibold w-10 shrink-0" style={{ color }}>
+                        {fCls ?? "—"}
+                      </span>
+                      <span className="text-[#64748b] flex-1">
+                        {t ? formatDistanceToNow(new Date(normalizeTimeTag(t)), { addSuffix: true }) : "—"}
+                      </span>
+                      {f.region != null && (
+                        <span className="text-[#475569]">R{f.region}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* GOES X-ray flux chart */}
           <div>
             <div className="text-sm font-semibold text-[#cbd5e1] mb-2">
@@ -178,7 +211,7 @@ export function FlareModal({
                 )}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={GOES_FLUX_URL}
+                  src={goesUrl}
                   alt="GOES X-ray flux chart showing recent solar flare activity"
                   onLoad={() => setGoesState("loaded")}
                   onError={() => setGoesState("failed")}

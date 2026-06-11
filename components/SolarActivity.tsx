@@ -27,6 +27,7 @@ export function SolarActivity() {
   const sunCtx = solarActivity.sunspotNumber !== null ? sunspotContext(solarActivity.sunspotNumber) : null;
 
   const latestFlare = solarActivity.latestFlare;
+  const recentFlares = solarActivity.recentFlares;
   const flareClass = latestFlare?.max_class ?? latestFlare?.current_class ?? undefined;
   const flareInfo = flareClassInfo(flareClass);
   const flareTime = latestFlare?.max_time || solarActivity.flareTime;
@@ -278,6 +279,7 @@ export function SolarActivity() {
       {openModal === "flare" && latestFlare && (
         <FlareModal
           flare={latestFlare}
+          recentFlares={recentFlares}
           onClose={closeModal}
         />
       )}

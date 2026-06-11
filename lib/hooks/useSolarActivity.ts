@@ -51,6 +51,7 @@ export function useSolarActivity() {
   const latestFlare = flaresQuery.data && flaresQuery.data.length > 0
     ? flaresQuery.data[0]
     : null;
+  const recentFlares: XrayFlare[] = flaresQuery.data ?? [];
 
   // parseRecentCmes and currentSunspotNumber produce new array/value references every call;
   // memoize so consumers (e.g. tonightOutlook useMemo in DashboardClient) get stable deps.
@@ -81,6 +82,7 @@ export function useSolarActivity() {
   return {
     alerts: alertsQuery.data,
     latestFlare,
+    recentFlares,
     recentCmes,
     sunspotNumber,
     isLoading,
