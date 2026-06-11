@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { TrendingUp, X, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { CmeSummary } from "../../lib/api/schemas";
@@ -63,6 +64,7 @@ export function CmeModal({
   onClose: () => void;
 }) {
   useBodyScrollLock();
+  const [nowMs] = useState(Date.now);
 
   const { data: donkiData, isLoading: donkiLoading } = useDonkiCmes();
 
@@ -71,9 +73,8 @@ export function CmeModal({
     ? donkiData.reduce((best, curr) => {
         const bTime = new Date(best.arrivalTime).getTime();
         const cTime = new Date(curr.arrivalTime).getTime();
-        const now = Date.now();
-        const bFuture = bTime > now;
-        const cFuture = cTime > now;
+        const bFuture = bTime > nowMs;
+        const cFuture = cTime > nowMs;
         if (bFuture && cFuture) return bTime < cTime ? best : curr;
         if (bFuture) return best;
         if (cFuture) return curr;
