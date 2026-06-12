@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Sun, TrendingUp, Zap, ChevronRight } from "lucide-react";
+import { Sun, TrendingUp, Wind, Zap, ChevronRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSolarActivity } from "../lib/use-noaa-data";
 import { normalizeTimeTag } from "../lib/utils/viewingWindow";
@@ -216,8 +216,8 @@ export function SolarActivity() {
 
         <div className="bg-[#0c1222] border border-[#1e2937] rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2937]">
-            <div className="flex items-center gap-2 text-[#94a3b8] text-xs">
-              <TrendingUp className="w-4 h-4" /> CORONAL HOLES
+            <div className="flex items-center gap-2 text-[#94a3b8] text-xs font-semibold">
+              <Wind className="w-4 h-4" /> CORONAL HOLES
             </div>
             <button
               onClick={() => setOpenModal("coronal")}
