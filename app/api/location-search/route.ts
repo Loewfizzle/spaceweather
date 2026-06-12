@@ -1,25 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createRateLimiter } from "../../../lib/utils/rateLimit";
 
-// Simple per-instance sliding-window rate limiter (10 req/min per IP).
-// Per-instance only — resets on cold start, but sufficient for launch-scale abuse prevention.
-const RL_WINDOW_MS = 60_000;
-const RL_MAX_HITS = 10;
-const _rl = new Map<string, number[]>();
-function isRateLimited(ip: string | null): boolean {
-  // No x-forwarded-for means local dev or tests; Vercel always sets it in production.
-  if (!ip) return false;
-  const now = Date.now();
-  if (_rl.size > 1000) {
-    for (const [key, times] of _rl) {
-      if (now - times[times.length - 1] >= RL_WINDOW_MS) _rl.delete(key);
-    }
-  }
-  const hits = (_rl.get(ip) ?? []).filter((t) => now - t < RL_WINDOW_MS);
-  if (hits.length >= RL_MAX_HITS) return true;
-  hits.push(now);
-  _rl.set(ip, hits);
-  return false;
-}
+// 10 req/min per IP — protects the Nominatim upstream from rapid hammering
+const limiter = createRateLimiter({ windowMs: 60_000, maxHits: 10 });
 
 export interface LocationSearchResult {
   lat: number;
@@ -58,7 +41,7 @@ function buildLabel(addr: Record<string, string>, displayName: string): string {
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
-  if (isRateLimited(ip)) {
+  if (limiter.isRateLimited(ip)) {
     return NextResponse.json({ results: [] }, { status: 429 });
   }
 

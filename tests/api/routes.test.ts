@@ -6,10 +6,10 @@ vi.mock('@/lib/utils/retry', () => ({ logDataError: vi.fn() }));
 const fetchMock = vi.fn();
 vi.stubGlobal('fetch', fetchMock);
 
-function makeReq(base: string, params: Record<string, string> = {}) {
+function makeReq(base: string, params: Record<string, string> = {}, headers: Record<string, string> = {}) {
   const url = new URL(`http://localhost${base}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-  return new NextRequest(url.toString());
+  return new NextRequest(url.toString(), { headers });
 }
 
 // ============================================
@@ -432,5 +432,45 @@ describe('GET /api/location-search', () => {
     mockNominatim([nominatimHit({ address: { city: 'Denver', state: 'Colorado', country_code: 'us' } })]);
     const res = await locationSearch({ q: 'Denver' });
     expect(res.headers.get('Cache-Control')).toBe('public, s-maxage=3600');
+  });
+
+  // Rate limiting — the route module (and its limiter state) is cached across
+  // tests, so each test below uses an IP unique to that test.
+  describe('rate limiting', () => {
+    async function searchAs(ip: string) {
+      const { GET } = await import('../../app/api/location-search/route');
+      return GET(makeReq('/api/location-search', { q: 'Duluth' }, { 'x-forwarded-for': ip }));
+    }
+
+    it('returns 429 once an IP exceeds 10 requests per minute', async () => {
+      fetchMock.mockResolvedValue({ ok: true, json: async () => [] });
+      for (let i = 0; i < 10; i++) {
+        const res = await searchAs('203.0.113.1');
+        expect(res.status).toBe(200);
+      }
+      const blocked = await searchAs('203.0.113.1');
+      expect(blocked.status).toBe(429);
+      const body = await blocked.json();
+      expect(body.results).toEqual([]);
+    });
+
+    it('uses only the first IP from a multi-hop x-forwarded-for header', async () => {
+      fetchMock.mockResolvedValue({ ok: true, json: async () => [] });
+      const { GET } = await import('../../app/api/location-search/route');
+      for (let i = 0; i < 10; i++) {
+        await GET(makeReq('/api/location-search', { q: 'Duluth' }, { 'x-forwarded-for': '203.0.113.2, 10.0.0.1' }));
+      }
+      // Same client IP, different proxy chain — still the same bucket
+      const blocked = await GET(makeReq('/api/location-search', { q: 'Duluth' }, { 'x-forwarded-for': '203.0.113.2, 10.9.9.9' }));
+      expect(blocked.status).toBe(429);
+    });
+
+    it('does not rate-limit requests without an x-forwarded-for header', async () => {
+      fetchMock.mockResolvedValue({ ok: true, json: async () => [] });
+      for (let i = 0; i < 15; i++) {
+        const res = await locationSearch({ q: 'Duluth' });
+        expect(res.status).toBe(200);
+      }
+    });
   });
 });
